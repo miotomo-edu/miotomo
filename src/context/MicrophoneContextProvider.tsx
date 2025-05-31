@@ -1,9 +1,9 @@
 import {
   type ReactNode,
   createContext,
-  useCallback,
   useContext,
   useState,
+  useRef,
 } from "react";
 
 interface MicrophoneContextType {
@@ -27,14 +27,14 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
   const [microphoneAudioContext, setMicrophoneAudioContext] =
     useState<AudioContext>();
   const [processor, setProcessor] = useState<ScriptProcessorNode>();
-  const [mediaStream, setMediaStream] = useState<MediaStream>();
+  const mediaStreamRef = useRef<MediaStream | undefined>();
+  const audioContextRef = useRef<AudioContext | undefined>();
 
   const setupMicrophone = async () => {
     console.log("Setting up microphone...");
     setMicrophoneState(0);
 
     try {
-      // Request microphone access directly
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           sampleRate: 16000,
@@ -44,13 +44,14 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
         },
       });
 
-      setMediaStream(stream);
+      mediaStreamRef.current = stream;
 
       console.log("Got microphone stream");
 
-      // Use the existing AudioContext or create a new one
       const audioContext = microphoneAudioContext || new AudioContext();
-      await audioContext.resume(); // Ensure the AudioContext is running
+      await audioContext.resume();
+
+      audioContextRef.current = audioContext;
 
       const microphone = audioContext.createMediaStreamSource(stream);
       const processor = audioContext.createScriptProcessor(4096, 1, 1);
@@ -77,7 +78,7 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const startMicrophone = useCallback(() => {
+  const startMicrophone = () => {
     console.log("startMicrophone called with:", {
       microphone,
       processor,
@@ -93,35 +94,42 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // Make connections first
       microphone.connect(processor);
       processor.connect(microphoneAudioContext.destination);
 
-      // Set state after successful connection
       setTimeout(() => {
         console.log("setMicrophoneState(2)!!!!");
         setMicrophoneState(2);
-      }, 100); // Small delay to ensure connections are established
+      }, 100);
     } catch (err) {
       console.error("Error starting microphone:", err);
     }
-  }, [processor, microphoneAudioContext, microphone]);
+  };
 
-  // Cleanup function to stop all tracks and close the audio context
-  const cleanupMicrophone = useCallback(() => {
-    if (mediaStream) {
-      mediaStream.getTracks().forEach((track) => track.stop());
+  // Stable cleanup function
+  const cleanupMicrophone = () => {
+    try {
+      microphone?.disconnect();
+    } catch {}
+    try {
+      processor?.disconnect();
+    } catch {}
+
+    if (mediaStreamRef.current) {
+      console.log("TRACKS", mediaStreamRef.current.getTracks());
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = undefined;
     }
-    if (microphoneAudioContext) {
-      microphoneAudioContext.close();
+    if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+      audioContextRef.current.close();
+      audioContextRef.current = undefined;
     }
     setMicrophone(undefined);
     setProcessor(undefined);
     setMicrophoneAudioContext(undefined);
-    setMediaStream(undefined);
     setMicrophoneState(null);
     console.log("Microphone cleaned up");
-  }, [mediaStream, microphoneAudioContext]);
+  };
 
   return (
     <MicrophoneContext.Provider

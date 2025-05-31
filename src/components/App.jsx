@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 
 // Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
@@ -31,9 +31,21 @@ const App = ({ defaultStsConfig }) => {
     prevActiveComponent.current = componentName;
   };
 
-  defaultStsConfig.agent.think.prompt = prompt;
+  const updatedStsConfig = useMemo(
+    () => ({
+      ...defaultStsConfig,
+      agent: {
+        ...defaultStsConfig.agent,
+        think: {
+          ...defaultStsConfig.agent.think,
+          prompt,
+        },
+      },
+    }),
+    [defaultStsConfig, prompt],
+  );
 
-  console.log("defaultStsConfig", defaultStsConfig);
+  console.log("updatedStsConfig", updatedStsConfig);
 
   // Conditional rendering based on activeComponent state
   const renderComponent = () => {
@@ -55,7 +67,7 @@ const App = ({ defaultStsConfig }) => {
           <MicrophoneContextProvider>
             <VoiceBotProvider>
               <TalkWithBook
-                defaultStsConfig={defaultStsConfig}
+                defaultStsConfig={updatedStsConfig}
                 onNavigate={setActiveComponent}
               />
             </VoiceBotProvider>
