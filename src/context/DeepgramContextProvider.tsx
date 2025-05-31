@@ -7,6 +7,7 @@ import {
   useEffect,
 } from "react";
 import { getApiKey, sendKeepAliveMessage } from "../utils/deepgramUtils";
+import { USE_MOCK_DATA } from "../utils/mockData";
 
 enum SocketState {
   Unstarted = -1,
@@ -56,6 +57,12 @@ const DeepgramContextProvider = ({ children }: { children: ReactNode }) => {
     console.error("Websocket error", err);
   };
   const connectToDeepgram = async () => {
+    if (USE_MOCK_DATA) {
+      console.log(
+        "[Deepgram] Skipping connectToDeepgram because USE_MOCK_DATA is true",
+      );
+      return;
+    }
     console.log("[Deepgram] connectToDeepgram called");
     shouldReconnect.current = true;
     if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
@@ -94,6 +101,12 @@ const DeepgramContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const disconnectFromDeepgram = () => {
+    if (USE_MOCK_DATA) {
+      console.log(
+        "[Deepgram] Skipping disconnectFromDeepgram because USE_MOCK_DATA is true",
+      );
+      return;
+    }
     console.log("[Deepgram] disconnectFromDeepgram called");
     shouldReconnect.current = false;
     if (keepAlive.current) clearInterval(keepAlive.current);

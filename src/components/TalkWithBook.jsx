@@ -30,6 +30,7 @@ export const TalkWithBook = ({
   onMessageEvent = () => {},
   requiresUserActionToInitialize = false,
   className = "",
+  onNavigate,
 }) => {
   const { disconnectFromDeepgram } = useDeepgram();
 
@@ -516,51 +517,97 @@ export const TalkWithBook = ({
 
   // MAIN UI
   return (
-    <div className={`h-screen ${className} overflow-hidden`}>
-      <BookTitle title="Gangsta Granny" subtitle="David Walliams" />
-      <Suspense fallback={<div>Loading...</div>}>
-        <AnimationManager
-          agentVoiceAnalyser={agentVoiceAnalyser.current}
-          userVoiceAnalyser={userVoiceAnalyser.current}
-          onOrbClick={toggleSleep}
+    <div className="fixed inset-0 flex flex-col overflow-hidden">
+      {/* Fixed BookTitle */}
+      <div className="flex-none" style={{ background: "#F7F3EB" }}>
+        <BookTitle
+          title="Chapter 1"
+          subtitle="Gangsta Granny"
+          onBack={() => {
+            // Disconnect Deepgram when navigating away
+            if (typeof disconnectFromDeepgram === "function") {
+              disconnectFromDeepgram();
+            }
+            // Navigate to library
+            if (typeof onNavigate === "function") {
+              onNavigate("library");
+            }
+          }}
         />
-        {!microphone ? (
-          <div className="text-base text-gray-400 text-center w-full">
-            {isInitialized
-              ? "Setting up microphone..."
-              : "Waiting for microphone access..."}
+      </div>
+
+      {/* Scrollable transcript area - absolute positioning to control exact boundaries */}
+      <div
+        className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
+        style={{
+          top: "92px", // height of BookTitle
+          bottom: "176px", // height of AnimationManager (80px) + BottomNavBar (64px)
+        }}
+      >
+        {requiresUserActionToInitialize && !isInitialized ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <button
+              onClick={handleInitialize}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow-md"
+            >
+              Allow Microphone Access
+            </button>
+            <p className="text-sm text-gray-600 text-center max-w-xs">
+              Click to allow microphone access and start the voice assistant.
+            </p>
           </div>
+        ) : rateLimited ? (
+          <RateLimited />
         ) : (
           <Fragment>
-            {socketState === 0 && (
-              <div className="text-base text-gray-400 text-center w-full">
-                Loading Deepgram...
-              </div>
-            )}
-            {socketState > 0 && status === VoiceBotStatus.SLEEPING && (
-              <div className="text-xl flex flex-col items-center justify-center">
-                <div className="text-gray-400 text-sm">
-                  I've stopped listening. {isMobile ? "Tap" : "Click"} the orb
-                  to resume.
-                </div>
-              </div>
-            )}
-
-            <div className="w-full  px-4">
-              {" "}
-              {/* Removed mt-8 */}
-              {messages.length > 0 && (
-                <div className="h-[calc(100vh-20rem)] overflow-y-auto">
-                  {" "}
-                  {/* Adjust the height */}
-                  <Transcript />
-                </div>
-              )}
-            </div>
+            <Transcript
+              messages={messages}
+              status={status}
+              onMessageEvent={onMessageEvent}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
           </Fragment>
         )}
-      </Suspense>
-      {/* <BottomNavBar items={exampleNavItems} /> */}
+      </div>
+
+      {/* AnimationManager positioned above BottomNavBar */}
+      <div
+        className="absolute left-0 right-0 bottom-20"
+        style={{ pointerEvents: "none" }}
+      >
+        <Suspense fallback={<div>Loading...</div>}>
+          <AnimationManager
+            agentVoiceAnalyser={agentVoiceAnalyser.current}
+            userVoiceAnalyser={userVoiceAnalyser.current}
+            onOrbClick={toggleSleep}
+            style={{ pointerEvents: "auto" }} // Enable pointer events for the orb
+          />
+          {!microphone ? (
+            <div className="text-base text-gray-400 text-center w-full">
+              {isInitialized
+                ? "Setting up microphone..."
+                : "Waiting for microphone access..."}
+            </div>
+          ) : (
+            <Fragment>
+              {socketState === 0 && (
+                <div className="text-base text-gray-400 text-center w-full">
+                  Loading Deepgram...
+                </div>
+              )}
+              {socketState > 0 && status === VoiceBotStatus.SLEEPING && (
+                <div className="text-xl flex flex-col items-center justify-center">
+                  <div className="text-gray-400 text-sm">
+                    I've stopped listening. {isMobile ? "Tap" : "Click"} the orb
+                    to resume.
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          )}
+        </Suspense>
+      </div>
     </div>
   );
 };

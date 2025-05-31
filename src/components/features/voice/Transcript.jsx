@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { useVoiceBot } from "../../../context/VoiceBotContextProvider";
+// Import your local image
+import assistantAvatar from "../../../assets/img/miotomo-avatar.png"; // adjust the path and filename
 
 function Transcript() {
   const { messages } = useVoiceBot();
@@ -13,21 +15,19 @@ function Transcript() {
     scrollToBottom();
   }, [messages]);
 
+  const userAvatarUrl = "https://api.dicebear.com/7.x/micah/svg?seed=leo";
+  // Use the imported image
+  const assistantAvatarUrl = assistantAvatar;
+
   return (
-    // Removed overflow and scrollbar classes here
     <div className="w-full max-w-2xl mx-auto p-4">
-      <div className="space-y-3">
+      <div className="space-y-6">
         {messages.map((message, index) => {
           const isUser = !!message.user;
           const avatarBg = isUser ? "bg-userBubble" : "bg-assistantBubble20";
-          const avatarLetter = isUser ? "J" : "T";
-          const bubbleBg = isUser ? "bg-userBubble" : "bg-assistantBubble20";
-          // For flex direction and avatar position
           const flexDirection = isUser ? "flex-row-reverse" : "flex-row";
-          const avatarMargin = isUser ? "ml-2" : "mr-2";
-          // Padding at the far edge
+          const avatarMargin = isUser ? "ml-4" : "mr-4";
           const edgePadding = isUser ? "pl-10" : "pr-10";
-          // Alignment
           const alignment = isUser ? "ml-auto" : "mr-auto";
 
           return (
@@ -36,19 +36,21 @@ function Transcript() {
               className={`flex ${flexDirection} items-start w-fit max-w-full ${edgePadding} ${alignment}`}
             >
               {/* Avatar */}
-              <div
-                className={`flex-shrink-0 w-10 h-10 ${avatarBg} rounded-full flex items-center justify-center text-2xl font-normal text-gray-800 ${avatarMargin}`}
-              >
-                {avatarLetter}
+              <div className={`flex-shrink-0 w-10 h-10 ${avatarMargin}`}>
+                <img
+                  src={isUser ? userAvatarUrl : assistantAvatarUrl}
+                  alt={isUser ? "User Avatar" : "Assistant Avatar"}
+                  className={`w-full h-full rounded-full object-cover ${avatarBg}`}
+                />
               </div>
               {/* Bubble */}
               <div
-                className={`p-3 rounded-lg ${bubbleBg} max-w-[70vw] break-words`}
+                className={`p-3 rounded-xl max-w-[70vw] break-words border border-black`}
               >
                 {isUser ? (
-                  <p className="text-gray-800">{message.user}</p>
+                  <p className="text-gray-800 leading-7">{message.user}</p>
                 ) : message.assistant ? (
-                  <p className="text-gray-800">{message.assistant}</p>
+                  <p className="text-gray-800 leading-7">{message.assistant}</p>
                 ) : null}
               </div>
             </div>

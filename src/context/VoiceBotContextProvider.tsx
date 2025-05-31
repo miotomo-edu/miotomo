@@ -18,6 +18,8 @@ import {
   ADD_BEHIND_SCENES_EVENT,
 } from "./VoiceBotReducer";
 
+import { USE_MOCK_DATA, mockMessages } from "../utils/mockData";
+
 const defaultSleepTimeoutSeconds = 30;
 
 export enum EventType {
@@ -107,7 +109,7 @@ export interface VoiceBotContext extends VoiceBotState {
 const initialState: VoiceBotState = {
   status: VoiceBotStatus.SPEAKING,
   sleepTimer: 0,
-  messages: [],
+  messages: USE_MOCK_DATA ? mockMessages : [],
   attachParamsToCopyUrl: true,
   behindTheScenesEvents: [],
 };
