@@ -33,12 +33,13 @@ export const TalkWithBook = ({
   onNavigate,
 }) => {
   const { disconnectFromDeepgram } = useDeepgram();
-
+  const { cleanupMicrophone } = useMicrophone();
   useEffect(() => {
     return () => {
       if (typeof disconnectFromDeepgram === "function") {
         disconnectFromDeepgram();
       }
+      cleanupMicrophone();
     };
   }, []);
 
@@ -521,14 +522,15 @@ export const TalkWithBook = ({
       {/* Fixed BookTitle */}
       <div className="flex-none" style={{ background: "#F7F3EB" }}>
         <BookTitle
-          title="Chapter 1"
-          subtitle="Gangsta Granny"
+          title="Gangsta Granny"
+          subtitle="David Walliams"
           onBack={() => {
-            // Disconnect Deepgram when navigating away
             if (typeof disconnectFromDeepgram === "function") {
               disconnectFromDeepgram();
             }
-            // Navigate to library
+            if (microphoneAudioContext) {
+              microphoneAudioContext.close();
+            }
             if (typeof onNavigate === "function") {
               onNavigate("library");
             }
