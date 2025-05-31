@@ -19,7 +19,7 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
     <h2 className="text-3xl font-semibold mb-4">
       Continue chatting with Miotomo
     </h2>
-    <div className="px-4 py-4 border-black border rounded-xl bg-white bg-opacity-75">
+    <div className="px-4 py-4 border-black border rounded-xl bg-white bg-opacity-0">
       {/* Main container */}
       <div className="flex items-stretch gap-4">
         {/* Book cover - left side */}

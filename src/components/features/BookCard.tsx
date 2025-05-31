@@ -13,7 +13,7 @@ const BookCard: React.FC<BookCardProps> = ({
   author,
   onAction,
 }) => (
-  <div className="bg-white bg-opacity-75 rounded-xl  p-4 flex flex-col items-center w-full border border-black">
+  <div className="bg-white bg-opacity-0 rounded-xl  p-4 flex flex-col items-center w-full border border-black">
     <div className="w-full flex justify-center mb-2">
       <div className="w-24 aspect-[2/3] bg-gray-200 rounded flex items-center justify-center overflow-hidden">
         {thumbnailUrl ? (

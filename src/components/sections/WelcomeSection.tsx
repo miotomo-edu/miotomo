@@ -7,13 +7,13 @@ const WelcomeSection: React.FC = () => (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <img
-          src="https://api.dicebear.com/7.x/micah/svg?seed=MioTomo"
+          src="https://api.dicebear.com/7.x/micah/svg?seed=Amia"
           alt="Avatar"
           className="rounded-full object-cover"
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
         />
         <div className="ml-4 flex flex-col justify-center">
-          <h1 className="text-3xl font-bold mb-1">Hi, Alex!</h1>
+          <h1 className="text-3xl font-bold mb-1">Hi, Lilly!</h1>
           <span className="text-base">Level 8 Reader</span>
         </div>
       </div>
