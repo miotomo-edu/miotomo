@@ -25,5 +25,6 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env.DEEPGRAM_API_KEY": JSON.stringify(env.DEEPGRAM_API_KEY),
     },
+    base: "/miot/",
   };
 });
