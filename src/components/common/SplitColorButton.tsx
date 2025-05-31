@@ -24,7 +24,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
   icon,
 }) => {
   // Only shift text if icon is present
-  const textShift = icon ? ICON_SIZE / 2 : 0;
+  const textShift = icon ? -ICON_SIZE / 2 : 0;
 
   return (
     <button
