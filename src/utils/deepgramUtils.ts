@@ -2,7 +2,9 @@ import { convertFloat32ToInt16, downsample } from "../utils/audioUtils";
 
 export const getApiKey = async (): Promise<string> => {
   console.log("getApiKey");
-  const apiKey = (window as any).process?.env?.DEEPGRAM_API_KEY;
+  const apiKey =
+    (window as any).process?.env?.DEEPGRAM_API_KEY ??
+    import.meta.env.VITE_DEEPGRAM_API_KEY;
   if (!apiKey) {
     throw new Error("DEEPGRAM_API_KEY environment variable is not set");
   }
