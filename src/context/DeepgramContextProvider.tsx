@@ -75,6 +75,7 @@ const DeepgramContextProvider = ({ children }: { children: ReactNode }) => {
       // ...other handlers...
       setSocket(newSocket);
     } catch (error) {
+      console.log("cannot connect to deepgram", error);
       setSocketState(SocketState.Failed);
       if (
         shouldReconnect.current &&

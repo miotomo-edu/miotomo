@@ -1,28 +1,30 @@
 import { convertFloat32ToInt16, downsample } from "../utils/audioUtils";
 
 export const getApiKey = async (): Promise<string> => {
+  console.log("getApiKey");
   const apiKey = (window as any).process?.env?.DEEPGRAM_API_KEY;
   if (!apiKey) {
     throw new Error("DEEPGRAM_API_KEY environment variable is not set");
   }
-  console.log('API KEY', apiKey)
+  console.log("API KEY", apiKey);
   return apiKey;
 };
 
-export const sendMicToSocket = (socket: WebSocket) => (event: AudioProcessingEvent) => {
-  if (socket.readyState !== WebSocket.OPEN) {
-    console.warn('WebSocket is not open, skipping audio data send');
-    return;
-  }
-  const inputData = event?.inputBuffer?.getChannelData(0);
-  const downsampledData = downsample(inputData, 48000, 16000);
-  const audioDataToSend = convertFloat32ToInt16(downsampledData);
-  socket.send(audioDataToSend);
-};
+export const sendMicToSocket =
+  (socket: WebSocket) => (event: AudioProcessingEvent) => {
+    if (socket.readyState !== WebSocket.OPEN) {
+      console.warn("WebSocket is not open, skipping audio data send");
+      return;
+    }
+    const inputData = event?.inputBuffer?.getChannelData(0);
+    const downsampledData = downsample(inputData, 48000, 16000);
+    const audioDataToSend = convertFloat32ToInt16(downsampledData);
+    socket.send(audioDataToSend);
+  };
 
 export const sendSocketMessage = (socket: WebSocket, message: DGMessage) => {
   if (socket.readyState !== WebSocket.OPEN) {
-    console.warn('WebSocket is not open, skipping message send:', message);
+    console.warn("WebSocket is not open, skipping message send:", message);
     return;
   }
   socket.send(JSON.stringify(message));
@@ -30,7 +32,7 @@ export const sendSocketMessage = (socket: WebSocket, message: DGMessage) => {
 
 export const sendKeepAliveMessage = (socket: WebSocket) => () => {
   if (socket.readyState !== WebSocket.OPEN) {
-    console.warn('WebSocket is not open, skipping keepalive');
+    console.warn("WebSocket is not open, skipping keepalive");
     return;
   }
   sendSocketMessage(socket, { type: "KeepAlive" });
@@ -162,30 +164,30 @@ export interface Voice {
 
 export type DGMessage =
   | {
-    type: "Settings";
-    experimental?: boolean;
-    mip_opt_out?: boolean;
-    audio: AudioConfig;
-    agent: AgentConfig
-  }
+      type: "Settings";
+      experimental?: boolean;
+      mip_opt_out?: boolean;
+      audio: AudioConfig;
+      agent: AgentConfig;
+    }
   | { type: "UpdateInstructions"; prompt: string }
   | { type: "UpdateSpeak"; provider: ProviderConfig }
   | { type: "KeepAlive" }
   | {
-    type: "FunctionCallRequest";
-    functions: Array<{
+      type: "FunctionCallRequest";
+      functions: Array<{
+        id: string;
+        name: string;
+        arguments: string;
+        client_side: boolean;
+      }>;
+    }
+  | {
+      type: "FunctionCallResponse";
       id: string;
       name: string;
-      arguments: string;
-      client_side: boolean;
-    }>;
-  }
-  | {
-    type: "FunctionCallResponse";
-    id: string;
-    name: string;
-    content: string;
-  };
+      content: string;
+    };
 
 export const withBasePath = (path: string): string => {
   // In Vite, we don't need to handle basePath as it's handled by the dev server
