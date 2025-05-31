@@ -10,8 +10,7 @@ body {
   overflow-y: auto;
   height: 100%;
   width: 100%;
-  background: white;
-  background: linear-gradient(to bottom, white 70%, #fdecb2);
+  background: #f7f3eb;
   font-family: "Quicksand", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;

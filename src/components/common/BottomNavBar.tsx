@@ -13,9 +13,9 @@ interface BottomNavBarProps {
 
 const defaultNavItems = [
   { label: "Home", componentName: "landing", icon: <HomeIcon /> },
-  { label: "Library", componentName: "profile", icon: <LibraryIcon /> },
+  { label: "Progress", componentName: "profile", icon: <InsightsIcon /> },
+  { label: "Library", componentName: "library", icon: <LibraryIcon /> },
   { label: "Rewards", componentName: "profile", icon: <RewardIcon /> },
-  { label: "Insights", componentName: "profile", icon: <InsightsIcon /> },
   { label: "Settings", componentName: "profile", icon: <SettingsIcon /> },
 ];
 
@@ -31,7 +31,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-16 z-10">
+    <nav className="fixed bottom-0 left-0 w-full bg-black border-t border-gray-200 flex justify-around items-center h-16 z-10">
       {items.map((item, index) => {
         const isActive = activeComponentName === item.componentName;
         // Ensure icon is always sized the same
@@ -52,7 +52,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className="mb-1 flex items-center justify-center"
               style={{
-                color: isActive ? "#FAC304" : "#4B5563",
+                color: isActive ? "#F78AD7" : "#fff",
               }}
             >
               {icon}
@@ -60,7 +60,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className="text-sm"
               style={{
-                color: isActive ? "#FAC304" : "#4B5563",
+                color: isActive ? "#F78AD7" : "#fff",
                 fontWeight: isActive ? 600 : 400,
               }}
             >

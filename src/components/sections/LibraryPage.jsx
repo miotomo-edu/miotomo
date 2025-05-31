@@ -3,7 +3,7 @@ import CurrentBookSection from "./CurrentBookSection";
 import SearchSection from "./SearchSection";
 import LibrarySection from "./LibrarySection";
 
-function LandingPage({ onContinue }) {
+function LibraryPage({ onContinue }) {
   return (
     <div>
       <WelcomeSection />
@@ -19,4 +19,4 @@ function LandingPage({ onContinue }) {
   );
 }
 
-export default LandingPage;
+export default LibraryPage;

@@ -14,13 +14,13 @@ const WelcomeSection: React.FC = () => (
         />
         <div className="ml-4 flex flex-col justify-center">
           <h1 className="text-3xl font-bold mb-1">Hi, Alex!</h1>
-          <span className="text-yellow-600 font-semibold text-base">Level 8 Reader</span>
+          <span className="text-base">Level 8 Reader</span>
         </div>
       </div>
       <button
         className="px-6 font-semibold border rounded-full py-2 border-none"
         style={{
-          backgroundColor: "#FAC304",
+          backgroundColor: "#F78AD7",
         }}
       >
         🔥 7 days

@@ -62,7 +62,9 @@ const LibrarySection: React.FC = () => {
 
   return (
     <section className="py-6 px-4">
-      <h2 className="text-xl font-semibold mb-4">Library</h2>
+      <h2 className="text-3xl font-semibold mb-4">
+        Pick a book and chat with Miotomo...
+      </h2>
       <BookGrid books={books} onBookAction={handleBookAction} />
     </section>
   );

@@ -3,6 +3,7 @@ import React, { useState, useRef } from "react";
 // Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
+import LibraryPage from "./sections/LibraryPage";
 import ProfileSection from "./sections/ProfileSection";
 import { TalkWithBook } from "./TalkWithBook";
 import BottomNavBar from "./common/BottomNavBar";
@@ -14,7 +15,7 @@ import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider"
 const App = ({ defaultStsConfig }) => {
   // State to manage which component is currently active
   // Changed default state from 'interactive' to 'landing'
-  const [activeComponent, setActiveComponent] = useState("landing");
+  const [activeComponent, setActiveComponent] = useState("library");
   const prevActiveComponent = useRef(activeComponent);
 
   // Function to switch components
@@ -29,6 +30,10 @@ const App = ({ defaultStsConfig }) => {
       case "landing":
         return (
           <LandingPage onContinue={() => setActiveComponent("interactive")} />
+        );
+      case "library":
+        return (
+          <LibraryPage onContinue={() => setActiveComponent("interactive")} />
         );
       case "profile":
         return <ProfileSection />;

@@ -41,7 +41,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       {icon && (
         <span
           className="absolute left-0 top-0 h-full flex items-center justify-center ml-2"
-          style={{ width: ICON_SIZE, zIndex: 3, color: "#fff" }}
+          style={{ width: ICON_SIZE, zIndex: 3, color: "#000" }}
         >
           {React.cloneElement(icon, { className: "w-8 h-8" })}
         </span>
@@ -50,7 +50,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       <span
         className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-semibold text-lg select-none pointer-events-none"
         style={{
-          color: "#fff",
+          color: "#000",
           clipPath: `inset(0 ${100 - split}% 0 0)`,
           WebkitClipPath: `inset(0 ${100 - split}% 0 0)`,
           zIndex: 2,
@@ -58,7 +58,9 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       >
         <span
           className="text-center w-full"
-          style={icon ? { transform: `translateX(-${textShift}px)` } : undefined}
+          style={
+            icon ? { transform: `translateX(-${textShift}px)` } : undefined
+          }
         >
           {text}
         </span>
@@ -67,7 +69,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       <span
         className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-semibold text-lg select-none pointer-events-none"
         style={{
-          color: "#000",
+          color: "#fff",
           clipPath: `inset(0 0 0 ${split}%)`,
           WebkitClipPath: `inset(0 0 0 ${split}%)`,
           zIndex: 2,
@@ -75,7 +77,9 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       >
         <span
           className="text-center w-full"
-          style={icon ? { transform: `translateX(-${textShift}px)` } : undefined}
+          style={
+            icon ? { transform: `translateX(-${textShift}px)` } : undefined
+          }
         >
           {text}
         </span>
