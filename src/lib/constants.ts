@@ -1,5 +1,5 @@
 import { type StsConfig, type Voice } from "../utils/deepgramUtils";
-import { bookCompanionPrompt, bookCompanionGreetings } from "./prompts";
+import { loadBookCompanionPrompt, bookCompanionGreetings } from "./prompts";
 
 export const stsConfig: StsConfig = {
   type: "Settings",
@@ -30,7 +30,7 @@ export const stsConfig: StsConfig = {
         model: "gpt-4o-mini",
         temperature: 0,
       },
-      prompt: bookCompanionPrompt,
+      prompt: "",
     },
     speak: {
       provider: {

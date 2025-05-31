@@ -1,5 +1,5 @@
 export const bookCompanionGreetings =
-  "Hello! I'm MioTomo! Your happy book buddy! Are you enjoying your book?";
+  "Hello! I'm MioTomo! Your happy book buddy! Are you enjoying Gangsta Granny?";
 
 // Dynamically import the markdown file
 const markdownFiles = import.meta.glob("./book-companion-prompt.md", {
@@ -7,15 +7,10 @@ const markdownFiles = import.meta.glob("./book-companion-prompt.md", {
   import: "default",
 });
 
-// Initialize the variable to hold the content of the markdown file
-export let bookCompanionPrompt = "";
-
-// Load the content of the markdown file
-async function loadPrompt() {
+export function loadBookCompanionPrompt(): Promise<string> {
   for (const path in markdownFiles) {
     const loadFile = markdownFiles[path];
-    bookCompanionPrompt = await loadFile();
-    break;
+    return loadFile();
   }
+  return Promise.resolve(""); // fallback if not found
 }
-loadPrompt();

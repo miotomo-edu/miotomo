@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 // Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
@@ -10,6 +10,7 @@ import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
+import { loadBookCompanionPrompt } from "../lib/prompts";
 
 // Assuming defaultStsConfig is passed as a prop from main.tsx
 const App = ({ defaultStsConfig }) => {
@@ -18,11 +19,21 @@ const App = ({ defaultStsConfig }) => {
   const [activeComponent, setActiveComponent] = useState("library");
   const prevActiveComponent = useRef(activeComponent);
 
+  const [prompt, setPrompt] = useState("");
+
+  useEffect(() => {
+    loadBookCompanionPrompt().then(setPrompt);
+  }, []);
+
   // Function to switch components
   const handleNavigationClick = (componentName) => {
     setActiveComponent(componentName);
     prevActiveComponent.current = componentName;
   };
+
+  defaultStsConfig.agent.think.prompt = prompt;
+
+  console.log("defaultStsConfig", defaultStsConfig);
 
   // Conditional rendering based on activeComponent state
   const renderComponent = () => {
