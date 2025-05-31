@@ -16,7 +16,7 @@ import { loadBookCompanionPrompt } from "../lib/prompts";
 const App = ({ defaultStsConfig }) => {
   // State to manage which component is currently active
   // Changed default state from 'interactive' to 'landing'
-  const [activeComponent, setActiveComponent] = useState("interactive");
+  const [activeComponent, setActiveComponent] = useState("library");
   const prevActiveComponent = useRef(activeComponent);
 
   const [prompt, setPrompt] = useState("");
