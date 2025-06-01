@@ -15,6 +15,8 @@ import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
 import { loadBookCompanionPrompt } from "../lib/prompts";
 
+import { mockBooks } from "./sections/LibrarySection";
+
 // Assuming defaultStsConfig is passed as a prop from main.tsx
 const App = ({ defaultStsConfig }) => {
   // State to manage which component is currently active
@@ -24,6 +26,7 @@ const App = ({ defaultStsConfig }) => {
 
   const [prompt, setPrompt] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
+  const [books, setBooks] = useState(mockBooks); // import mockBooks from LibrarySection
 
   useEffect(() => {
     loadBookCompanionPrompt().then(setPrompt);
@@ -59,6 +62,8 @@ const App = ({ defaultStsConfig }) => {
       case "home":
         return (
           <HomePage
+            books={books}
+            setBooks={setBooks}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}
@@ -67,6 +72,8 @@ const App = ({ defaultStsConfig }) => {
       case "library":
         return (
           <LibraryPage
+            books={books}
+            setBooks={setBooks}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}

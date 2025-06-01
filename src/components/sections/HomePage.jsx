@@ -3,15 +3,19 @@ import CurrentBookSection from "./CurrentBookSection";
 import SearchSection from "./SearchSection";
 import LibrarySection from "./LibrarySection";
 
-function HomePage({ onContinue, selectedBook, onBookSelect }) {
+function HomePage({ books, setBooks, selectedBook, onBookSelect, onContinue }) {
   return (
     <div>
       <WelcomeSection />
       {selectedBook && (
         <CurrentBookSection book={selectedBook} onContinue={onContinue} />
       )}
-      {/* <SearchSection /> */}
-      <LibrarySection onBookSelect={onBookSelect} />
+      <LibrarySection
+        books={books}
+        setBooks={setBooks}
+        onBookSelect={onBookSelect}
+        onContinue={onContinue}
+      />
     </div>
   );
 }

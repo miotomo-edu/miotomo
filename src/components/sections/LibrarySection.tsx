@@ -10,14 +10,14 @@ export type Book = {
   progress: number; // 0 to 100
 };
 
-const mockBooks: Book[] = [
+export const mockBooks: Book[] = [
   {
     id: "1",
     title: "Gangsta Granny",
     author: "David Walliams",
     thumbnailUrl: "https://www.ibs.it/images/9780007371440_0_0_536_0_75.jpg",
-    status: "started",
-    progress: 27,
+    status: "new",
+    progress: 0,
   },
   {
     id: "2",
@@ -77,14 +77,27 @@ const mockBooks: Book[] = [
   },
 ];
 
-const LibrarySection: React.FC<{ onBookSelect: (book: BookType) => void }> = ({
-  onBookSelect,
-}) => {
-  const [books] = useState<BookType[]>(mockBooks);
+type LibrarySectionProps = {
+  books: Book[];
+  setBooks: (books: Book[]) => void;
+  onBookSelect: (book: Book) => void;
+  onContinue: () => void;
+};
 
+const LibrarySection: React.FC<LibrarySectionProps> = ({
+  books,
+  setBooks,
+  onBookSelect,
+  onContinue,
+}) => {
   const handleBookAction = (bookId: string) => {
-    const book = books.find((b) => b.id === bookId);
-    if (book) onBookSelect(book);
+    const updatedBooks = books.map((b) =>
+      b.id === bookId ? { ...b, status: "started", progress: 28 } : b,
+    );
+    setBooks(updatedBooks);
+    const selected = updatedBooks.find((b) => b.id === bookId);
+    if (selected) onBookSelect(selected);
+    onContinue();
   };
 
   return (
