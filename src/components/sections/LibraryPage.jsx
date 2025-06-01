@@ -9,10 +9,11 @@ function LibraryPage({
   selectedBook,
   onBookSelect,
   onContinue,
+  userName,
 }) {
   return (
     <div>
-      <WelcomeSection />
+      <WelcomeSection userName={userName} />
       {selectedBook && (
         <CurrentBookSection book={selectedBook} onContinue={onContinue} />
       )}

@@ -23,6 +23,7 @@ const App = ({ defaultStsConfig }) => {
   // Changed default state from 'interactive' to 'landing'
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
+  const [userName, setUserName] = useState("Alex"); // Default or fetched value
 
   const [prompt, setPrompt] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
@@ -39,12 +40,12 @@ const App = ({ defaultStsConfig }) => {
   };
 
   const introduction = selectedBook
-    ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with children aged 6–12 about the book "${selectedBook.title}" by ${selectedBook.author}.`
-    : `You are Tomo, a warm, curious, and encouraging AI companion who chats with children aged 6–12 about a book.`;
+    ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 6–12, about the book "${selectedBook.title}" by ${selectedBook.author}.`
+    : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged  6–12 about a book.`;
 
   const greeting = selectedBook
-    ? `Hello! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
-    : `Hello! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
+    ? `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
+    : `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
   const updatedStsConfig = useMemo(
     () => ({
       ...defaultStsConfig,
@@ -75,6 +76,7 @@ const App = ({ defaultStsConfig }) => {
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}
+            userName={userName}
           />
         );
       case "library":
@@ -85,6 +87,7 @@ const App = ({ defaultStsConfig }) => {
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}
+            userName={userName}
           />
         );
 

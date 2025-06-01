@@ -14,7 +14,7 @@ function Transcript() {
     scrollToBottom();
   }, [messages]);
 
-  const userAvatarUrl = "https://api.dicebear.com/7.x/micah/svg?seed=leo";
+  const userAvatarUrl = "https://api.dicebear.com/7.x/micah/svg?seed=Amia";
   const assistantAvatarUrl = assistantAvatar;
 
   return (

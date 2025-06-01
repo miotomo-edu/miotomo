@@ -3,10 +3,17 @@ import CurrentBookSection from "./CurrentBookSection";
 import ReminderSection from "./ReminderSection";
 import LibrarySection from "./LibrarySection";
 
-function HomePage({ books, setBooks, selectedBook, onBookSelect, onContinue }) {
+function HomePage({
+  books,
+  setBooks,
+  selectedBook,
+  onBookSelect,
+  onContinue,
+  userName,
+}) {
   return (
     <div>
-      <WelcomeSection />
+      <WelcomeSection userName={userName} />
       {selectedBook ? (
         <>
           <CurrentBookSection book={selectedBook} onContinue={onContinue} />
