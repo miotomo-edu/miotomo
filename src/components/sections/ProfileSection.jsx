@@ -1,10 +1,15 @@
 import React from "react";
+import progressImg from "../../assets/img/progress.png";
 
 const ProfileSection = () => {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">Your Profile</h1>
-      <p>Track your reading progress here.</p>
+    <div className="w-full h-full">
+      <img
+        src={progressImg}
+        alt="Your Progress"
+        className="w-full h-auto m-0 p-0 rounded-none"
+        style={{ display: "block" }}
+      />
     </div>
   );
 };
