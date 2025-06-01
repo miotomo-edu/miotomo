@@ -7,7 +7,7 @@ export type Book = {
   author: string;
   thumbnailUrl: string;
   status: "new" | "started" | "read";
-  progress: number; // 0 to 100
+  progress: number;
 };
 
 export const mockBooks: Book[] = [
