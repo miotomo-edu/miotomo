@@ -1,5 +1,5 @@
 export const bookCompanionGreetings =
-  "Hello! I'm MioTomo! Your happy book buddy! Are you enjoying Gangsta Granny?";
+  "Hello! I'm MioTomo! Your happy book buddy! Are you enjoying your book?";
 
 // Dynamically import the markdown file
 const markdownFiles = import.meta.glob("./book-companion-prompt.md", {
