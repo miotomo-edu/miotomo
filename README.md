@@ -6,6 +6,8 @@ Technical description here
 
 ## Project Description
 
+This project leverages the Voice Agent API to enable seamless voice interactions within the application. The voice prompt used by the agent was carefully crafted and refined through extensive testing to ensure optimal user experience and performance. The user interface is built with React, utilizing modern AI-assisted tools to streamline development and enhance usability.
+
 ### Overview
 
 ### Project Details
@@ -16,4 +18,23 @@ Technical description here
 
 #### Project Scope
 
-#### Project Deliverable
+#### Project structure
+
+```
+├── public
+└── src
+├── assets
+│   └── img
+├── components
+│   ├── common
+│   │   └── icons
+│   ├── features
+│   │   └── voice
+│   ├── layout
+│   └── sections
+├── context
+├── hooks
+├── lib
+├── styles
+└── utils
+```

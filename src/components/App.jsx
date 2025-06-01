@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 // Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
+import HomePage from "./sections/HomePage";
 import LibraryPage from "./sections/LibraryPage";
 import ProfileSection from "./sections/ProfileSection";
 import { TalkWithBook } from "./TalkWithBook";
@@ -16,7 +17,7 @@ import { loadBookCompanionPrompt } from "../lib/prompts";
 const App = ({ defaultStsConfig }) => {
   // State to manage which component is currently active
   // Changed default state from 'interactive' to 'landing'
-  const [activeComponent, setActiveComponent] = useState("library");
+  const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
 
   const [prompt, setPrompt] = useState("");
@@ -51,14 +52,20 @@ const App = ({ defaultStsConfig }) => {
   const renderComponent = () => {
     switch (activeComponent) {
       case "landing":
+        return <LandingPage onContinue={() => setActiveComponent("home")} />;
+      case "home":
         return (
-          <LandingPage onContinue={() => setActiveComponent("interactive")} />
+          <HomePage onContinue={() => setActiveComponent("interactive")} />
         );
       case "library":
         return (
           <LibraryPage onContinue={() => setActiveComponent("interactive")} />
         );
       case "profile":
+        return <ProfileSection />;
+      case "rewards":
+        return <ProfileSection />;
+      case "settings":
         return <ProfileSection />;
       case "interactive":
         // Pass defaultStsConfig only to InteractiveSection
@@ -81,16 +88,13 @@ const App = ({ defaultStsConfig }) => {
   return (
     <Layout>
       {/* Render the currently active component */}
-      <div style={{ flexGrow: 1, overflowY: "auto" }}>
-        {" "}
-        {/* Added basic styling for content area */}
-        {renderComponent()}
-      </div>
-
-      <BottomNavBar
-        onItemClick={handleNavigationClick}
-        activeComponentName={activeComponent}
-      />
+      <div style={{ flexGrow: 1, overflowY: "auto" }}>{renderComponent()}</div>
+      {activeComponent !== "landing" && (
+        <BottomNavBar
+          onItemClick={handleNavigationClick}
+          activeComponentName={activeComponent}
+        />
+      )}
     </Layout>
   );
 };
