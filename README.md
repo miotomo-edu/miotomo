@@ -130,7 +130,7 @@ When a child reads or chats with the AI, unfamiliar words can be highlighted. Th
 
 ---
 
-## How to install
+## </> How to install
 
 1. Clone the repository
 2. Install dependencies
