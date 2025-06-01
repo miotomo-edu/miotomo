@@ -7,8 +7,9 @@ import React, {
   type RefObject,
 } from "react";
 import useResizeObserver from "@react-hook/resize-observer";
-import Hal from "../features/voice/Hal";
+
 import { normalizeVolume } from "../../utils/audioUtils";
+import MicrophoneStatus from "../features/voice/MicrophoneStatus";
 
 const useSize = (target: RefObject<HTMLButtonElement> | null) => {
   const [size, setSize] = useState<DOMRect>(new DOMRect());
@@ -61,15 +62,14 @@ const AnimationManager: FC<Props> = ({
 
   return (
     <div className="flex items-center justify-center">
-      <button ref={canvasContainer} onClick={onOrbClick} className="orb-animation">
-        {canvasContainer.current && (
-          <Hal
-            width={size.width}
-            height={size.height}
-            agentVolume={agentVolume}
-            userVolume={userVolume}
-          />
-        )}
+      <button
+        ref={canvasContainer}
+        onClick={() => {
+          onOrbClick();
+        }}
+        className="orb-animation"
+      >
+        <MicrophoneStatus />
       </button>
     </div>
   );

@@ -261,7 +261,7 @@ export const TalkWithBook = ({
         (requiresUserActionToInitialize && isInitialized))
     ) {
       console.log("Calling connectToDeepgram from effect");
-      // connectToDeepgram();
+      connectToDeepgram();
     }
   }, [
     microphone,
@@ -574,10 +574,7 @@ export const TalkWithBook = ({
       </div>
 
       {/* AnimationManager positioned above BottomNavBar */}
-      <div
-        className="absolute left-0 right-0 bottom-20"
-        style={{ pointerEvents: "none" }}
-      >
+      <div className="absolute left-0 right-0 bottom-20">
         <Suspense fallback={<div>Loading...</div>}>
           <AnimationManager
             agentVoiceAnalyser={agentVoiceAnalyser.current}

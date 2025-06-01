@@ -268,3 +268,27 @@ h2 {
     z-index: 50;
   }
 }
+
+/* MicrophoneStatus Animations */
+.mic-pulse {
+  animation: micPulse 1.2s infinite;
+}
+@keyframes micPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.mic-glow {
+  box-shadow:
+    0 0 16px 4px #f78ad7,
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mic-fade {
+  opacity: 0.5;
+}
