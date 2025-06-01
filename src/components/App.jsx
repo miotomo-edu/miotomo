@@ -29,9 +29,17 @@ const App = ({ defaultStsConfig }) => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [books, setBooks] = useState(mockBooks); // import mockBooks from LibrarySection
 
+  const mainRef = useRef(null);
+
   useEffect(() => {
     loadBookCompanionPrompt().then(setPrompt);
   }, []);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [activeComponent]);
 
   // Function to switch components
   const handleNavigationClick = (componentName) => {
@@ -118,7 +126,7 @@ const App = ({ defaultStsConfig }) => {
 
   return (
     <div className="app-mobile-shell">
-      <Layout>
+      <Layout mainRef={mainRef}>
         {/* Render the currently active component */}
         <div style={{ flexGrow: 1, overflowY: "auto" }}>
           {renderComponent()}
