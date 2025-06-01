@@ -1,3 +1,4 @@
+// buildathon/miot/src/components/features/voice/MicrophoneStatus.tsx
 import React from "react";
 import {
   useVoiceBot,
@@ -7,7 +8,7 @@ import { Microphone } from "../../common/icons/Microphone";
 import { MicrophoneMute } from "../../common/icons/MicrophoneMute";
 import { MicrophoneSpeaking } from "../../common/icons/MicrophoneSpeaking";
 
-const getStatusClass = (status: VoiceBotStatus) => {
+export const getStatusClass = (status: VoiceBotStatus) => {
   switch (status) {
     case VoiceBotStatus.LISTENING:
       return "mic-pulse";
@@ -22,7 +23,7 @@ const getStatusClass = (status: VoiceBotStatus) => {
 };
 
 const MicrophoneStatus: React.FC = () => {
-  const { status, toggleSleep } = useVoiceBot();
+  const { status } = useVoiceBot();
 
   let Icon = Microphone;
   if (status === VoiceBotStatus.SPEAKING) {
@@ -35,21 +36,9 @@ const MicrophoneStatus: React.FC = () => {
   }
 
   return (
-    <button
-      onClick={toggleSleep}
-      className={`orb-animation bg-white flex items-center justify-center ${getStatusClass(status)}`}
-      style={{
-        border: "4px solid #000",
-        borderRadius: "50%",
-        width: 80,
-        height: 80,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        transition: "box-shadow 0.2s",
-      }}
-      aria-label="Microphone Status"
-    >
+    <div className="flex items-center justify-center w-full h-full">
       <Icon style={{ width: 48, height: 48, color: "#000" }} />
-    </button>
+    </div>
   );
 };
 

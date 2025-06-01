@@ -120,13 +120,13 @@ const App = ({ defaultStsConfig }) => {
         <div style={{ flexGrow: 1, overflowY: "auto" }}>
           {renderComponent()}
         </div>
-        {activeComponent !== "landing" && (
-          <BottomNavBar
-            onItemClick={handleNavigationClick}
-            activeComponentName={activeComponent}
-          />
-        )}
       </Layout>
+      {activeComponent !== "landing" && (
+        <BottomNavBar
+          onItemClick={handleNavigationClick}
+          activeComponentName={activeComponent}
+        />
+      )}
     </div>
   );
 };

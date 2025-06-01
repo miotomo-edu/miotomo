@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { useVoiceBot } from "../../../context/VoiceBotContextProvider";
-// Import your local image
-import assistantAvatar from "../../../assets/img/miotomo-avatar.png"; // adjust the path and filename
+import assistantAvatar from "../../../assets/img/miotomo-avatar.png";
 
 function Transcript() {
   const { messages } = useVoiceBot();
@@ -16,11 +15,10 @@ function Transcript() {
   }, [messages]);
 
   const userAvatarUrl = "https://api.dicebear.com/7.x/micah/svg?seed=leo";
-  // Use the imported image
   const assistantAvatarUrl = assistantAvatar;
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4">
+    <div className="w-full h-full p-4 overflow-y-auto">
       <div className="space-y-6">
         {messages.map((message, index) => {
           const isUser = !!message.user;
@@ -45,7 +43,7 @@ function Transcript() {
               </div>
               {/* Bubble */}
               <div
-                className={`p-3 rounded-xl max-w-[70vw] break-words border border-black`}
+                className={`p-3 rounded-xl max-w-[85%] break-words border border-black`}
               >
                 {isUser ? (
                   <p className="text-gray-800 leading-7">{message.user}</p>

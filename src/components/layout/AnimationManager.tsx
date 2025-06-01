@@ -1,3 +1,4 @@
+// buildathon/miot/src/components/layout/AnimationManager.tsx
 import React, {
   useLayoutEffect,
   useState,
@@ -9,7 +10,10 @@ import React, {
 import useResizeObserver from "@react-hook/resize-observer";
 
 import { normalizeVolume } from "../../utils/audioUtils";
-import MicrophoneStatus from "../features/voice/MicrophoneStatus";
+import MicrophoneStatus, {
+  getStatusClass,
+} from "../features/voice/MicrophoneStatus";
+import { useVoiceBot } from "../../context/VoiceBotContextProvider";
 
 const useSize = (target: RefObject<HTMLButtonElement> | null) => {
   const [size, setSize] = useState<DOMRect>(new DOMRect());
@@ -36,6 +40,7 @@ const AnimationManager: FC<Props> = ({
 }: Props) => {
   const canvasContainer = useRef<HTMLButtonElement>(null);
   const size = useSize(canvasContainer);
+  const { status } = useVoiceBot();
 
   const [agentVolume, setAgentVolume] = useState(0);
   const [userVolume, setUserVolume] = useState(0);
@@ -64,10 +69,19 @@ const AnimationManager: FC<Props> = ({
     <div className="flex items-center justify-center">
       <button
         ref={canvasContainer}
-        onClick={() => {
-          onOrbClick();
+        onClick={onOrbClick}
+        className={`orb-animation bg-white inline-flex items-center justify-center ${getStatusClass(status)}`}
+        style={{
+          border: "4px solid #000",
+          borderRadius: "50%",
+          width: 80,
+          height: 80,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          transition: "box-shadow 0.2s",
+          padding: 0,
+          lineHeight: 1,
         }}
-        className="orb-animation"
+        aria-label="Microphone Status"
       >
         <MicrophoneStatus />
       </button>
