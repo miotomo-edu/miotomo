@@ -1,3 +1,5 @@
+![Project Banner](./public/banner.png)
+
 # Miotomo- Hackathon
 
 ### Project 100xEngineers Gen AI Buildathon 2.0
