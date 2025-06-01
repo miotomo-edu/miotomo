@@ -40,8 +40,8 @@ const App = ({ defaultStsConfig }) => {
   };
 
   const introduction = selectedBook
-    ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 6–12, about the book "${selectedBook.title}" by ${selectedBook.author}.`
-    : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged  6–12 about a book.`;
+    ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
+    : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
 
   const greeting = selectedBook
     ? `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
