@@ -114,16 +114,20 @@ const App = ({ defaultStsConfig }) => {
   };
 
   return (
-    <Layout>
-      {/* Render the currently active component */}
-      <div style={{ flexGrow: 1, overflowY: "auto" }}>{renderComponent()}</div>
-      {activeComponent !== "landing" && (
-        <BottomNavBar
-          onItemClick={handleNavigationClick}
-          activeComponentName={activeComponent}
-        />
-      )}
-    </Layout>
+    <div className="app-mobile-shell">
+      <Layout>
+        {/* Render the currently active component */}
+        <div style={{ flexGrow: 1, overflowY: "auto" }}>
+          {renderComponent()}
+        </div>
+        {activeComponent !== "landing" && (
+          <BottomNavBar
+            onItemClick={handleNavigationClick}
+            activeComponentName={activeComponent}
+          />
+        )}
+      </Layout>
+    </div>
   );
 };
 

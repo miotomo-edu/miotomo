@@ -31,7 +31,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-black border-t border-gray-200 flex justify-around items-center h-16 z-10">
+    <nav className="bottom-navbar-fixed bg-black border-t border-gray-200 flex justify-around items-center h-16 z-10">
       {items.map((item, index) => {
         const isActive = activeComponentName === item.componentName;
         // Ensure icon is always sized the same
