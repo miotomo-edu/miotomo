@@ -1,12 +1,12 @@
 import React from "react";
+import { Book } from "../sections/LibrarySection";
 
 type BookTitleProps = {
-  title: string;
-  subtitle?: string;
+  book: Book;
   onBack?: () => void;
 };
 
-const BookTitle = ({ title, subtitle, onBack }) => (
+const BookTitle = ({ book, onBack }: BookTitleProps) => (
   <div className="w-full px-6 py-4 flex items-start">
     {/* Back button, top-aligned */}
     <button
@@ -27,13 +27,19 @@ const BookTitle = ({ title, subtitle, onBack }) => (
         />
       </svg>
     </button>
+    {book.thumbnailUrl && (
+      <img
+        src={book.thumbnailUrl}
+        alt={book.title}
+        className="w-12 h-16 object-cover rounded shadow mr-4"
+        style={{ flexShrink: 0 }}
+      />
+    )}
     <div>
-      <h1 className="text-black text-2xl font-bold">{title}</h1>
-      {subtitle && (
-        <div className="text-base font-medium text-gray-600 mt-1">
-          {subtitle}
-        </div>
-      )}
+      <h1 className="text-black text-2xl font-bold">{book.title}</h1>
+      <div className="text-base font-medium text-gray-600 mt-1">
+        {book.author}
+      </div>
     </div>
   </div>
 );

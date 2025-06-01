@@ -38,6 +38,13 @@ const App = ({ defaultStsConfig }) => {
     prevActiveComponent.current = componentName;
   };
 
+  const introduction = selectedBook
+    ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with children aged 6–12 about the book "${selectedBook.title}" by ${selectedBook.author}.`
+    : `You are Tomo, a warm, curious, and encouraging AI companion who chats with children aged 6–12 about a book.`;
+
+  const greeting = selectedBook
+    ? `Hello! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
+    : `Hello! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
   const updatedStsConfig = useMemo(
     () => ({
       ...defaultStsConfig,
@@ -45,11 +52,12 @@ const App = ({ defaultStsConfig }) => {
         ...defaultStsConfig.agent,
         think: {
           ...defaultStsConfig.agent.think,
-          prompt,
+          prompt: `${introduction}\n${prompt}`,
         },
+        greeting,
       },
     }),
-    [defaultStsConfig, prompt],
+    [defaultStsConfig, prompt, selectedBook],
   );
 
   console.log("updatedStsConfig", updatedStsConfig);
@@ -95,6 +103,7 @@ const App = ({ defaultStsConfig }) => {
               <TalkWithBook
                 defaultStsConfig={updatedStsConfig}
                 onNavigate={setActiveComponent}
+                selectedBook={selectedBook}
               />
             </VoiceBotProvider>
           </MicrophoneContextProvider>

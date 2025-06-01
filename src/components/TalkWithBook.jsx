@@ -31,6 +31,7 @@ export const TalkWithBook = ({
   requiresUserActionToInitialize = false,
   className = "",
   onNavigate,
+  selectedBook,
 }) => {
   const { disconnectFromDeepgram } = useDeepgram();
   const { cleanupMicrophone } = useMicrophone();
@@ -260,7 +261,7 @@ export const TalkWithBook = ({
         (requiresUserActionToInitialize && isInitialized))
     ) {
       console.log("Calling connectToDeepgram from effect");
-      connectToDeepgram();
+      // connectToDeepgram();
     }
   }, [
     microphone,
@@ -522,8 +523,7 @@ export const TalkWithBook = ({
       {/* Fixed BookTitle */}
       <div className="flex-none" style={{ background: "#F7F3EB" }}>
         <BookTitle
-          title="Gangsta Granny"
-          subtitle="David Walliams"
+          book={selectedBook}
           onBack={() => {
             if (typeof disconnectFromDeepgram === "function") {
               disconnectFromDeepgram();
