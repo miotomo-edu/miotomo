@@ -27,11 +27,7 @@ const BookCard: React.FC<BookCardProps> = ({
       </div>
     </div>
     <div className="font-semibold text-left w-full">{title}</div>
-    <div className="text-gray-500 text-sm text-left mb-2 w-full">
-      {author}
-      {status}
-      {progress}
-    </div>
+    <div className="text-gray-500 text-sm text-left mb-2 w-full">{author}</div>
     <div className="flex justify-between items-center w-full mb-2"></div>
     <SplitColorButton
       text={status === "started" ? "Continue" : "Let's talk"}

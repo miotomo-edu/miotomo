@@ -130,6 +130,19 @@ When a child reads or chats with the AI, unfamiliar words can be highlighted. Th
 
 ---
 
+## How to install
+
+1. Clone the repository
+2. Install dependencies
+3. Run the app
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
 ## 🛠️ Technical Details
 
 This project leverages Deepgram Voice Agent API to enable voice interactions within the application. The user interface is built utilizing modern AI-assisted tools.
