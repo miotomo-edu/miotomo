@@ -6,6 +6,8 @@ import LandingPage from "./sections/LandingPage";
 import HomePage from "./sections/HomePage";
 import LibraryPage from "./sections/LibraryPage";
 import ProfileSection from "./sections/ProfileSection";
+import RewardsSection from "./sections/RewardsSection";
+import SettingsSection from "./sections/SettingsSection";
 import { TalkWithBook } from "./TalkWithBook";
 import BottomNavBar from "./common/BottomNavBar";
 
@@ -21,6 +23,7 @@ const App = ({ defaultStsConfig }) => {
   const prevActiveComponent = useRef(activeComponent);
 
   const [prompt, setPrompt] = useState("");
+  const [selectedBook, setSelectedBook] = useState(null);
 
   useEffect(() => {
     loadBookCompanionPrompt().then(setPrompt);
@@ -55,18 +58,27 @@ const App = ({ defaultStsConfig }) => {
         return <LandingPage onContinue={() => setActiveComponent("home")} />;
       case "home":
         return (
-          <HomePage onContinue={() => setActiveComponent("interactive")} />
+          <HomePage
+            onContinue={() => setActiveComponent("interactive")}
+            selectedBook={selectedBook}
+            onBookSelect={setSelectedBook}
+          />
         );
       case "library":
         return (
-          <LibraryPage onContinue={() => setActiveComponent("interactive")} />
+          <LibraryPage
+            onContinue={() => setActiveComponent("interactive")}
+            selectedBook={selectedBook}
+            onBookSelect={setSelectedBook}
+          />
         );
+
       case "profile":
         return <ProfileSection />;
       case "rewards":
-        return <ProfileSection />;
+        return <RewardsSection />;
       case "settings":
-        return <ProfileSection />;
+        return <SettingsSection />;
       case "interactive":
         // Pass defaultStsConfig only to InteractiveSection
         // return <InteractiveSection defaultStsConfig={defaultStsConfig} />;

@@ -1,12 +1,6 @@
 import React from "react";
 import BookCard from "./BookCard";
-
-type Book = {
-  id: string;
-  thumbnailUrl?: string;
-  title: string;
-  author: string;
-};
+import { Book } from "../sections/LibrarySection";
 
 type BookGridProps = {
   books: Book[];
@@ -18,9 +12,7 @@ const BookGrid: React.FC<BookGridProps> = ({ books, onBookAction }) => (
     {books.map((book) => (
       <BookCard
         key={book.id}
-        thumbnailUrl={book.thumbnailUrl}
-        title={book.title}
-        author={book.author}
+        {...book}
         onAction={() => onBookAction(book.id)}
       />
     ))}

@@ -1,9 +1,8 @@
 import React from "react";
+import { Book } from "../sections/LibrarySection";
+import SplitColorButton from "../common/SplitColorButton";
 
-type BookCardProps = {
-  thumbnailUrl?: string;
-  title: string;
-  author: string;
+type BookCardProps = Book & {
   onAction: () => void;
 };
 
@@ -11,9 +10,11 @@ const BookCard: React.FC<BookCardProps> = ({
   thumbnailUrl,
   title,
   author,
+  status,
+  progress,
   onAction,
 }) => (
-  <div className="bg-white bg-opacity-0 rounded-xl  p-4 flex flex-col items-center w-full border border-black">
+  <div className="bg-white bg-opacity-0 rounded-xl p-4 flex flex-col items-center w-full border border-black">
     <div className="w-full flex justify-center mb-2">
       <div className="w-24 aspect-[2/3] bg-gray-200 rounded flex items-center justify-center overflow-hidden">
         {thumbnailUrl ? (
@@ -26,13 +27,20 @@ const BookCard: React.FC<BookCardProps> = ({
       </div>
     </div>
     <div className="font-semibold text-left w-full">{title}</div>
-    <div className="text-gray-500 text-sm text-left mb-2 w-full">{author}</div>
-    <button
-      className="mt-auto px-4 py-2 w-full text-lg font-semibold rounded-full bg-black text-white"
+    <div className="text-gray-500 text-sm text-left mb-2 w-full">
+      {author}
+      {status}
+      {progress}
+    </div>
+    <div className="flex justify-between items-center w-full mb-2"></div>
+    <SplitColorButton
+      text={status === "started" ? "Continue" : "Let's talk"}
+      leftColor="#F78AD7"
+      rightColor="#000"
+      split={progress}
       onClick={onAction}
-    >
-      Let's talk
-    </button>
+      className="mt-auto w-full"
+    />
   </div>
 );
 
