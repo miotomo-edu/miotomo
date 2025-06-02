@@ -15,6 +15,12 @@ Built with the power of LLMs:
 
 ---
 
+## Video
+
+[Buildathon Submission Video](https://www.loom.com/share/21be28661f634fe08a9762b82422f9e2?sid=34d43b6b-b2e0-4f72-a4e8-927d1c4cedd4)
+
+---
+
 ### 👦👧 Who are the users?
 
 - **Children (Ages 6–12)**
