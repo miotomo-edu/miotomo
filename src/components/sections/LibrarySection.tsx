@@ -103,7 +103,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
   return (
     <section className="py-6 px-4">
       <h2 className="text-3xl font-semibold mb-4">
-        You have {books.length} books in your bookshelf
+        Pick a book and chat with Miotomo
       </h2>
       <BookGrid books={books} onBookAction={handleBookAction} />
     </section>
