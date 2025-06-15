@@ -170,7 +170,7 @@ The Voice Agent code is based on the example by Deepgram: [Voice agent medical a
 
 ### 📝 Prompt engineering
 
-The prototype for the buildathon doesn't have a backend and the prompts are hardcoded in the frontend with minimal modifications based on the selected book.
+The prototype doesn't have a backend and the prompts are hardcoded in the frontend with minimal modifications based on the selected book.
 The prompt is loaded from a markdown file `src/lib/book-companion-prompt.md`.
 
 Based on the selected book, the prompt is modified to include the following:
