@@ -1,6 +1,6 @@
 import WelcomeSection from "./WelcomeSection";
 import CurrentBookSection from "./CurrentBookSection";
-import SearchSection from "./SearchSection";
+// import SearchSection from "./SearchSection";
 import LibrarySection from "./LibrarySection";
 
 function LibraryPage({
@@ -10,6 +10,7 @@ function LibraryPage({
   onBookSelect,
   onContinue,
   userName,
+  studentId,
 }) {
   return (
     <div>
@@ -22,6 +23,7 @@ function LibraryPage({
         setBooks={setBooks}
         onBookSelect={onBookSelect}
         onContinue={onContinue}
+        studentId={studentId}
       />
     </div>
   );

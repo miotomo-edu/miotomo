@@ -12,7 +12,7 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <img
-          src="https://api.dicebear.com/7.x/micah/svg?seed=Amia"
+          src={`https://api.dicebear.com/7.x/micah/svg?seed=${userName}`}
           alt="Avatar"
           className="rounded-full object-cover"
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}

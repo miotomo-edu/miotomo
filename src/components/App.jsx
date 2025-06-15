@@ -15,22 +15,32 @@ import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
 import { loadBookCompanionPrompt } from "../lib/prompts";
 
-import { mockBooks } from "./sections/LibrarySection";
+import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
 // Assuming defaultStsConfig is passed as a prop from main.tsx
 const App = ({ defaultStsConfig }) => {
-  // State to manage which component is currently active
-  // Changed default state from 'interactive' to 'landing'
+  // 1. All useState and useRef hooks
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
-  const [userName, setUserName] = useState("Alex"); // Default or fetched value
-
   const [prompt, setPrompt] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
-  const [books, setBooks] = useState(mockBooks); // import mockBooks from LibrarySection
-
+  const [books, setBooks] = useState([]);
   const mainRef = useRef(null);
+  const [userName, setUserName] = useState("");
 
+  const [studentId, setStudentId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("studentId") || "";
+  });
+
+  // 2. All data fetching hooks
+  const {
+    data: student,
+    isLoading: studentLoading,
+    error: studentError,
+  } = useStudent(studentId);
+
+  // 3. All useEffect hooks
   useEffect(() => {
     loadBookCompanionPrompt().then(setPrompt);
   }, []);
@@ -41,12 +51,11 @@ const App = ({ defaultStsConfig }) => {
     }
   }, [activeComponent]);
 
-  // Function to switch components
-  const handleNavigationClick = (componentName) => {
-    setActiveComponent(componentName);
-    prevActiveComponent.current = componentName;
-  };
+  useEffect(() => {
+    if (student?.name) setUserName(student.name);
+  }, [student]);
 
+  // 5. Derived state (variables that depend on state/props)
   const introduction = selectedBook
     ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
     : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
@@ -54,6 +63,8 @@ const App = ({ defaultStsConfig }) => {
   const greeting = selectedBook
     ? `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
     : `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
+
+  // 6. useMemo hooks (after the values they depend on are defined)
   const updatedStsConfig = useMemo(
     () => ({
       ...defaultStsConfig,
@@ -66,10 +77,33 @@ const App = ({ defaultStsConfig }) => {
         greeting,
       },
     }),
-    [defaultStsConfig, prompt, selectedBook],
+    [defaultStsConfig, prompt, selectedBook, introduction, greeting],
   );
 
-  console.log("updatedStsConfig", updatedStsConfig);
+  if (studentLoading) return <div>Loading student...</div>;
+  if (studentError) return <div>Error loading student.</div>;
+
+  if (!studentId || studentError || (!studentLoading && !student)) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "2rem",
+        }}
+      >
+        coming soon...
+      </div>
+    );
+  }
+
+  // Function to switch components
+  const handleNavigationClick = (componentName) => {
+    setActiveComponent(componentName);
+    prevActiveComponent.current = componentName;
+  };
 
   // Conditional rendering based on activeComponent state
   const renderComponent = () => {
@@ -85,6 +119,7 @@ const App = ({ defaultStsConfig }) => {
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}
             userName={userName}
+            studentId={studentId}
           />
         );
       case "library":
@@ -96,9 +131,9 @@ const App = ({ defaultStsConfig }) => {
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}
             userName={userName}
+            studentId={studentId}
           />
         );
-
       case "profile":
         return <ProfileSection />;
       case "rewards":
@@ -106,8 +141,6 @@ const App = ({ defaultStsConfig }) => {
       case "settings":
         return <SettingsSection />;
       case "interactive":
-        // Pass defaultStsConfig only to InteractiveSection
-        // return <InteractiveSection defaultStsConfig={defaultStsConfig} />;
         return (
           <MicrophoneContextProvider>
             <VoiceBotProvider>
@@ -127,7 +160,6 @@ const App = ({ defaultStsConfig }) => {
   return (
     <div className="app-mobile-shell">
       <Layout mainRef={mainRef}>
-        {/* Render the currently active component */}
         <div style={{ flexGrow: 1, overflowY: "auto" }}>
           {renderComponent()}
         </div>

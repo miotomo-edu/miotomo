@@ -10,6 +10,7 @@ function HomePage({
   onBookSelect,
   onContinue,
   userName,
+  studentId,
 }) {
   return (
     <div>
@@ -25,6 +26,7 @@ function HomePage({
           setBooks={setBooks}
           onBookSelect={onBookSelect}
           onContinue={onContinue}
+          studentId={studentId}
         />
       )}
     </div>
