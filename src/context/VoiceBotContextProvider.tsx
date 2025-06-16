@@ -92,6 +92,7 @@ export interface VoiceBotState {
   messages: VoiceBotMessage[];
   attachParamsToCopyUrl: boolean;
   behindTheScenesEvents: BehindTheScenesEvent[];
+  messageCount: number;
 }
 
 export interface VoiceBotContext extends VoiceBotState {
@@ -112,6 +113,7 @@ const initialState: VoiceBotState = {
   messages: USE_MOCK_DATA ? mockMessages : [],
   attachParamsToCopyUrl: true,
   behindTheScenesEvents: [],
+  messageCount: 0,
 };
 
 export const VoiceBotContext = createContext<VoiceBotContext | undefined>(
@@ -239,6 +241,7 @@ export function VoiceBotProvider({ children }: Props) {
       startSleeping,
       toggleSleep,
       setAttachParamsToCopyUrl,
+      messageCount: state.messageCount,
     }),
     [
       state,

@@ -25,7 +25,10 @@ export type VoiceBotAction =
   | { type: typeof SET_PARAMS_ON_COPY_URL; payload: boolean }
   | { type: typeof ADD_BEHIND_SCENES_EVENT; payload: BehindTheScenesEvent };
 
-export const voiceBotReducer = (state: VoiceBotState, action: VoiceBotAction) => {
+export const voiceBotReducer = (
+  state: VoiceBotState,
+  action: VoiceBotAction,
+) => {
   switch (action.type) {
     case START_LISTENING:
       return { ...state, status: VoiceBotStatus.LISTENING, sleepTimer: 0 };
@@ -38,7 +41,11 @@ export const voiceBotReducer = (state: VoiceBotState, action: VoiceBotAction) =>
     case INCREMENT_SLEEP_TIMER:
       return { ...state, sleepTimer: state.sleepTimer + 1 };
     case ADD_MESSAGE:
-      return { ...state, messages: [...state.messages, action.payload] };
+      return {
+        ...state,
+        messages: [...state.messages, action.payload],
+        messageCount: state.messageCount + 1,
+      };
     case SET_PARAMS_ON_COPY_URL:
       return { ...state, attachParamsToCopyUrl: action.payload };
     case ADD_BEHIND_SCENES_EVENT:

@@ -49,6 +49,7 @@ export const TalkWithBook = ({
     status,
     messages,
     addVoicebotMessage,
+    messageCount,
     addBehindTheScenesEvent,
     isWaitingForUserVoiceAfterSleep,
     toggleSleep,
@@ -99,6 +100,12 @@ export const TalkWithBook = ({
       agentVoiceAnalyser.current.smoothingTimeConstant = 0.96;
     }
   }, []);
+
+  // useEffect(() => {
+  //   if (messageCount === 3) {
+  //     addVoicebotMessage({ assistant: "THREE" });
+  //   }
+  // }, [messageCount, addVoicebotMessage]);
 
   /**
    * Callback to handle audio data processing and playback.

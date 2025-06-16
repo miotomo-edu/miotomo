@@ -113,6 +113,7 @@ const App = ({ defaultStsConfig }) => {
       case "home":
         return (
           <HomePage
+            books={books}
             setBooks={setBooks}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
@@ -124,6 +125,7 @@ const App = ({ defaultStsConfig }) => {
       case "library":
         return (
           <LibraryPage
+            books={books}
             setBooks={setBooks}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
