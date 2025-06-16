@@ -32,6 +32,7 @@ export const TalkWithBook = ({
   className = "",
   onNavigate,
   selectedBook,
+  userName = "",
 }) => {
   const { disconnectFromDeepgram } = useDeepgram();
   const { cleanupMicrophone } = useMicrophone();
@@ -69,6 +70,8 @@ export const TalkWithBook = ({
   const userVoiceAnalyser = useRef(null);
   const startTimeRef = useRef(-1);
   const [data, setData] = useState();
+  const [exchangeCount, setExchangeCount] = useState(0);
+  const [shouldSpell, setShouldSpell] = useState(false);
   const [isInitialized, setIsInitialized] = useState(
     requiresUserActionToInitialize ? false : null,
   );
@@ -331,6 +334,8 @@ export const TalkWithBook = ({
         if (status !== VoiceBotStatus.SLEEPING) {
           addVoicebotMessage({ user: userTranscript });
         }
+
+        setExchangeCount((count) => count + 1);
       };
 
       /**
@@ -343,6 +348,17 @@ export const TalkWithBook = ({
         ) {
           startSpeaking();
           const assistantTranscript = data.content;
+
+          // Trigger spelling challenge if needed
+          if (exchangeCount >= 2) {
+            setShouldSpell(true);
+            setExchangeCount(0);
+            // Modify assistantTranscript to include a spelling challenge
+            // Example: assistantTranscript += " Can you spell 'adventure' for me?";
+          } else {
+            setShouldSpell(false);
+          }
+
           addVoicebotMessage({ assistant: assistantTranscript });
         }
       };
@@ -562,13 +578,7 @@ export const TalkWithBook = ({
           <RateLimited />
         ) : (
           <Fragment>
-            <Transcript
-              messages={messages}
-              status={status}
-              onMessageEvent={onMessageEvent}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
+            <Transcript userName={userName} />
           </Fragment>
         )}
       </div>

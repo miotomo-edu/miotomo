@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./integrations/supabase/client";
 
-const HARDCODED_STUDENT_ID = "d4d08e82-37de-4264-b56e-f750868f1600";
+const HARDCODED_STUDENT_ID = "052f53c5-f0a1-4397-87d0-7cf9b8fa284f";
 
 export function useStudent(studentId = HARDCODED_STUDENT_ID) {
   return useQuery({

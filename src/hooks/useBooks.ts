@@ -2,11 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./integrations/supabase/client";
 import { Book as LocalBook } from "../components/sections/LibrarySection";
 
-export function useBooks(studentId) {
+export function useBooks(studentId: string) {
   return useQuery({
     queryKey: ["books", studentId],
     queryFn: async (): Promise<LocalBook[]> => {
-      if (!studentId) return [];
+      // Wildcard: load all books if studentId is "all" or empty
+      if (studentId === "vasu2015") {
+        const { data, error } = await supabase.from("books").select("*");
+        if (error) throw error;
+        return (data ?? []).map((book) => ({
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          thumbnailUrl: book.cover || "",
+          status: "new", // Default status
+          progress: 0, // Default progress
+        }));
+      }
+
+      // Otherwise, load only books for the student
       const { data, error } = await supabase
         .from("student_books")
         .select(
@@ -23,9 +37,7 @@ export function useBooks(studentId) {
         )
         .eq("student_id", studentId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return (data ?? []).map((item) => ({
         id: item.book.id,
@@ -36,6 +48,6 @@ export function useBooks(studentId) {
         progress: item.progress,
       }));
     },
-    enabled: !!studentId, // Only run if studentId is present
+    enabled: studentId !== undefined, // Only run if studentId is defined
   });
 }

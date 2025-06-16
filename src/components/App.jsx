@@ -38,7 +38,7 @@ const App = ({ defaultStsConfig }) => {
     data: student,
     isLoading: studentLoading,
     error: studentError,
-  } = useStudent(studentId);
+  } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
 
   // 3. All useEffect hooks
   useEffect(() => {
@@ -113,7 +113,6 @@ const App = ({ defaultStsConfig }) => {
       case "home":
         return (
           <HomePage
-            books={books}
             setBooks={setBooks}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
@@ -125,7 +124,6 @@ const App = ({ defaultStsConfig }) => {
       case "library":
         return (
           <LibraryPage
-            books={books}
             setBooks={setBooks}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
@@ -148,6 +146,7 @@ const App = ({ defaultStsConfig }) => {
                 defaultStsConfig={updatedStsConfig}
                 onNavigate={setActiveComponent}
                 selectedBook={selectedBook}
+                userName={userName}
               />
             </VoiceBotProvider>
           </MicrophoneContextProvider>

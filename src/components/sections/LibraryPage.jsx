@@ -4,7 +4,6 @@ import CurrentBookSection from "./CurrentBookSection";
 import LibrarySection from "./LibrarySection";
 
 function LibraryPage({
-  books,
   setBooks,
   selectedBook,
   onBookSelect,
@@ -19,7 +18,6 @@ function LibraryPage({
         <CurrentBookSection book={selectedBook} onContinue={onContinue} />
       )}
       <LibrarySection
-        books={books}
         setBooks={setBooks}
         onBookSelect={onBookSelect}
         onContinue={onContinue}

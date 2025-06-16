@@ -48,7 +48,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
   if (error) return <div>Error loading books.</div>;
 
   return (
-    <section className="py-6 px-4">
+    <section className="py-6 px-4 pb-24">
       <h2 className="text-3xl font-semibold mb-4">
         Pick a book and chat with Miotomo
       </h2>

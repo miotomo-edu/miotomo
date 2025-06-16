@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { useVoiceBot } from "../../../context/VoiceBotContextProvider";
 import assistantAvatar from "../../../assets/img/miotomo-avatar.png";
 
-function Transcript() {
+function Transcript({ userName = "" }) {
   const { messages } = useVoiceBot();
   const messagesEndRef = useRef(null);
 
@@ -14,7 +14,7 @@ function Transcript() {
     scrollToBottom();
   }, [messages]);
 
-  const userAvatarUrl = "https://api.dicebear.com/7.x/micah/svg?seed=Amia";
+  const userAvatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${userName}`;
   const assistantAvatarUrl = assistantAvatar;
 
   return (
