@@ -13,7 +13,7 @@ import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
-import { loadBookCompanionPrompt } from "../lib/prompts";
+import { loadBookCompanionPrompt, the_green_ray } from "../lib/prompts";
 
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
@@ -32,6 +32,11 @@ const App = ({ defaultStsConfig }) => {
     const params = new URLSearchParams(window.location.search);
     return params.get("studentId") || "";
   });
+
+  const setBooksArray = (newBooks) => {
+    console.log("setBooksArray called with:", newBooks);
+    setBooks(Array.isArray(newBooks) ? newBooks : []);
+  };
 
   // 2. All data fetching hooks
   const {
@@ -60,6 +65,9 @@ const App = ({ defaultStsConfig }) => {
     ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
     : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
 
+  const customization =
+    selectedBook?.title === "The Green Ray" ? the_green_ray : "";
+
   const greeting = selectedBook
     ? `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
     : `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
@@ -72,7 +80,7 @@ const App = ({ defaultStsConfig }) => {
         ...defaultStsConfig.agent,
         think: {
           ...defaultStsConfig.agent.think,
-          prompt: `${introduction}\n${prompt}`,
+          prompt: `${introduction}\n${customization}\n${prompt}`,
         },
         greeting,
       },
@@ -114,7 +122,7 @@ const App = ({ defaultStsConfig }) => {
         return (
           <HomePage
             books={books}
-            setBooks={setBooks}
+            setBooks={setBooksArray}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}
@@ -126,7 +134,7 @@ const App = ({ defaultStsConfig }) => {
         return (
           <LibraryPage
             books={books}
-            setBooks={setBooks}
+            setBooks={setBooksArray}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             onBookSelect={setSelectedBook}

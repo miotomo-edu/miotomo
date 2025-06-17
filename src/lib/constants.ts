@@ -31,6 +31,22 @@ export const stsConfig: StsConfig = {
         temperature: 0,
       },
       prompt: "",
+      functions: [
+        {
+          name: "get_weather",
+          description: "Get the current weather for a specific location",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city or location to get weather for",
+              },
+            },
+            required: ["location"],
+          },
+        },
+      ],
     },
     speak: {
       provider: {
@@ -53,6 +69,10 @@ export const stsConfig: StsConfig = {
     // },
     greeting: bookCompanionGreetings,
   },
+};
+
+export const getWeather = async (location: string): Promise<string | null> => {
+  return `The current weather in ${location} is sunny with a temperature of 31°.`;
 };
 
 // Voice constants
