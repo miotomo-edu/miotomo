@@ -13,7 +13,12 @@ import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
-import { loadBookCompanionPrompt, the_green_ray } from "../lib/prompts";
+import {
+  loadBookCompanionPrompt,
+  the_green_ray,
+  f1_growing_wings,
+  f1_surving_to_drive,
+} from "../lib/prompts";
 
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
@@ -65,9 +70,18 @@ const App = ({ defaultStsConfig }) => {
     ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
     : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
 
-  const customization =
-    selectedBook?.title === "The Green Ray" ? the_green_ray : "";
-
+  const customization = (() => {
+    switch (selectedBook?.title) {
+      case "The Green Ray":
+        return the_green_ray;
+      case "F1 Growing Wings":
+        return f1_growing_wings;
+      case "Surviving to Drive":
+        return f1_surving_to_drive;
+      default:
+        return "";
+    }
+  })();
   const greeting = selectedBook
     ? `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
     : `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
