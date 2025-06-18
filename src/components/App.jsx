@@ -83,8 +83,8 @@ const App = ({ defaultStsConfig }) => {
     }
   })();
   const greeting = selectedBook
-    ? `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying "${selectedBook.title}"?`
-    : `Hello ${userName}! I'm Miotomo! Your happy book buddy! Are you enjoying your book?`;
+    ? `Hello ${userName}! I'm Miotomo! Are you enjoying "${selectedBook.title}"?`
+    : `Hello ${userName}! I'm Miotomo! Are you enjoying your book?`;
 
   // 6. useMemo hooks (after the values they depend on are defined)
   const updatedStsConfig = useMemo(
