@@ -17,7 +17,7 @@ function HomePage({
       <WelcomeSection userName={userName} />
       {selectedBook ? (
         <>
-          <CurrentBookSection book={selectedBook} onContinue={onContinue} />
+          <CurrentBookSection books={[selectedBook]} onContinue={onContinue} />
           <ReminderSection />
         </>
       ) : (

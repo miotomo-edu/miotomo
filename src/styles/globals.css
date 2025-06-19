@@ -10,8 +10,8 @@ body {
   overflow-y: auto;
   height: 100%;
   width: 100%;
-  background: #f7f3eb;
-  font-family: "Urbanist", sans-serif;
+  background: #fff;
+  font-family: "Nunito", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
@@ -50,6 +50,14 @@ h2 {
   /* IE and Edge */
   scrollbar-width: none;
   /* Firefox */
+}
+
+.logo {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
 }
 
 .speech-bubble {
@@ -223,7 +231,7 @@ h2 {
   position: relative;
   width: 100vw;
   min-height: 100vh;
-  background: #f7f3eb;
+  background: #fff;
   display: flex;
   flex-direction: column;
   overflow: hidden;

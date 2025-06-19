@@ -28,7 +28,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
 
   return (
     <button
-      className={`w-full font-semibold text-lg rounded-full border-none relative overflow-hidden h-12 ${className}`}
+      className={`w-full font-light text-base rounded-full border-none relative overflow-hidden h-12 ${className}`}
       style={{
         background: `linear-gradient(to right, ${leftColor} 0%, ${leftColor} ${split}%, ${rightColor} ${split}%, ${rightColor} 100%)`,
         paddingLeft: icon ? ICON_SIZE : undefined,
@@ -48,7 +48,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       )}
       {/* White text, clipped to left */}
       <span
-        className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-semibold text-lg select-none pointer-events-none"
+        className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-light text-base select-none pointer-events-none"
         style={{
           color: "#000",
           clipPath: `inset(0 ${100 - split}% 0 0)`,
@@ -67,7 +67,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       </span>
       {/* Black text, clipped to right */}
       <span
-        className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-semibold text-lg select-none pointer-events-none"
+        className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-light text-base select-none pointer-events-none"
         style={{
           color: "#fff",
           clipPath: `inset(0 0 0 ${split}%)`,
@@ -86,7 +86,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       </span>
       {/* Invisible text for button sizing (no icon here!) */}
       <span
-        className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-semibold text-lg select-none pointer-events-none"
+        className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-light text-base select-none pointer-events-none"
         style={{
           opacity: 0,
           pointerEvents: "none",

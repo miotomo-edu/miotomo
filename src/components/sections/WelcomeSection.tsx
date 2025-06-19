@@ -22,12 +22,7 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
           <span className="text-base">Level 8 Reader</span>
         </div>
       </div>
-      <button
-        className="px-6 font-semibold border rounded-full py-2 border-none"
-        style={{
-          backgroundColor: "#F78AD7",
-        }}
-      >
+      <button className="bg-[#C492F1] px-6 font-semibold border rounded-full py-2 border-none">
         🔥 7 days
       </button>
     </div>

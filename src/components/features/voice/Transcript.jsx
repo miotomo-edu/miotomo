@@ -22,7 +22,6 @@ function Transcript({ userName = "" }) {
       <div className="space-y-6">
         {messages.map((message, index) => {
           const isUser = !!message.user;
-          const avatarBg = isUser ? "bg-userBubble" : "bg-assistantBubble20";
           const flexDirection = isUser ? "flex-row-reverse" : "flex-row";
           const avatarMargin = isUser ? "ml-4" : "mr-4";
           const edgePadding = isUser ? "pl-10" : "pr-10";
@@ -38,12 +37,15 @@ function Transcript({ userName = "" }) {
                 <img
                   src={isUser ? userAvatarUrl : assistantAvatarUrl}
                   alt={isUser ? "User Avatar" : "Assistant Avatar"}
-                  className={`w-full h-full rounded-full object-cover ${avatarBg}`}
+                  className={`w-full h-full  object-contain`}
                 />
               </div>
               {/* Bubble */}
               <div
-                className={`p-3 rounded-xl max-w-[85%] break-words border border-black`}
+                className={`p-3 rounded-xl max-w-[85%] break-words border-2 border-black`}
+                style={{
+                  backgroundColor: `${isUser ? "#C492F1" : "#fff"}`,
+                }}
               >
                 {isUser ? (
                   <p className="text-gray-800 leading-7">{message.user}</p>

@@ -1,5 +1,5 @@
 // Development flag to enable/disable mock data
-export const USE_MOCK_DATA = false; // Set to false when you want to use real data
+export const USE_MOCK_DATA = true; // Set to false when you want to use real data
 
 // Fake conversation messages for development without requiring TypeScript types
 export const mockMessages = [
