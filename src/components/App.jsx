@@ -80,6 +80,59 @@ const App = ({ defaultStsConfig }) => {
     if (student?.name) setUserName(student.name);
   }, [student]);
 
+  // Add these useEffects to your App.jsx component
+
+  // 1. Dynamic viewport height
+  useEffect(() => {
+    const setViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    setViewportHeight();
+    window.addEventListener("resize", setViewportHeight);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(setViewportHeight, 100);
+    });
+
+    return () => {
+      window.removeEventListener("resize", setViewportHeight);
+      window.removeEventListener("orientationchange", setViewportHeight);
+    };
+  }, []);
+
+  // 2. Force address bar hide on mobile
+  useEffect(() => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      const hideAddressBar = () => {
+        // Prevent scrolling on the body
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.width = "100%";
+        document.body.style.height = "100%";
+
+        // Force a minimal scroll to hide address bar
+        setTimeout(() => {
+          window.scrollTo(0, 1);
+          setTimeout(() => {
+            window.scrollTo(0, 0);
+          }, 0);
+        }, 100);
+      };
+
+      hideAddressBar();
+      window.addEventListener("orientationchange", hideAddressBar);
+      window.addEventListener("resize", hideAddressBar);
+
+      return () => {
+        window.removeEventListener("orientationchange", hideAddressBar);
+        window.removeEventListener("resize", hideAddressBar);
+      };
+    }
+  }, []);
+
   // 5. Derived state (variables that depend on state/props)
   const introduction = selectedBook
     ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
