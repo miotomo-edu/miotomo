@@ -15,7 +15,7 @@ function LibraryPage({
     <div>
       <WelcomeSection userName={userName} />
       {selectedBook && (
-        <CurrentBookSection book={selectedBook} onContinue={onContinue} />
+        <CurrentBookSection books={[selectedBook]} onContinue={onContinue} />
       )}
       <LibrarySection
         setBooks={setBooks}

@@ -544,7 +544,7 @@ export const TalkWithBook = ({
   return (
     <div className="inset-0 flex flex-col overflow-hidden">
       {/* Fixed BookTitle */}
-      <div className="flex-none" style={{ background: "#F7F3EB" }}>
+      <div className="flex-none">
         <BookTitle
           book={selectedBook}
           onBack={() => {

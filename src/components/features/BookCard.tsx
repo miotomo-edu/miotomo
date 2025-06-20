@@ -14,7 +14,7 @@ const BookCard: React.FC<BookCardProps> = ({
   progress,
   onAction,
 }) => (
-  <div className="bg-white bg-opacity-0 rounded-xl p-4 flex flex-col items-center w-full border border-black">
+  <div className="bg-[#F7F7F7] rounded-xl p-4 flex flex-col items-center w-full border border-none">
     <div className="w-full flex justify-center mb-2">
       <div className="w-24 aspect-[2/3] bg-gray-200 rounded flex items-center justify-center overflow-hidden">
         {thumbnailUrl ? (
@@ -31,7 +31,7 @@ const BookCard: React.FC<BookCardProps> = ({
     <div className="flex justify-between items-center w-full mb-2"></div>
     <SplitColorButton
       text={status === "started" ? "Continue" : "Let's talk"}
-      leftColor="#F78AD7"
+      leftColor="#E85C33"
       rightColor="#000"
       split={progress}
       onClick={onAction}

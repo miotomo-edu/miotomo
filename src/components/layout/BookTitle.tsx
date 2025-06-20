@@ -11,7 +11,7 @@ const BookTitle = ({ book, onBack }: BookTitleProps) => (
     {/* Back button, top-aligned */}
     <button
       onClick={onBack}
-      className="w-10 h-10 rounded-full bg-pink-400 flex items-center justify-center mr-8 mt-1"
+      className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center mr-8 mt-1"
       aria-label="Back"
       type="button"
       style={{ flexShrink: 0 }}
