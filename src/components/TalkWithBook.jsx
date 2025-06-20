@@ -33,6 +33,7 @@ export const TalkWithBook = ({
   onNavigate,
   selectedBook,
   userName = "",
+  studentId = null,
 }) => {
   const { disconnectFromDeepgram } = useDeepgram();
   const { cleanupMicrophone } = useMicrophone();
@@ -55,6 +56,8 @@ export const TalkWithBook = ({
     toggleSleep,
     startListening,
     startSpeaking,
+    setConversationConfig,
+    conversationSaving,
   } = useVoiceBot();
   const {
     setupMicrophone,
@@ -83,6 +86,30 @@ export const TalkWithBook = ({
     window.location.pathname === "/",
   );
   const [activeTab, setActiveTab] = useState("clinical-notes");
+
+  // Enable automatic conversation saving when component mounts
+  useEffect(() => {
+    if (studentId && selectedBook?.id) {
+      console.log(
+        "Setting up auto-save for student:",
+        studentId,
+        "book:",
+        selectedBook.id,
+      );
+      setConversationConfig({
+        studentId: studentId,
+        bookId: selectedBook.id,
+        autoSave: true,
+      });
+    } else {
+      // Disable auto-save if we don't have the required data
+      setConversationConfig({
+        studentId: null,
+        bookId: null,
+        autoSave: false,
+      });
+    }
+  }, [studentId, selectedBook?.id, setConversationConfig]);
 
   // AUDIO MANAGEMENT
   /**

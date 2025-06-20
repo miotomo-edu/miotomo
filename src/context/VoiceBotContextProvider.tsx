@@ -16,9 +16,12 @@ import {
   ADD_MESSAGE,
   SET_PARAMS_ON_COPY_URL,
   ADD_BEHIND_SCENES_EVENT,
+  CLEAR_MESSAGES,
+  SET_CONVERSATION_CONFIG,
 } from "./VoiceBotReducer";
 
 import { USE_MOCK_DATA, mockMessages } from "../utils/mockData";
+import { useConversations } from "../hooks/useConversations";
 
 const defaultSleepTimeoutSeconds = 30;
 
@@ -86,6 +89,12 @@ export enum VoiceBotStatus {
   NONE = "",
 }
 
+export interface ConversationConfig {
+  studentId: string | null;
+  bookId: string | null;
+  autoSave: boolean;
+}
+
 export interface VoiceBotState {
   status: VoiceBotStatus;
   sleepTimer: number;
@@ -93,6 +102,8 @@ export interface VoiceBotState {
   attachParamsToCopyUrl: boolean;
   behindTheScenesEvents: BehindTheScenesEvent[];
   messageCount: number;
+  conversationConfig: ConversationConfig;
+  currentConversationId: string | null;
 }
 
 export interface VoiceBotContext extends VoiceBotState {
@@ -105,6 +116,10 @@ export interface VoiceBotContext extends VoiceBotState {
   toggleSleep: () => void;
   displayOrder: VoiceBotMessage[];
   setAttachParamsToCopyUrl: (attachParamsToCopyUrl: boolean) => void;
+  setConversationConfig: (config: ConversationConfig) => void;
+  clearConversation: () => void;
+  conversationSaving: boolean;
+  conversationSaveError: string | null;
 }
 
 const initialState: VoiceBotState = {
@@ -114,6 +129,12 @@ const initialState: VoiceBotState = {
   attachParamsToCopyUrl: true,
   behindTheScenesEvents: [],
   messageCount: 0,
+  conversationConfig: {
+    studentId: null,
+    bookId: null,
+    autoSave: false,
+  },
+  currentConversationId: null,
 };
 
 export const VoiceBotContext = createContext<VoiceBotContext | undefined>(
@@ -133,10 +154,22 @@ interface Props {
 
 export function VoiceBotProvider({ children }: Props) {
   const [state, dispatch] = useReducer(voiceBotReducer, initialState);
+  const {
+    createConversation,
+    updateConversation,
+    loading: conversationSaving,
+    error: conversationSaveError,
+  } = useConversations();
+
   // Note: After waking from sleep, the bot must wait for the user to speak before playing audio.
-  // This prevents unintended audio playback and conversation queue logging if the user rapidly toggles between
-  // sleep and wake states in the middle of a bot response.
   const isWaitingForUserVoiceAfterSleep = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedMessageCount = useRef(0);
+  const previousConfigRef = useRef<ConversationConfig>(
+    state.conversationConfig,
+  );
+  const isCurrentlySaving = useRef(false);
+  const sessionConversationId = useRef<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -152,6 +185,131 @@ export function VoiceBotProvider({ children }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sleepTimer]);
+
+  // Auto-save conversation when messages change
+  useEffect(() => {
+    const { conversationConfig, messages, messageCount } = state;
+
+    // Only auto-save if enabled and we have the required data
+    if (
+      !conversationConfig.autoSave ||
+      !conversationConfig.studentId ||
+      !conversationConfig.bookId ||
+      messages.length === 0 ||
+      messageCount === lastSavedMessageCount.current ||
+      isCurrentlySaving.current
+    ) {
+      return;
+    }
+
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Debounce the save operation (wait 2 seconds after the last message)
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (isCurrentlySaving.current) {
+        return; // Prevent concurrent saves
+      }
+
+      // Wrap the entire save operation in a try-catch to prevent any errors from bubbling up
+      try {
+        isCurrentlySaving.current = true;
+        console.log("Auto-saving conversation...");
+
+        if (sessionConversationId.current) {
+          // Update existing conversation for this session
+          console.log(
+            "Updating existing conversation:",
+            sessionConversationId.current,
+          );
+
+          try {
+            const result = await updateConversation(
+              sessionConversationId.current,
+              messages,
+            );
+
+            if (result.error) {
+              console.error("Failed to update conversation:", result.error);
+              // Don't reset sessionConversationId on error - try again next time
+            } else {
+              console.log("Conversation updated successfully");
+              lastSavedMessageCount.current = messageCount;
+            }
+          } catch (updateError) {
+            console.error("Exception during conversation update:", updateError);
+            // Continue normal app operation
+          }
+        } else {
+          // Create new conversation for this session
+          console.log("Creating new conversation for session");
+
+          try {
+            const result = await createConversation(
+              conversationConfig.studentId!,
+              conversationConfig.bookId!,
+              messages,
+            );
+
+            if (result.error) {
+              console.error("Failed to create conversation:", result.error);
+              // Don't set sessionConversationId on error
+            } else {
+              console.log(
+                "New conversation created successfully:",
+                result.conversationId,
+              );
+              sessionConversationId.current = result.conversationId || null;
+              lastSavedMessageCount.current = messageCount;
+
+              // Update the state with the new conversation ID
+              try {
+                dispatch({
+                  type: "SET_CURRENT_CONVERSATION_ID",
+                  payload: result.conversationId || null,
+                });
+              } catch (dispatchError) {
+                console.error(
+                  "Error updating conversation ID in state:",
+                  dispatchError,
+                );
+                // Continue - this won't affect the main app functionality
+              }
+            }
+          } catch (createError) {
+            console.error(
+              "Exception during conversation creation:",
+              createError,
+            );
+            // Continue normal app operation
+          }
+        }
+      } catch (outerError) {
+        console.error(
+          "Unexpected error in conversation auto-save:",
+          outerError,
+        );
+        // This should never happen, but if it does, don't crash the app
+      } finally {
+        isCurrentlySaving.current = false;
+      }
+    }, 2000); // 2 second debounce
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [
+    state.messages,
+    state.messageCount,
+    state.conversationConfig,
+    createConversation,
+    updateConversation,
+  ]);
 
   const addVoicebotMessage = (newMessage: VoiceBotMessage) => {
     console.log("addVoicebotMessage", newMessage);
@@ -229,6 +387,54 @@ export function VoiceBotProvider({ children }: Props) {
     [],
   );
 
+  const setConversationConfig = useCallback((config: ConversationConfig) => {
+    // Check if config actually changed to prevent unnecessary updates
+    const prev = previousConfigRef.current;
+    if (
+      prev.studentId === config.studentId &&
+      prev.bookId === config.bookId &&
+      prev.autoSave === config.autoSave
+    ) {
+      return;
+    }
+
+    dispatch({ type: SET_CONVERSATION_CONFIG, payload: config });
+
+    // Always reset session tracking when configuration changes
+    // This ensures each new session (even same student/book) gets a new conversation
+    sessionConversationId.current = null;
+    dispatch({ type: "SET_CURRENT_CONVERSATION_ID", payload: null });
+    lastSavedMessageCount.current = 0;
+    isCurrentlySaving.current = false;
+
+    // Clear any pending save timeout when switching contexts
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    console.log("New session started - conversation ID reset");
+    previousConfigRef.current = config;
+  }, []);
+
+  const clearConversation = useCallback(() => {
+    dispatch({ type: CLEAR_MESSAGES });
+
+    // Reset session conversation tracking
+    sessionConversationId.current = null;
+    dispatch({ type: "SET_CURRENT_CONVERSATION_ID", payload: null });
+    lastSavedMessageCount.current = 0;
+    isCurrentlySaving.current = false;
+
+    // Clear any pending save timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    console.log("Conversation cleared - ready for new session");
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       ...state,
@@ -241,7 +447,10 @@ export function VoiceBotProvider({ children }: Props) {
       startSleeping,
       toggleSleep,
       setAttachParamsToCopyUrl,
-      messageCount: state.messageCount,
+      setConversationConfig,
+      clearConversation,
+      conversationSaving,
+      conversationSaveError,
     }),
     [
       state,
@@ -249,7 +458,11 @@ export function VoiceBotProvider({ children }: Props) {
       startSpeaking,
       toggleSleep,
       setAttachParamsToCopyUrl,
+      setConversationConfig,
       displayOrder,
+      clearConversation,
+      conversationSaving,
+      conversationSaveError,
     ],
   );
 

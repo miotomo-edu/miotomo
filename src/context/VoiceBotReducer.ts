@@ -4,6 +4,7 @@ import {
   type ConversationMessage,
   type LatencyMessage,
   type BehindTheScenesEvent,
+  type ConversationConfig,
 } from "./VoiceBotContextProvider";
 
 export const START_LISTENING = "start_listening";
@@ -14,6 +15,9 @@ export const INCREMENT_SLEEP_TIMER = "increment_sleep_timer";
 export const ADD_MESSAGE = "add_message";
 export const SET_PARAMS_ON_COPY_URL = "set_attach_params_to_copy_url";
 export const ADD_BEHIND_SCENES_EVENT = "add_behind_scenes_event";
+export const CLEAR_MESSAGES = "clear_messages";
+export const SET_CONVERSATION_CONFIG = "set_conversation_config";
+export const SET_CURRENT_CONVERSATION_ID = "set_current_conversation_id";
 
 export type VoiceBotAction =
   | { type: typeof START_LISTENING }
@@ -23,7 +27,10 @@ export type VoiceBotAction =
   | { type: typeof INCREMENT_SLEEP_TIMER }
   | { type: typeof ADD_MESSAGE; payload: ConversationMessage | LatencyMessage }
   | { type: typeof SET_PARAMS_ON_COPY_URL; payload: boolean }
-  | { type: typeof ADD_BEHIND_SCENES_EVENT; payload: BehindTheScenesEvent };
+  | { type: typeof ADD_BEHIND_SCENES_EVENT; payload: BehindTheScenesEvent }
+  | { type: typeof CLEAR_MESSAGES }
+  | { type: typeof SET_CONVERSATION_CONFIG; payload: ConversationConfig }
+  | { type: typeof SET_CURRENT_CONVERSATION_ID; payload: string | null };
 
 export const voiceBotReducer = (
   state: VoiceBotState,
@@ -52,6 +59,23 @@ export const voiceBotReducer = (
       return {
         ...state,
         behindTheScenesEvents: [...state.behindTheScenesEvents, action.payload],
+      };
+    case CLEAR_MESSAGES:
+      return {
+        ...state,
+        messages: [],
+        behindTheScenesEvents: [],
+        messageCount: 0,
+      };
+    case SET_CONVERSATION_CONFIG:
+      return {
+        ...state,
+        conversationConfig: action.payload,
+      };
+    case SET_CURRENT_CONVERSATION_ID:
+      return {
+        ...state,
+        currentConversationId: action.payload,
       };
     default:
       return state;

@@ -171,6 +171,7 @@ const App = ({ defaultStsConfig }) => {
                 onNavigate={setActiveComponent}
                 selectedBook={selectedBook}
                 userName={userName}
+                studentId={studentId}
               />
             </VoiceBotProvider>
           </MicrophoneContextProvider>
