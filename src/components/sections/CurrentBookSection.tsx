@@ -25,7 +25,7 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
         <div key={book.id}>
           {" "}
           {/* Fixed width and no shrinking for carousel item */}
-          <div className="px-4 py-4 border-none rounded-xl bg-[#F7F7F7] h-full flex flex-col">
+          <div className="px-4 py-4 border-none rounded-xl bg-[#eeeeee] h-full flex flex-col">
             {" "}
             {/* Added h-full and flex-col for internal layout */}
             <div className="flex items-stretch gap-4">
