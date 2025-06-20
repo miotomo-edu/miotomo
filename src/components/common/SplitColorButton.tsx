@@ -50,7 +50,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       <span
         className="absolute left-0 top-0 w-full h-full flex items-center justify-center font-light text-base select-none pointer-events-none"
         style={{
-          color: "#000",
+          color: "#fff", // #000
           clipPath: `inset(0 ${100 - split}% 0 0)`,
           WebkitClipPath: `inset(0 ${100 - split}% 0 0)`,
           zIndex: 2,
