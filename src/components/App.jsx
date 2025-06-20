@@ -56,9 +56,24 @@ const App = ({ defaultStsConfig }) => {
   }, []);
 
   useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTop = 0;
-    }
+    // Scroll multiple potential scroll containers
+    const scrollToTop = () => {
+      // Scroll the main container
+      if (mainRef.current) {
+        mainRef.current.scrollTo({ top: 0, behavior: "instant" });
+        mainRef.current.scrollTop = 0;
+      }
+
+      // Also scroll the window/body for mobile
+      window.scrollTo({ top: 0, behavior: "instant" });
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    };
+
+    // Use both setTimeout and requestAnimationFrame for maximum compatibility
+    setTimeout(() => {
+      requestAnimationFrame(scrollToTop);
+    }, 0);
   }, [activeComponent]);
 
   useEffect(() => {
