@@ -24,11 +24,11 @@ function LandingPage({ onContinue }) {
           </p>
         </div>
       </div>
-      {/* Button always at the bottom */}
-      <div className="flex-shrink-0">
+      {/* Button always at the bottom with safe area padding */}
+      <div className="flex-shrink-0 pb-8 safe-area-inset-bottom">
         <button
           onClick={onContinue}
-          className="bg-orange-600 text-white font-light text-xl py-3 rounded-full w-3/4 max-w-xs mx-auto block"
+          className="bg-orange-600 text-white font-light text-xl py-3 rounded-full w-3/4 max-w-xs mx-auto block mb-4"
         >
           Let's chat
         </button>
