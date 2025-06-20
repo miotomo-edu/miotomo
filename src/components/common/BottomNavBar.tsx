@@ -52,7 +52,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className="mb-1 flex items-center justify-center"
               style={{
-                color: isActive ? "#F78AD7" : "#fff",
+                color: isActive ? "#e85c33" : "#fff",
               }}
             >
               {icon}
@@ -60,7 +60,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className="text-sm"
               style={{
-                color: isActive ? "#F78AD7" : "#fff",
+                color: isActive ? "#e85c33" : "#fff",
                 fontWeight: isActive ? 600 : 400,
               }}
             >
