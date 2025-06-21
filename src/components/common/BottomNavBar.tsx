@@ -15,8 +15,8 @@ const defaultNavItems = [
   { label: "Home", componentName: "home", icon: <HomeIcon /> },
   { label: "Progress", componentName: "profile", icon: <InsightsIcon /> },
   { label: "Library", componentName: "library", icon: <LibraryIcon /> },
-  { label: "Rewards", componentName: "rewards", icon: <RewardIcon /> },
-  { label: "Settings", componentName: "settings", icon: <SettingsIcon /> },
+  // { label: "Rewards", componentName: "rewards", icon: <RewardIcon /> },
+  // { label: "Settings", componentName: "settings", icon: <SettingsIcon /> },
 ];
 
 const BottomNavBar: React.FC<BottomNavBarProps> = ({
