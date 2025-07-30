@@ -7,7 +7,7 @@ function HomePage({
   books,
   setBooks,
   selectedBook,
-  onBookSelect,
+  onBookAndCharacterSelect,
   onContinue,
   userName,
   studentId,
@@ -24,7 +24,7 @@ function HomePage({
         <LibrarySection
           books={books}
           setBooks={setBooks}
-          onBookSelect={onBookSelect}
+          onBookAndCharacterSelect={onBookAndCharacterSelect} // <-- update here
           onContinue={onContinue}
           studentId={studentId}
         />

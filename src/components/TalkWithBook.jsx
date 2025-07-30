@@ -32,6 +32,7 @@ export const TalkWithBook = ({
   className = "",
   onNavigate,
   selectedBook,
+  currentCharacter,
   userName = "",
   studentId = null,
 }) => {
@@ -270,7 +271,8 @@ export const TalkWithBook = ({
           bufferAudio(event.data); // Process the ArrayBuffer data to play the audio
         }
       } else {
-        console.log(event?.data);
+        console.log("EVENT");
+        console.log(event);
         // Handle other types of messages such as strings
         setData(event.data);
         onMessageEvent(event.data);
@@ -612,7 +614,10 @@ export const TalkWithBook = ({
           <RateLimited />
         ) : (
           <Fragment>
-            <Transcript userName={userName} />
+            <Transcript
+              userName={userName}
+              currentCharacter={currentCharacter}
+            />
           </Fragment>
         )}
       </div>

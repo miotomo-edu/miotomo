@@ -2,9 +2,17 @@ import React, { useRef, useEffect } from "react";
 import { useVoiceBot } from "../../../context/VoiceBotContextProvider";
 import assistantAvatar from "../../../assets/img/miotomo-avatar.png";
 
-function Transcript({ userName = "" }) {
+function Transcript({ userName = "", currentCharacter }) {
   const { messages } = useVoiceBot();
   const messagesEndRef = useRef(null);
+
+  // Filter out consecutive duplicate messages
+  const filteredMessages = messages.filter((msg, idx, arr) => {
+    if (idx === 0) return true;
+    const prev = arr[idx - 1];
+    // Compare both user and assistant fields
+    return msg.user !== prev.user || msg.assistant !== prev.assistant;
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -15,12 +23,12 @@ function Transcript({ userName = "" }) {
   }, [messages]);
 
   const userAvatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${userName}`;
-  const assistantAvatarUrl = assistantAvatar;
+  const assistantAvatarUrl = currentCharacter?.icon || assistantAvatar;
 
   return (
     <div className="w-full h-full p-4 overflow-y-auto">
       <div className="space-y-6">
-        {messages.map((message, index) => {
+        {filteredMessages.map((message, index) => {
           const isUser = !!message.user;
           const flexDirection = isUser ? "flex-row-reverse" : "flex-row";
           const avatarMargin = isUser ? "ml-4" : "mr-4";

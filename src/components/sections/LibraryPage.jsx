@@ -1,16 +1,16 @@
 import WelcomeSection from "./WelcomeSection";
 import CurrentBookSection from "./CurrentBookSection";
-// import SearchSection from "./SearchSection";
 import LibrarySection from "./LibrarySection";
 
 function LibraryPage({
   setBooks,
   selectedBook,
-  onBookSelect,
+  onBookAndCharacterSelect,
   onContinue,
   userName,
   studentId,
 }) {
+  // Update: onBookSelect now receives (book, modality)
   return (
     <div>
       <WelcomeSection userName={userName} />
@@ -19,7 +19,7 @@ function LibraryPage({
       )}
       <LibrarySection
         setBooks={setBooks}
-        onBookSelect={onBookSelect}
+        onBookAndCharacterSelect={onBookAndCharacterSelect}
         onContinue={onContinue}
         studentId={studentId}
       />
