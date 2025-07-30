@@ -32,6 +32,7 @@ const App = ({ defaultStsConfig }) => {
   const [books, setBooks] = useState([]);
   const mainRef = useRef(null);
   const [userName, setUserName] = useState("");
+  const [currentCharacter, setCurrentCharacter] = useState(null);
 
   const [studentId, setStudentId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -52,8 +53,10 @@ const App = ({ defaultStsConfig }) => {
 
   // 3. All useEffect hooks
   useEffect(() => {
-    loadBookCompanionPrompt().then(setPrompt);
-  }, []);
+    if (currentCharacter?.prompt) {
+      loadBookCompanionPrompt(currentCharacter.prompt).then(setPrompt);
+    }
+  }, [currentCharacter]);
 
   useEffect(() => {
     // Scroll multiple potential scroll containers
@@ -151,8 +154,8 @@ const App = ({ defaultStsConfig }) => {
     }
   })();
   const greeting = selectedBook
-    ? `Hello ${userName}! I'm Miotomo! Are you enjoying "${selectedBook.title}"?`
-    : `Hello ${userName}! I'm Miotomo! Are you enjoying your book?`;
+    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying "${selectedBook.title}"?`
+    : `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying your book?`;
 
   // 6. useMemo hooks (after the values they depend on are defined)
   const updatedStsConfig = useMemo(
@@ -189,6 +192,12 @@ const App = ({ defaultStsConfig }) => {
     );
   }
 
+  const handleBookAndCharacterSelect = (book, character) => {
+    setSelectedBook(book);
+    setCurrentCharacter(character);
+    setActiveComponent("interactive");
+  };
+
   // Function to switch components
   const handleNavigationClick = (componentName) => {
     setActiveComponent(componentName);
@@ -207,7 +216,7 @@ const App = ({ defaultStsConfig }) => {
             setBooks={setBooksArray}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
-            onBookSelect={setSelectedBook}
+            onBookAndCharacterSelect={handleBookAndCharacterSelect}
             userName={userName}
             studentId={studentId}
           />
@@ -217,9 +226,9 @@ const App = ({ defaultStsConfig }) => {
           <LibraryPage
             books={books}
             setBooks={setBooksArray}
-            onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
-            onBookSelect={setSelectedBook}
+            onBookAndCharacterSelect={handleBookAndCharacterSelect}
+            onContinue={() => setActiveComponent("interactive")}
             userName={userName}
             studentId={studentId}
           />
@@ -238,6 +247,7 @@ const App = ({ defaultStsConfig }) => {
                 defaultStsConfig={updatedStsConfig}
                 onNavigate={setActiveComponent}
                 selectedBook={selectedBook}
+                currentCharacter={currentCharacter}
                 userName={userName}
                 studentId={studentId}
               />

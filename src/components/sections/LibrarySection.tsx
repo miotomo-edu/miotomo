@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import BookGrid from "../features/BookGrid";
-import { useBooks } from "../../hooks/useBooks"; // Adjust path as needed
+import { useBooks } from "../../hooks/useBooks";
+import MapSection from "./MapSection";
+import { Character } from "../../lib/characters";
 
 export type Book = {
   id: string;
@@ -14,7 +16,7 @@ export type Book = {
 type LibrarySectionProps = {
   books: Book[];
   setBooks: (books: Book[]) => void;
-  onBookSelect: (book: Book) => void;
+  onBookAndCharacterSelect: (book: Book, character: Character) => void;
   onContinue: () => void;
   studentId: string;
 };
@@ -22,48 +24,48 @@ type LibrarySectionProps = {
 const LibrarySection: React.FC<LibrarySectionProps> = ({
   books,
   setBooks,
-  onBookSelect,
+  onBookAndCharacterSelect,
   onContinue,
   studentId,
 }) => {
   const { data: fetchedBooks, isLoading, error } = useBooks(studentId);
-  // Update parent state when books are fetched
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
   useEffect(() => {
-    console.log("LibrarySection useEffect - fetchedBooks:", fetchedBooks);
     if (fetchedBooks && Array.isArray(fetchedBooks)) {
       setBooks(fetchedBooks);
     }
   }, [fetchedBooks, setBooks]);
 
   const handleBookAction = (bookId: string) => {
-    // Use fetchedBooks first, fall back to books prop
     const booksToUse = fetchedBooks || books;
-    console.log(
-      "handleBookAction called. booksToUse:",
-      booksToUse,
-      "bookId:",
-      bookId,
-    );
-
-    // Add a check to ensure we have valid books data
-    if (!Array.isArray(booksToUse)) {
-      console.error(
-        "Cannot perform book action: books data is not available or is not an array.",
-      );
-      return;
-    }
-
-    const updatedBooks = booksToUse.map((b) =>
-      b.id === bookId ? { ...b, status: "started", progress: 28 } : b,
-    );
-    setBooks(updatedBooks);
-    const selected = updatedBooks.find((b) => b.id === bookId);
-    if (selected) onBookSelect(selected);
-    onContinue();
+    if (!Array.isArray(booksToUse)) return;
+    const selected = booksToUse.find((b) => b.id === bookId);
+    if (selected) setSelectedBook(selected);
   };
+
+  const handleSelectModality = (character) => {
+    if (selectedBook) {
+      onBookAndCharacterSelect(selectedBook, character); // Pass character object
+      onContinue();
+      setSelectedBook(null);
+    }
+  };
+
+  const handleBack = () => setSelectedBook(null);
 
   if (isLoading) return <div>Loading books...</div>;
   if (error) return <div>Error loading books.</div>;
+
+  if (selectedBook) {
+    return (
+      <MapSection
+        book={selectedBook}
+        onSelectModality={handleSelectModality}
+        onBack={handleBack}
+      />
+    );
+  }
 
   return (
     <section className="py-6 px-4 pb-24">
