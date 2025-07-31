@@ -87,7 +87,7 @@ export const TalkWithBook = ({
     window.location.pathname === "/",
   );
 
-  console.log("SELECTED BOOK:", selectedBook);
+  // console.log("SELECTED BOOK:", selectedBook);
 
   // Enable automatic conversation saving when component mounts
   useEffect(() => {
