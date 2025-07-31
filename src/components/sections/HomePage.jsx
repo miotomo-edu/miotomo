@@ -7,17 +7,23 @@ function HomePage({
   books,
   setBooks,
   selectedBook,
+  selectedChapter,
   onBookAndCharacterSelect,
   onContinue,
   userName,
   studentId,
+  onBookSelectForMap,
 }) {
   return (
     <div>
       <WelcomeSection userName={userName} />
       {selectedBook ? (
         <>
-          <CurrentBookSection books={[selectedBook]} onContinue={onContinue} />
+          <CurrentBookSection
+            books={[selectedBook]}
+            chapter={selectedChapter} // <-- pass chapter
+            onContinue={(book, chapter) => onBookSelectForMap(book, chapter)}
+          />
           <ReminderSection />
         </>
       ) : (
@@ -27,6 +33,7 @@ function HomePage({
           onBookAndCharacterSelect={onBookAndCharacterSelect} // <-- update here
           onContinue={onContinue}
           studentId={studentId}
+          onBookSelectForMap={onBookSelectForMap}
         />
       )}
     </div>

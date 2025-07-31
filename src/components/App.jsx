@@ -8,6 +8,7 @@ import LibraryPage from "./sections/LibraryPage";
 import ProfileSection from "./sections/ProfileSection";
 import RewardsSection from "./sections/RewardsSection";
 import SettingsSection from "./sections/SettingsSection";
+import MapSection from "./sections/MapSection";
 import { TalkWithBook } from "./TalkWithBook";
 import BottomNavBar from "./common/BottomNavBar";
 
@@ -29,6 +30,7 @@ const App = ({ defaultStsConfig }) => {
   const prevActiveComponent = useRef(activeComponent);
   const [prompt, setPrompt] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
+  const [selectedChapter, setSelectedChapter] = useState(1);
   const [books, setBooks] = useState([]);
   const mainRef = useRef(null);
   const [userName, setUserName] = useState("");
@@ -137,9 +139,12 @@ const App = ({ defaultStsConfig }) => {
   }, []);
 
   // 5. Derived state (variables that depend on state/props)
-  const introduction = selectedBook
-    ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
-    : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
+  const introduction =
+    selectedBook && currentCharacter
+      ? `You are ${currentCharacter.name}, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}. Focus on chapter ${selectedChapter}.`
+      : selectedBook
+        ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
+        : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
 
   const customization = (() => {
     switch (selectedBook?.title) {
@@ -154,7 +159,7 @@ const App = ({ defaultStsConfig }) => {
     }
   })();
   const greeting = selectedBook
-    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying "${selectedBook.title}"?`
+    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying chapter ${selectedChapter} of "${selectedBook.title}"?`
     : `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying your book?`;
 
   // 6. useMemo hooks (after the values they depend on are defined)
@@ -216,9 +221,15 @@ const App = ({ defaultStsConfig }) => {
             setBooks={setBooksArray}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
+            selectedChapter={selectedChapter}
             onBookAndCharacterSelect={handleBookAndCharacterSelect}
             userName={userName}
             studentId={studentId}
+            onBookSelectForMap={(book, chapter) => {
+              setSelectedBook(book);
+              setSelectedChapter(chapter);
+              setActiveComponent("map");
+            }}
           />
         );
       case "library":
@@ -227,10 +238,16 @@ const App = ({ defaultStsConfig }) => {
             books={books}
             setBooks={setBooksArray}
             selectedBook={selectedBook}
+            selectedChapter={selectedChapter}
             onBookAndCharacterSelect={handleBookAndCharacterSelect}
             onContinue={() => setActiveComponent("interactive")}
             userName={userName}
             studentId={studentId}
+            onBookSelectForMap={(book, chapter) => {
+              setSelectedBook(book);
+              setSelectedChapter(chapter);
+              setActiveComponent("map");
+            }}
           />
         );
       case "profile":
@@ -239,6 +256,17 @@ const App = ({ defaultStsConfig }) => {
         return <RewardsSection />;
       case "settings":
         return <SettingsSection />;
+      case "map":
+        return (
+          <MapSection
+            book={selectedBook}
+            chapter={selectedChapter}
+            onSelectModality={(character) =>
+              handleBookAndCharacterSelect(selectedBook, character)
+            }
+            onBack={() => setActiveComponent("library")}
+          />
+        );
       case "interactive":
         return (
           <MicrophoneContextProvider>
@@ -247,6 +275,7 @@ const App = ({ defaultStsConfig }) => {
                 defaultStsConfig={updatedStsConfig}
                 onNavigate={setActiveComponent}
                 selectedBook={selectedBook}
+                chapter={selectedChapter}
                 currentCharacter={currentCharacter}
                 userName={userName}
                 studentId={studentId}

@@ -17,13 +17,21 @@ const BookCard: React.FC<BookCardProps> = ({
   <div className="bg-[#eeeeee] rounded-xl p-4 flex flex-col items-center w-full border border-none">
     <div className="w-full flex justify-center mb-2">
       <div className="w-24 aspect-[2/3] bg-gray-200 rounded flex items-center justify-center overflow-hidden">
-        {thumbnailUrl ? (
-          <img
-            src={thumbnailUrl}
-            alt={title}
-            className="w-full h-full object-cover rounded"
-          />
-        ) : null}
+        <button
+          type="button"
+          onClick={onAction}
+          className="w-24 aspect-[2/3] bg-gray-200 rounded flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-orange-500"
+          style={{ cursor: "pointer" }}
+          aria-label={`Select book: ${title}`}
+        >
+          {thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt={title}
+              className="w-full h-full object-cover rounded"
+            />
+          ) : null}
+        </button>
       </div>
     </div>
     <div className="font-semibold text-left w-full">{title}</div>

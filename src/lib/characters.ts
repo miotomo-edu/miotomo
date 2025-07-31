@@ -21,7 +21,7 @@ export const characterData: Character[] = [
     icon: miotomoAvatar,
     bg: "bg-purple-200",
     modality: "Wise companion",
-    x: 20,
+    x: 30,
     prompt: "storytelling",
   },
   {
@@ -33,7 +33,7 @@ export const characterData: Character[] = [
     prompt: "spelling",
   },
   {
-    name: "Argu",
+    name: "Argoo",
     icon: arguAvatar,
     bg: "",
     customBg: "#C6DDAF",
