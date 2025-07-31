@@ -3,10 +3,11 @@ import { Book } from "../sections/LibrarySection";
 
 type BookTitleProps = {
   book: Book;
+  chapter: number;
   onBack?: () => void;
 };
 
-const BookTitle = ({ book, onBack }: BookTitleProps) => (
+const BookTitle = ({ book, chapter, onBack }: BookTitleProps) => (
   <div className="w-full px-6 py-4 flex items-start">
     {/* Back button, top-aligned */}
     <button
@@ -37,9 +38,7 @@ const BookTitle = ({ book, onBack }: BookTitleProps) => (
     )}
     <div>
       <h1 className="text-black text-2xl font-bold">{book.title}</h1>
-      <div className="text-base font-medium text-gray-600 mt-1">
-        {book.author}
-      </div>
+      <div className="text-base font-medium mt-1">Chapter {chapter}</div>
     </div>
   </div>
 );

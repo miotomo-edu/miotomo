@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import BookGrid from "../features/BookGrid";
 import { useBooks } from "../../hooks/useBooks";
-import MapSection from "./MapSection";
 import { Character } from "../../lib/characters";
 
 export type Book = {
@@ -19,6 +18,7 @@ type LibrarySectionProps = {
   onBookAndCharacterSelect: (book: Book, character: Character) => void;
   onContinue: () => void;
   studentId: string;
+  onBookSelectForMap: (book: Book, chapter: number) => void; // updated
 };
 
 const LibrarySection: React.FC<LibrarySectionProps> = ({
@@ -27,9 +27,14 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
   onBookAndCharacterSelect,
   onContinue,
   studentId,
+  onBookSelectForMap,
 }) => {
   const { data: fetchedBooks, isLoading, error } = useBooks(studentId);
+
+  // Chapter selector state
+  const [showChapterSelector, setShowChapterSelector] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedChapter, setSelectedChapter] = useState(1);
 
   useEffect(() => {
     if (fetchedBooks && Array.isArray(fetchedBooks)) {
@@ -41,31 +46,23 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
     const booksToUse = fetchedBooks || books;
     if (!Array.isArray(booksToUse)) return;
     const selected = booksToUse.find((b) => b.id === bookId);
-    if (selected) setSelectedBook(selected);
+    if (selected) {
+      setSelectedBook(selected);
+      setShowChapterSelector(true);
+      setSelectedChapter(1);
+    }
   };
 
-  const handleSelectModality = (character) => {
+  const handleChapterConfirm = () => {
     if (selectedBook) {
-      onBookAndCharacterSelect(selectedBook, character); // Pass character object
-      onContinue();
+      onBookSelectForMap(selectedBook, selectedChapter);
+      setShowChapterSelector(false);
       setSelectedBook(null);
     }
   };
 
-  const handleBack = () => setSelectedBook(null);
-
   if (isLoading) return <div>Loading books...</div>;
   if (error) return <div>Error loading books.</div>;
-
-  if (selectedBook) {
-    return (
-      <MapSection
-        book={selectedBook}
-        onSelectModality={handleSelectModality}
-        onBack={handleBack}
-      />
-    );
-  }
 
   return (
     <section className="py-6 px-4 pb-24">
@@ -73,6 +70,57 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
         Pick a book and chat with Miotomo
       </h2>
       <BookGrid books={fetchedBooks || books} onBookAction={handleBookAction} />
+
+      {/* Chapter Selector Popup */}
+      {showChapterSelector && selectedBook && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
+          onClick={() => {
+            setShowChapterSelector(false);
+            setSelectedBook(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center"
+            style={{
+              width: "100%",
+              maxWidth: 400,
+              margin: "0 16px",
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent background click from closing when clicking inside
+          >
+            <h3 className="text-xl font-bold mb-4">
+              Which chapter have you reached in{" "}
+              <span className="font-semibold">{selectedBook.title}</span>?
+            </h3>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={selectedChapter}
+              onChange={(e) => setSelectedChapter(Number(e.target.value))}
+              className="border rounded px-3 py-2 text-lg mb-4 w-24 text-center"
+            />
+            <div className="flex gap-4">
+              <button
+                onClick={handleChapterConfirm}
+                className="bg-purple-600 text-white px-6 py-2 rounded font-semibold hover:bg-purple-700"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => {
+                  setShowChapterSelector(false);
+                  setSelectedBook(null);
+                }}
+                className="bg-gray-300 text-gray-800 px-6 py-2 rounded font-semibold hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

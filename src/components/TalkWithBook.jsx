@@ -29,7 +29,7 @@ export const TalkWithBook = ({
   defaultStsConfig,
   onMessageEvent = () => {},
   requiresUserActionToInitialize = false,
-  className = "",
+  chapter,
   onNavigate,
   selectedBook,
   currentCharacter,
@@ -86,7 +86,8 @@ export const TalkWithBook = ({
   const [isRootPath, setIsRootPath] = useState(
     window.location.pathname === "/",
   );
-  const [activeTab, setActiveTab] = useState("clinical-notes");
+
+  console.log("SELECTED BOOK:", selectedBook);
 
   // Enable automatic conversation saving when component mounts
   useEffect(() => {
@@ -576,6 +577,7 @@ export const TalkWithBook = ({
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
+          chapter={chapter}
           onBack={() => {
             if (typeof disconnectFromDeepgram === "function") {
               disconnectFromDeepgram();
@@ -584,7 +586,7 @@ export const TalkWithBook = ({
               microphoneAudioContext.close();
             }
             if (typeof onNavigate === "function") {
-              onNavigate("library");
+              onNavigate("map");
             }
           }}
         />

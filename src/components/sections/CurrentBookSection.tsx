@@ -6,11 +6,13 @@ import { Book } from "../sections/LibrarySection";
 
 type CurrentBookSectionProps = {
   books: Book[]; // Remains an array of books
+  chapter?: number;
   onContinue?: (book: Book) => void; // Passes the specific book being interacted with
 };
 
 const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
   books,
+  chapter,
   onContinue,
 }) => (
   <section className="py-6 mb-6 px-4">
@@ -43,9 +45,11 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                 data-id="current-book-info"
               >
                 <div>
-                  <div className="text-xl font-bold">{book.title}</div>
+                  <div className="text-2xl font-bold">{book.title}</div>
                   <div className="text-gray-500">by {book.author}</div>
                 </div>
+                <div className="text-xl font-bold">Chapter {chapter}</div>
+
                 {/* The SplitColorButton is now inside each book's rendering */}
                 {/* The button text should probably reflect the action for each book, not the section title */}
                 <SplitColorButton
@@ -57,7 +61,7 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                   rightColor="#000"
                   leftColor="#E85C33"
                   split={book.progress}
-                  onClick={() => onContinue && onContinue(book)} // Pass the specific book
+                  onClick={() => onContinue && onContinue(book, chapter ?? 1)} // Pass the specific book
                   icon={<PlayIcon />}
                 />
               </div>
