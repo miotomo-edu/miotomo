@@ -35,8 +35,15 @@ const MapSection: React.FC<MapSectionProps> = ({
           {characterData.map((character, idx) => (
             <button
               key={character.modality}
-              onClick={() => onSelectModality(character)}
-              className={`absolute flex flex-col items-center justify-center ${character.bg} hover:brightness-105 rounded-full w-44 h-44 shadow-md transition-all duration-200 focus:outline-none`}
+              onClick={() => {
+                if (!character.disabled) {
+                  onSelectModality(character);
+                }
+              }}
+              disabled={character.disabled}
+              className={`absolute flex flex-col items-center justify-center ${character.bg} hover:brightness-105 rounded-full w-44 h-44 shadow-md transition-all duration-200 focus:outline-none
+                ${character.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+              `}
               style={{
                 ...(character.customBg
                   ? { backgroundColor: character.customBg }
