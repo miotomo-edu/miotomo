@@ -173,6 +173,12 @@ const App = ({ defaultStsConfig }) => {
           prompt: `${introduction}\n${customization}\n${prompt}`,
         },
         greeting,
+        speak: {
+          provider: {
+            type: "deepgram",
+            model: currentCharacter?.voice ?? "aura-2-thalia-en",
+          },
+        },
       },
     }),
     [defaultStsConfig, prompt, selectedBook, introduction, greeting],

@@ -40,6 +40,33 @@ export const sendKeepAliveMessage = (socket: WebSocket) => () => {
   sendSocketMessage(socket, { type: "KeepAlive" });
 };
 
+export const sendWarningMessage = (socket: WebSocket) => () => {
+  console.log("SENDING WARNING MESSAGE");
+  if (socket.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket is not open, skipping inject message");
+    return;
+  }
+  sendSocketMessage(socket, {
+    type: "InjectAgentMessage",
+    message:
+      "This conversation will end in 30 seconds. Please wrap up your questions.",
+  });
+};
+
+export const sendFinalMessage = (socket: WebSocket) => () => {
+  console.log("SENDING FINAL MESSAGE");
+  if (socket.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket is not open, skipping inject message");
+    return;
+  }
+  sendSocketMessage(socket, {
+    type: "InjectAgentMessage",
+    message:
+      "Our time is over. Thank you for speaking with me! See you tomorrow",
+  });
+  console.log("Closing message sent. Closing connection.");
+};
+
 export interface AudioConfig {
   input: {
     encoding: string;
@@ -183,6 +210,10 @@ export type DGMessage =
         arguments: string;
         client_side: boolean;
       }>;
+    }
+  | {
+      type: "InjectAgentMessage";
+      message: string;
     }
   | {
       type: "FunctionCallResponse";

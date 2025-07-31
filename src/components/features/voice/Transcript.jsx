@@ -22,6 +22,17 @@ function Transcript({ userName = "", currentCharacter }) {
     scrollToBottom();
   }, [messages]);
 
+  const processSpellingText = (text) => {
+    if (currentCharacter?.prompt !== "spelling") {
+      return text;
+    }
+
+    // Replace **word** with stars (one star per letter)
+    return text.replace(/\*\*([^*]+)\*\*/g, (match, word) => {
+      return "*".repeat(word.length);
+    });
+  };
+
   const userAvatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${userName}`;
   const assistantAvatarUrl = currentCharacter?.icon || assistantAvatar;
 
@@ -58,7 +69,9 @@ function Transcript({ userName = "", currentCharacter }) {
                 {isUser ? (
                   <p className="text-gray-800 leading-7">{message.user}</p>
                 ) : message.assistant ? (
-                  <p className="text-gray-800 leading-7">{message.assistant}</p>
+                  <p className="text-gray-800 leading-7">
+                    {processSpellingText(message.assistant)}
+                  </p>
                 ) : null}
               </div>
             </div>

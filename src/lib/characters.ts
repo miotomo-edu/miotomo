@@ -6,6 +6,8 @@ export type Character = {
   modality: string;
   x: number;
   prompt: string;
+  disabled?: boolean;
+  voice?: string;
 };
 
 import miotomoAvatar from "../assets/img/miotomo-avatar.png";
@@ -31,6 +33,7 @@ export const characterData: Character[] = [
     modality: "Spelling champ",
     x: 50,
     prompt: "spelling",
+    voice: "aura-2-hyperion-en",
   },
   {
     name: "Argoo",
@@ -40,6 +43,7 @@ export const characterData: Character[] = [
     modality: "Little debater",
     x: 70,
     prompt: "debating",
+    voice: "aura-2-vesta-en",
   },
   {
     name: "Wordie",
@@ -48,6 +52,7 @@ export const characterData: Character[] = [
     modality: "Word wizard",
     x: 40,
     prompt: "vocabulary",
+    voice: "aura-2-ophelia-en",
   },
   {
     name: "Fizz",
@@ -56,6 +61,7 @@ export const characterData: Character[] = [
     modality: "Story booster",
     x: 65,
     prompt: "game",
+    voice: "aura-2-luna-en",
   },
   {
     name: "Echo",
