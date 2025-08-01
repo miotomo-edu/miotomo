@@ -162,7 +162,7 @@ const App = ({ defaultStsConfig }) => {
     ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying chapter ${selectedChapter} of "${selectedBook.title}"?`
     : `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying your book?`;
 
-  console.log(`PROMPT ###### \n\n${introduction}\n${customization}\n${prompt}`);
+  // console.log(`PROMPT ###### \n\n${introduction}\n${customization}\n${prompt}`);
 
   // 6. useMemo hooks (after the values they depend on are defined)
   const updatedStsConfig = useMemo(
