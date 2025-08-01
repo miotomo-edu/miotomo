@@ -33,7 +33,7 @@ export const characterData: Character[] = [
     modality: "Spelling champ",
     x: 50,
     prompt: "spelling",
-    voice: "aura-2-hyperion-en",
+    voice: "aura-2-callista-en",
   },
   {
     name: "Argoo",
@@ -43,7 +43,7 @@ export const characterData: Character[] = [
     modality: "Little debater",
     x: 70,
     prompt: "debating",
-    voice: "aura-2-vesta-en",
+    voice: "aura-2-asteria-en",
   },
   {
     name: "Wordie",
