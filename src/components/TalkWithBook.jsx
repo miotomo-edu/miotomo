@@ -16,7 +16,12 @@ import {
   VoiceBotStatus,
 } from "../context/VoiceBotContextProvider.jsx";
 import { createAudioBuffer, playAudioBuffer } from "../utils/audioUtils.js";
-import { sendSocketMessage, sendMicToSocket } from "../utils/deepgramUtils.js";
+import {
+  sendSocketMessage,
+  sendMicToSocket,
+  sendWarningMessage,
+  sendFinalMessage,
+} from "../utils/deepgramUtils.js";
 import { isMobile } from "react-device-detect";
 import { usePrevious } from "@uidotdev/usehooks";
 import { useStsQueryParams } from "../hooks/UseStsQueryParams.jsx";
@@ -67,6 +72,9 @@ export const TalkWithBook = ({
     processor,
     microphoneAudioContext,
     startMicrophone,
+    pauseMicrophone,
+    resumeMicrophone,
+    isPaused,
   } = useMicrophone();
   const { socket, connectToDeepgram, socketState, rateLimited } = useDeepgram();
   const { voice, instructions, applyParamsToConfig } = useStsQueryParams();
@@ -83,6 +91,9 @@ export const TalkWithBook = ({
   const previousVoice = usePrevious(voice);
   const previousInstructions = usePrevious(instructions);
   const scheduledAudioSources = useRef([]);
+  const warningTimeoutRef = useRef(null);
+  const finalTimeoutRef = useRef(null);
+  const disconnectTimeoutRef = useRef(null);
   const [isRootPath, setIsRootPath] = useState(
     window.location.pathname === "/",
   );
@@ -335,6 +346,56 @@ export const TalkWithBook = ({
       });
     }
   }, [voice, socket, socketState, previousVoice]);
+
+  // useEffect(() => {
+  //   if (socket && socketState === 1) {
+  //     // Set the warning timeout
+  //     console.log("Setting warning timeout");
+  //     warningTimeoutRef.current = setTimeout(() => {
+  //       pauseMicrophone(); // Pause user input
+  //       sendWarningMessage(socket)();
+
+  //       // Optionally resume after the warning is spoken (adjust timing as needed)
+  //       setTimeout(() => {
+  //         resumeMicrophone();
+  //       }, 5000);
+  //     }, 8000);
+
+  //     // Cleanup on unmount or when socket/socketState changes
+  //     return () => {
+  //       if (warningTimeoutRef.current) {
+  //         clearTimeout(warningTimeoutRef.current);
+  //       }
+  //     };
+  //   }
+  // }, [socket, socketState]);
+
+  // useEffect(() => {
+  //   if (socket && socketState === 1) {
+  //     // Send the final message after 10 seconds
+  //     finalTimeoutRef.current = setTimeout(() => {
+  //       pauseMicrophone();
+  //       sendFinalMessage(socket)(); // Inject the final message
+
+  //       // Wait (e.g., 3 seconds) before disconnecting to allow the message to be read
+  //       disconnectTimeoutRef.current = setTimeout(() => {
+  //         if (typeof disconnectFromDeepgram === "function") {
+  //           disconnectFromDeepgram();
+  //         }
+  //       }, 3000); // Adjust this delay as needed for your TTS playback length
+  //     }, 20000); // 10 seconds
+
+  //     // Cleanup on unmount or when socket/socketState changes
+  //     return () => {
+  //       if (finalTimeoutRef.current) {
+  //         clearTimeout(finalTimeoutRef.current);
+  //       }
+  //       if (disconnectTimeoutRef.current) {
+  //         clearTimeout(disconnectTimeoutRef.current);
+  //       }
+  //     };
+  //   }
+  // }, [socket, socketState, disconnectFromDeepgram]);
 
   const handleUpdateInstructions = useCallback(
     (instructions) => {

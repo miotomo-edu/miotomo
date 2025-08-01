@@ -15,6 +15,9 @@ interface MicrophoneContextType {
   setMicrophoneAudioContext: (context: AudioContext) => void;
   processor: ScriptProcessorNode | undefined;
   cleanupMicrophone: () => void;
+  pauseMicrophone: () => void;
+  resumeMicrophone: () => void;
+  isPaused: boolean;
 }
 
 const MicrophoneContext = createContext<MicrophoneContextType | undefined>(
@@ -27,6 +30,8 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
   const [microphoneAudioContext, setMicrophoneAudioContext] =
     useState<AudioContext>();
   const [processor, setProcessor] = useState<ScriptProcessorNode>();
+  const [isPaused, setIsPaused] = useState(false);
+  const isPausedRef = useRef(false);
   const mediaStreamRef = useRef<MediaStream | undefined>();
   const audioContextRef = useRef<AudioContext | undefined>();
 
@@ -60,6 +65,7 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
       setMicrophoneAudioContext(audioContext);
       setProcessor(processor);
       setMicrophoneState(1);
+      setIsPaused(false); // <-- reset paused state
       console.log("Microphone setup complete - state:", 1);
     } catch (err) {
       console.error("Microphone setup error:", err);
@@ -106,7 +112,81 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Stable cleanup function
+  const pauseMicrophone = () => {
+    console.log("pauseMicrophone called", {
+      hasMicrophone: !!microphone,
+      hasProcessor: !!processor,
+      isPaused: isPausedRef.current, // <-- Use ref for logging
+    });
+
+    if (!microphone || !processor) {
+      console.log("Cannot pause - missing dependencies:", {
+        microphone: !!microphone,
+        processor: !!processor,
+      });
+      return;
+    }
+
+    if (isPausedRef.current) {
+      // <-- Use ref for check
+      console.log("Already paused, skipping");
+      return;
+    }
+
+    try {
+      microphone.disconnect(processor);
+      processor.disconnect();
+      isPausedRef.current = true; // <-- Update ref immediately
+      setIsPaused(true); // <-- Update state for UI (if needed)
+      console.log("Microphone paused successfully");
+    } catch (err) {
+      console.error("Error pausing microphone:", err);
+    }
+  };
+
+  // <-- Updated resumeMicrophone function
+  const resumeMicrophone = () => {
+    console.log("resumeMicrophone called", {
+      hasMicrophone: !!microphone,
+      hasProcessor: !!processor,
+      hasMicrophoneAudioContext: !!microphoneAudioContext,
+      isPaused: isPausedRef.current, // <-- Use ref for logging
+    });
+
+    if (!microphone) {
+      console.log("Cannot resume - no microphone");
+      return;
+    }
+    if (!processor) {
+      console.log("Cannot resume - no processor");
+      return;
+    }
+    if (!microphoneAudioContext) {
+      console.log("Cannot resume - no microphoneAudioContext");
+      return;
+    }
+    if (!isPausedRef.current) {
+      // <-- Use ref for check
+      console.log(
+        "Cannot resume - not paused (isPaused:",
+        isPausedRef.current,
+        ")",
+      );
+      return;
+    }
+
+    try {
+      microphone.connect(processor);
+      processor.connect(microphoneAudioContext.destination);
+      isPausedRef.current = false; // <-- Update ref immediately
+      setIsPaused(false); // <-- Update state for UI (if needed)
+      console.log("Microphone resumed successfully");
+    } catch (err) {
+      console.error("Error resuming microphone:", err);
+    }
+  };
+
+  // <-- Updated cleanupMicrophone function
   const cleanupMicrophone = () => {
     try {
       microphone?.disconnect();
@@ -128,6 +208,8 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
     setProcessor(undefined);
     setMicrophoneAudioContext(undefined);
     setMicrophoneState(null);
+    isPausedRef.current = false; // <-- Reset ref
+    setIsPaused(false); // <-- Reset state
     console.log("Microphone cleaned up");
   };
 
@@ -142,6 +224,9 @@ const MicrophoneContextProvider = ({ children }: { children: ReactNode }) => {
         setMicrophoneAudioContext,
         processor,
         cleanupMicrophone,
+        pauseMicrophone,
+        resumeMicrophone,
+        isPaused, // <-- Keep state for UI if needed
       }}
     >
       {children}
