@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { useVoiceBot } from "../../../context/VoiceBotContextProvider";
 import assistantAvatar from "../../../assets/img/miotomo-avatar.png";
+import userAvatar from "../../../assets/img/user-avatar.png";
 
 function Transcript({ userName = "", currentCharacter }) {
   const { messages } = useVoiceBot();
@@ -33,7 +34,6 @@ function Transcript({ userName = "", currentCharacter }) {
     });
   };
 
-  const userAvatarUrl = `https://api.dicebear.com/7.x/micah/svg?seed=${userName}`;
   const assistantAvatarUrl = currentCharacter?.icon || assistantAvatar;
 
   return (
@@ -52,9 +52,11 @@ function Transcript({ userName = "", currentCharacter }) {
               className={`flex ${flexDirection} items-start w-fit max-w-full ${edgePadding} ${alignment}`}
             >
               {/* Avatar */}
-              <div className={`flex-shrink-0 w-10 h-10 ${avatarMargin}`}>
+              <div
+                className={`flex-shrink-0 w-10 h-10 ${avatarMargin} rounded-full overflow-hidden`}
+              >
                 <img
-                  src={isUser ? userAvatarUrl : assistantAvatarUrl}
+                  src={isUser ? userAvatar : assistantAvatarUrl}
                   alt={isUser ? "User Avatar" : "Assistant Avatar"}
                   className={`w-full h-full  object-contain`}
                 />

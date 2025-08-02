@@ -2,6 +2,7 @@ import WelcomeSection from "./WelcomeSection";
 import CurrentBookSection from "./CurrentBookSection";
 import ReminderSection from "./ReminderSection";
 import LibrarySection from "./LibrarySection";
+import { useStudent } from "../../hooks/useStudent";
 
 function HomePage({
   books,
@@ -14,9 +15,11 @@ function HomePage({
   studentId,
   onBookSelectForMap,
 }) {
+  const { data: student } = useStudent(studentId);
+
   return (
     <div>
-      <WelcomeSection userName={userName} />
+      <WelcomeSection userName={userName} streak={student?.streak || 0} />
       {selectedBook ? (
         <>
           <CurrentBookSection

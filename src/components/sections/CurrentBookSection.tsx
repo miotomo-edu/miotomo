@@ -2,6 +2,7 @@ import React from "react";
 import SplitColorButton from "../common/SplitColorButton";
 import { PlayIcon } from "../common/icons/PlayIcon";
 import { Book } from "../sections/LibrarySection";
+import { getBookSectionType } from "../../utils/bookUtils";
 // No longer importing BookCard as we're using a custom layout for each book
 
 type CurrentBookSectionProps = {
@@ -48,7 +49,9 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                   <div className="text-2xl font-bold">{book.title}</div>
                   <div className="text-gray-500">by {book.author}</div>
                 </div>
-                <div className="text-xl font-bold">Chapter {chapter}</div>
+                <div className="text-xl font-bold capitalize">
+                  {getBookSectionType(book.section_type)} {chapter}
+                </div>
 
                 {/* The SplitColorButton is now inside each book's rendering */}
                 {/* The button text should probably reflect the action for each book, not the section title */}
@@ -60,7 +63,10 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                   } // Example: Adjust text based on book status
                   rightColor="#000"
                   leftColor="#E85C33"
-                  split={book.progress}
+                  split={Math.max(
+                    0,
+                    ((book.progress - 1) / book.chapters) * 100,
+                  )}
                   onClick={() => onContinue && onContinue(book, chapter ?? 1)} // Pass the specific book
                   icon={<PlayIcon />}
                 />
