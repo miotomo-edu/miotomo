@@ -1,5 +1,6 @@
 import React from "react";
 import { Book } from "../sections/LibrarySection";
+import { getBookSectionType } from "../../utils/bookUtils";
 
 type BookTitleProps = {
   book: Book;
@@ -38,7 +39,9 @@ const BookTitle = ({ book, chapter, onBack }: BookTitleProps) => (
     )}
     <div>
       <h1 className="text-black text-2xl font-bold">{book.title}</h1>
-      <div className="text-base font-medium mt-1">Chapter {chapter}</div>
+      <div className="text-base font-medium mt-1 capitalize">
+        {getBookSectionType(book.section_type)} {chapter}
+      </div>
     </div>
   </div>
 );

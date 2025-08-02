@@ -21,6 +21,8 @@ import {
   f1_surving_to_drive,
 } from "../lib/prompts";
 
+import { getBookSectionType } from "../utils/bookUtils";
+
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
 // Assuming defaultStsConfig is passed as a prop from main.tsx
@@ -159,7 +161,7 @@ const App = ({ defaultStsConfig }) => {
     }
   })();
   const greeting = selectedBook
-    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying chapter ${selectedChapter} of "${selectedBook.title}"?`
+    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying ${getBookSectionType(selectedBook.section_type)} ${selectedChapter} of "${selectedBook.title}"?`
     : `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying your book?`;
 
   // console.log(`PROMPT ###### \n\n${introduction}\n${customization}\n${prompt}`);

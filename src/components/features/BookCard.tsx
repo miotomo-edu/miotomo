@@ -12,6 +12,7 @@ const BookCard: React.FC<BookCardProps> = ({
   author,
   status,
   progress,
+  chapters,
   onAction,
 }) => (
   <div className="bg-[#eeeeee] rounded-xl p-4 flex flex-col items-center w-full border border-none">
@@ -41,7 +42,7 @@ const BookCard: React.FC<BookCardProps> = ({
       text={status === "started" ? "Continue" : "Let's talk"}
       leftColor="#E85C33"
       rightColor="#000"
-      split={progress}
+      split={Math.max(0, ((progress - 1) / chapters) * 100)}
       onClick={onAction}
       className="mt-auto w-full"
     />

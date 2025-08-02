@@ -41,7 +41,7 @@ const SplitColorButton: React.FC<SplitColorButtonProps> = ({
       {icon && (
         <span
           className="absolute left-0 top-0 h-full flex items-center justify-center ml-2"
-          style={{ width: ICON_SIZE, zIndex: 3, color: "#000" }}
+          style={{ width: ICON_SIZE, zIndex: 3, color: "#fff" }}
         >
           {React.cloneElement(icon, { className: "w-8 h-8" })}
         </span>
