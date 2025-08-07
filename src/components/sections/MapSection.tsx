@@ -62,6 +62,11 @@ const MapSection: React.FC<MapSectionProps> = ({
               <span className="text-base font-medium text-gray-700">
                 {character.modality}
               </span>
+              {character.disabled && (
+                <span className="text-xs font-light text-gray-700">
+                  coming soon...
+                </span>
+              )}
             </button>
           ))}
         </div>
