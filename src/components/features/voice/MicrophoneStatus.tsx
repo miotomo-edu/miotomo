@@ -1,4 +1,3 @@
-// buildathon/miot/src/components/features/voice/MicrophoneStatus.tsx
 import React from "react";
 import {
   useVoiceBot,
@@ -22,15 +21,20 @@ export const getStatusClass = (status: VoiceBotStatus) => {
   }
 };
 
-const MicrophoneStatus: React.FC = () => {
+interface Props {
+  overrideStatus?: VoiceBotStatus;
+}
+
+const MicrophoneStatus: React.FC<Props> = ({ overrideStatus }) => {
   const { status } = useVoiceBot();
+  const finalStatus = overrideStatus ?? status;
 
   let Icon = Microphone;
-  if (status === VoiceBotStatus.SPEAKING) {
+  if (finalStatus === VoiceBotStatus.SPEAKING) {
     Icon = MicrophoneSpeaking;
   } else if (
-    status === VoiceBotStatus.SLEEPING ||
-    status === VoiceBotStatus.NONE
+    finalStatus === VoiceBotStatus.SLEEPING ||
+    finalStatus === VoiceBotStatus.NONE
   ) {
     Icon = MicrophoneMute;
   }

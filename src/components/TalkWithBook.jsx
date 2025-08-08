@@ -3,6 +3,7 @@ import { usePipecatClient } from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
 import Transcript from "./features/voice/Transcript.jsx";
+import AnimationManager from "./layout/AnimationManager";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -10,7 +11,7 @@ import {
 import { isMobile } from "react-device-detect";
 
 export const TalkWithBook = ({
-  botConfig, // passed from App.jsx
+  botConfig,
   onNavigate,
   selectedBook,
   chapter,
@@ -25,6 +26,10 @@ export const TalkWithBook = ({
   const [isConnecting, setIsConnecting] = useState(false);
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+
+  // Placeholder analysers for future volume animations
+  const agentVoiceAnalyser = (useRef < AnalyserNode) | (undefined > undefined);
+  const userVoiceAnalyser = (useRef < AnalyserNode) | (undefined > undefined);
 
   const {
     addVoicebotMessage,
@@ -108,14 +113,12 @@ export const TalkWithBook = ({
     };
   }, [client, addVoicebotMessage, startListening, startSpeaking]);
 
-  // Clean handleConnect — uses client.transport to decide what to send
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
       const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
 
       if (client.transport.constructor.name === "DailyTransport") {
-        // Cloud/Daily transport
         const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -130,9 +133,9 @@ export const TalkWithBook = ({
         const { room_url, token } = await response.json();
         await client.connect({ room_url, token });
       } else {
-        // Local dev (SmallWebRTCTransport)
         await client.connect({
           connectionUrl: "http://localhost:7860/api/offer",
+          // requestData: JSON.stringify({ config: botConfig }),
         });
       }
 
@@ -172,7 +175,13 @@ export const TalkWithBook = ({
         <div ref={logsRef} className="text-xs p-2 bg-gray-100 mt-4" />
       </div>
 
+      {/* Microphone orb */}
       <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
+        <AnimationManager
+          agentVoiceAnalyser={agentVoiceAnalyser.current}
+          userVoiceAnalyser={userVoiceAnalyser.current}
+        />
+
         {!isConnected && !isConnecting && (
           <button
             onClick={handleConnect}
