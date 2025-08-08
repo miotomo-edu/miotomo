@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { PipecatClientAudio } from "@pipecat-ai/client-react";
 
 // Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
@@ -13,7 +14,7 @@ import { TalkWithBook } from "./TalkWithBook";
 import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
-import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
+// import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
 import {
   loadBookCompanionPrompt,
   the_green_ray,
@@ -167,25 +168,49 @@ const App = ({ defaultStsConfig }) => {
   // console.log(`PROMPT ###### \n\n${introduction}\n${customization}\n${prompt}`);
 
   // 6. useMemo hooks (after the values they depend on are defined)
-  const updatedStsConfig = useMemo(
+  // const updatedStsConfig = useMemo(
+  //   () => ({
+  //     ...defaultStsConfig,
+  //     agent: {
+  //       ...defaultStsConfig.agent,
+  //       think: {
+  //         ...defaultStsConfig.agent.think,
+  //         prompt: `${introduction}\n${customization}\n${prompt}`,
+  //       },
+  //       greeting,
+  //       speak: {
+  //         provider: {
+  //           type: "deepgram",
+  //           model: currentCharacter?.voice ?? "aura-2-thalia-en",
+  //         },
+  //       },
+  //     },
+  //   }),
+  //   [defaultStsConfig, prompt, selectedBook, introduction, greeting],
+  // );
+
+  const updatedBotConfig = useMemo(
     () => ({
-      ...defaultStsConfig,
-      agent: {
-        ...defaultStsConfig.agent,
-        think: {
-          ...defaultStsConfig.agent.think,
-          prompt: `${introduction}\n${customization}\n${prompt}`,
-        },
-        greeting,
-        speak: {
-          provider: {
-            type: "deepgram",
-            model: currentCharacter?.voice ?? "aura-2-thalia-en",
-          },
-        },
+      prompt: `${introduction}\n${customization}\n${prompt}`,
+      greeting,
+      // Optional: pass a voice key that your Pipecat backend understands
+      voice: currentCharacter?.voice ?? "default-voice",
+      // Optional: pass any custom metadata to your Pipecat server
+      metadata: {
+        bookId: selectedBook?.id,
+        chapter: selectedChapter,
+        studentName: userName,
       },
     }),
-    [defaultStsConfig, prompt, selectedBook, introduction, greeting],
+    [
+      prompt,
+      selectedBook,
+      introduction,
+      greeting,
+      currentCharacter,
+      selectedChapter,
+      userName,
+    ],
   );
 
   if (studentLoading) return <div>Loading student...</div>;
@@ -279,19 +304,18 @@ const App = ({ defaultStsConfig }) => {
         );
       case "interactive":
         return (
-          <MicrophoneContextProvider>
-            <VoiceBotProvider>
-              <TalkWithBook
-                defaultStsConfig={updatedStsConfig}
-                onNavigate={setActiveComponent}
-                selectedBook={selectedBook}
-                chapter={selectedChapter}
-                currentCharacter={currentCharacter}
-                userName={userName}
-                studentId={studentId}
-              />
-            </VoiceBotProvider>
-          </MicrophoneContextProvider>
+          <VoiceBotProvider>
+            <TalkWithBook
+              defaultStsConfig={updatedBotConfig}
+              onNavigate={setActiveComponent}
+              selectedBook={selectedBook}
+              chapter={selectedChapter}
+              currentCharacter={currentCharacter}
+              userName={userName}
+              studentId={studentId}
+            />
+            <PipecatClientAudio volume={1.0} muted={false} />
+          </VoiceBotProvider>
         );
       default:
         return <LandingPage />; // Default to landing page
