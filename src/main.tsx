@@ -50,7 +50,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <PipecatClientProvider client={client}>
-        <App defaultStsConfig={stsConfig} />
+        <App
+          defaultStsConfig={{
+            ...stsConfig,
+          }}
+          transportType={transportType ?? "webrtc"}
+        />
       </PipecatClientProvider>
     </QueryClientProvider>
   </React.StrictMode>,

@@ -1,5 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { usePipecatClient } from "@pipecat-ai/client-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import {
+  usePipecatClient,
+  usePipecatClientMediaTrack,
+} from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
 import Transcript from "./features/voice/Transcript.jsx";
@@ -27,10 +30,6 @@ export const TalkWithBook = ({
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
 
-  // Placeholder analysers for future volume animations
-  const agentVoiceAnalyser = (useRef < AnalyserNode) | (undefined > undefined);
-  const userVoiceAnalyser = (useRef < AnalyserNode) | (undefined > undefined);
-
   const {
     addVoicebotMessage,
     setConversationConfig,
@@ -38,6 +37,31 @@ export const TalkWithBook = ({
     startSpeaking,
     status,
   } = useVoiceBot();
+
+  // 🎤 Get mic & bot audio tracks from Pipecat
+  const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
+  const botAudioTrack = usePipecatClientMediaTrack("audio", "bot");
+
+  // 🎛 Create analysers from those tracks
+  const userVoiceAnalyser = useMemo(() => {
+    if (!localAudioTrack) return null;
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    const src = ctx.createMediaStreamSource(new MediaStream([localAudioTrack]));
+    src.connect(analyser);
+    return analyser;
+  }, [localAudioTrack]);
+
+  const agentVoiceAnalyser = useMemo(() => {
+    if (!botAudioTrack) return null;
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    const src = ctx.createMediaStreamSource(new MediaStream([botAudioTrack]));
+    src.connect(analyser);
+    return analyser;
+  }, [botAudioTrack]);
 
   useEffect(() => {
     if (studentId && selectedBook?.id) {
@@ -51,8 +75,8 @@ export const TalkWithBook = ({
 
   const addLog = (msg) => {
     if (logsRef.current) {
-      logsRef.current.textContent += msg + "\n";
-      logsRef.current.scrollTop = logsRef.current.scrollHeight;
+      logsRef.current.textContent = msg;
+      // logsRef.current.scrollTop = logsRef.current.scrollHeight;
     }
     console.log(msg);
   };
@@ -65,6 +89,13 @@ export const TalkWithBook = ({
       setIsConnected(true);
       setIsConnecting(false);
       addLog("Connected to Pipecat bot");
+
+      // try {
+      //   console.log("SENDING MESSAGE");
+      //   client.sendClientMessage("set-language", { language: "en-US" });
+      // } catch (error) {
+      //   console.error("Error sending message to server:", error);
+      // }
     };
     const onDisconnected = () => {
       setIsConnected(false);
@@ -116,9 +147,10 @@ export const TalkWithBook = ({
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
-
-      if (client.transport.constructor.name === "DailyTransport") {
+      // const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
+      const proxyServerURL = "http://localhost:3001";
+      console.log("client", client);
+      if (botConfig?.transportType === "daily") {
         const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -134,7 +166,7 @@ export const TalkWithBook = ({
         await client.connect({ room_url, token });
       } else {
         await client.connect({
-          connectionUrl: "http://localhost:7860/api/offer",
+          connectionUrl: "http://localhost:7860/api/offer?name=Lucy",
           // requestData: JSON.stringify({ config: botConfig }),
         });
       }
@@ -172,14 +204,17 @@ export const TalkWithBook = ({
         style={{ top: "92px", bottom: "176px" }}
       >
         <Transcript userName={userName} currentCharacter={currentCharacter} />
-        <div ref={logsRef} className="text-xs p-2 bg-gray-100 mt-4" />
+        <div
+          ref={logsRef}
+          className="absolute bottom-0 text-xs p-2 bg-gray-100 mt-4"
+        />
       </div>
 
       {/* Microphone orb */}
       <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
         <AnimationManager
-          agentVoiceAnalyser={agentVoiceAnalyser.current}
-          userVoiceAnalyser={userVoiceAnalyser.current}
+          agentVoiceAnalyser={agentVoiceAnalyser}
+          userVoiceAnalyser={userVoiceAnalyser}
         />
 
         {!isConnected && !isConnecting && (

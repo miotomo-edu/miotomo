@@ -26,8 +26,7 @@ import { getBookSectionType } from "../utils/bookUtils";
 
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
-// Assuming defaultStsConfig is passed as a prop from main.tsx
-const App = ({ defaultStsConfig }) => {
+const App = ({ defaultStsConfig, transportType }) => {
   // 1. All useState and useRef hooks
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
@@ -193,9 +192,8 @@ const App = ({ defaultStsConfig }) => {
     () => ({
       prompt: `${introduction}\n${customization}\n${prompt}`,
       greeting,
-      // Optional: pass a voice key that your Pipecat backend understands
       voice: currentCharacter?.voice ?? "default-voice",
-      // Optional: pass any custom metadata to your Pipecat server
+      transportType,
       metadata: {
         bookId: selectedBook?.id,
         chapter: selectedChapter,
@@ -306,7 +304,7 @@ const App = ({ defaultStsConfig }) => {
         return (
           <VoiceBotProvider>
             <TalkWithBook
-              defaultStsConfig={updatedBotConfig}
+              botConfig={updatedBotConfig}
               onNavigate={setActiveComponent}
               selectedBook={selectedBook}
               chapter={selectedChapter}
