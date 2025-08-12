@@ -120,6 +120,9 @@ export const TalkWithBook = ({
     const onBotTranscript = (data) => {
       addVoicebotMessage({ assistant: data.text });
     };
+    const onServerMessage = (message) => {
+      console.log("Received message from server:", message);
+    };
 
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
@@ -130,6 +133,7 @@ export const TalkWithBook = ({
     client.on(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
     client.on(RTVIEvent.UserTranscript, onUserTranscript);
     client.on(RTVIEvent.BotTranscript, onBotTranscript);
+    // client.on(RTVIEvent.ServerMessage, onServerMessage);
 
     return () => {
       client.off(RTVIEvent.Connected, onConnected);
@@ -141,6 +145,7 @@ export const TalkWithBook = ({
       client.off(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
       client.off(RTVIEvent.UserTranscript, onUserTranscript);
       client.off(RTVIEvent.BotTranscript, onBotTranscript);
+      // client.on(RTVIEvent.ServerMessage, onServerMessage);
     };
   }, [client, addVoicebotMessage, startListening, startSpeaking]);
 
@@ -163,10 +168,11 @@ export const TalkWithBook = ({
         }
 
         const { room_url, token } = await response.json();
+        console.log(room_url, token);
         await client.connect({ room_url, token });
       } else {
         await client.connect({
-          connectionUrl: "http://localhost:7860/api/offer?name=Lucy",
+          connectionUrl: "http://localhost:7860/api/offer",
           // requestData: JSON.stringify({ config: botConfig }),
         });
       }

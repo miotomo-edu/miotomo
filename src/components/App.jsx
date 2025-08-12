@@ -195,9 +195,10 @@ const App = ({ defaultStsConfig, transportType }) => {
       voice: currentCharacter?.voice ?? "default-voice",
       transportType,
       metadata: {
-        bookId: selectedBook?.id,
+        book: selectedBook,
         chapter: selectedChapter,
         studentName: userName,
+        character: currentCharacter,
       },
     }),
     [
