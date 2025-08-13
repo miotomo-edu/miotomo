@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   usePipecatClient,
   usePipecatClientMediaTrack,
+  useRTVIClientEvent,
 } from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
@@ -42,7 +43,7 @@ export const TalkWithBook = ({
   const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
   const botAudioTrack = usePipecatClientMediaTrack("audio", "bot");
 
-  // 🎛 Create analysers from those tracks
+  // Create analysers from those tracks
   const userVoiceAnalyser = useMemo(() => {
     if (!localAudioTrack) return null;
     const ctx = new AudioContext();
@@ -78,8 +79,28 @@ export const TalkWithBook = ({
       logsRef.current.textContent = msg;
       // logsRef.current.scrollTop = logsRef.current.scrollHeight;
     }
-    console.log(msg);
+    console.log(`LOG: ${msg}`);
   };
+
+  // Send prompt when bot is ready
+  // useRTVIClientEvent(
+  //   RTVIEvent.BotConnected,
+  //   useCallback(() => {
+  //     // Bot is ready - send the initial prompt
+  //     addLog("Bot is ready - send the initial prompt");
+  //     client.sendClientMessage("set-prompt", { prompt: "prompt_1" });
+  //   }, [client]),
+  // );
+
+  // // Handle server responses
+  // useRTVIClientEvent(
+  //   RTVIEvent.ServerMessage,
+  //   useCallback((message) => {
+  //     if (message.data.msg === "prompt-set") {
+  //       console.log("Prompt set successfully");
+  //     }
+  //   }, []),
+  // );
 
   // Pipecat event bindings
   useEffect(() => {
@@ -89,20 +110,21 @@ export const TalkWithBook = ({
       setIsConnected(true);
       setIsConnecting(false);
       addLog("Connected to Pipecat bot");
-
-      // try {
-      //   console.log("SENDING MESSAGE");
-      //   client.sendClientMessage("set-language", { language: "en-US" });
-      // } catch (error) {
-      //   console.error("Error sending message to server:", error);
-      // }
     };
     const onDisconnected = () => {
       setIsConnected(false);
       setIsConnecting(false);
       addLog("Disconnected");
     };
-    const onBotReady = () => addLog("Bot ready! Start talking.");
+    const onBotReady = () => {
+      addLog("Bot ready! Start talking.");
+      try {
+        console.log("SENDING MESSAGE");
+        client.sendClientMessage("set-language", { language: "en-US" });
+      } catch (error) {
+        console.error("Error sending message to server:", error);
+      }
+    };
     const onUserStartedSpeaking = () => setIsMicActive(true);
     const onUserStoppedSpeaking = () => setIsMicActive(false);
     const onBotStartedSpeaking = () => {
@@ -156,24 +178,32 @@ export const TalkWithBook = ({
       const proxyServerURL = "http://localhost:3001";
       console.log("client", client);
       if (botConfig?.transportType === "daily") {
-        const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ config: botConfig }),
+        let cxnDetails = await client.startBot({
+          endpoint: `${proxyServerURL}/connect-pipecat`,
+          requestData: {
+            config: botConfig,
+          },
         });
+        // cxnDetails = modifyCxnDetails(cxnDetails); // Modify if needed
+        console.log("cxnDetails", cxnDetails);
+        await client.connect(cxnDetails);
+        // const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({ config: botConfig }),
+        // });
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || `HTTP ${response.status}`);
-        }
+        // if (!response.ok) {
+        //   const errData = await response.json();
+        //   throw new Error(errData.error || `HTTP ${response.status}`);
+        // }
 
-        const { room_url, token } = await response.json();
-        console.log(room_url, token);
-        await client.connect({ room_url, token });
+        // const { room_url, token } = await response.json();
+        // console.log(room_url, token);
+        // await client.connect({ room_url, token });
       } else {
         await client.connect({
-          connectionUrl: "http://localhost:7860/api/offer",
-          // requestData: JSON.stringify({ config: botConfig }),
+          webrtcUrl: `http://localhost:8000/api/offer?username=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent("storytelling")}`,
         });
       }
 
