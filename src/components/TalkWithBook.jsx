@@ -175,9 +175,10 @@ export const TalkWithBook = ({
     setIsConnecting(true);
     try {
       // const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
-      const proxyServerURL = "http://localhost:3001";
       console.log("client", client);
+      console.log("botConfig", botConfig);
       if (botConfig?.transportType === "daily") {
+        const proxyServerURL = "http://localhost:3001";
         let cxnDetails = await client.startBot({
           endpoint: `${proxyServerURL}/connect-pipecat`,
           requestData: {
@@ -203,7 +204,7 @@ export const TalkWithBook = ({
         // await client.connect({ room_url, token });
       } else {
         await client.connect({
-          webrtcUrl: `http://localhost:8000/api/offer?username=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent("storytelling")}`,
+          webrtcUrl: `http://localhost:8000/api/offer?username=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
         });
       }
 

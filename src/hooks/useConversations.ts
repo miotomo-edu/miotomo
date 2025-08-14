@@ -80,8 +80,13 @@ export const useConversations = (): UseConversationsReturn => {
           messages: conversationMessages,
         };
 
+        const tableName =
+          window.location.hostname === "localhost"
+            ? "conversations_dev"
+            : "conversations";
+
         const { data, error } = await supabase
-          .from("conversations")
+          .from(tableName)
           .insert(conversationData)
           .select();
 
@@ -143,8 +148,13 @@ export const useConversations = (): UseConversationsReturn => {
           messages: conversationMessages,
         };
 
+        const tableName =
+          window.location.hostname === "localhost"
+            ? "conversations_dev"
+            : "conversations";
+
         const { data, error } = await supabase
-          .from("conversations")
+          .from(tableName)
           .update(updateData)
           .eq("id", conversationId)
           .select();
@@ -178,8 +188,13 @@ export const useConversations = (): UseConversationsReturn => {
       setError(null);
 
       try {
+        const tableName =
+          window.location.hostname === "localhost"
+            ? "conversations_dev"
+            : "conversations";
+
         let query = supabase
-          .from("conversations")
+          .from(tableName)
           .select(
             `
             *,
@@ -229,8 +244,13 @@ export const useConversations = (): UseConversationsReturn => {
     setError(null);
 
     try {
+      const tableName =
+        window.location.hostname === "localhost"
+          ? "conversations_dev"
+          : "conversations";
+
       const { data, error } = await supabase
-        .from("conversations")
+        .from(tableName)
         .select(
           `
           *,
@@ -269,8 +289,13 @@ export const useConversations = (): UseConversationsReturn => {
     setError(null);
 
     try {
+      const tableName =
+        window.location.hostname === "localhost"
+          ? "conversations_dev"
+          : "conversations";
+
       const { data, error } = await supabase
-        .from("conversations")
+        .from(tableName)
         .delete()
         .eq("id", conversationId);
 

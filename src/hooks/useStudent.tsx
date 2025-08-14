@@ -61,6 +61,7 @@ export function useStudent(studentId = HARDCODED_STUDENT_ID) {
         .from("students")
         .select("*")
         .eq("id", studentId)
+        .eq("enabled", true)
         .single();
 
       if (studentError) throw studentError;
