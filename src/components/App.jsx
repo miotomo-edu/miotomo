@@ -14,7 +14,7 @@ import { TalkWithBook } from "./TalkWithBook";
 import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
-// import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
+
 import {
   loadBookCompanionPrompt,
   the_green_ray,
