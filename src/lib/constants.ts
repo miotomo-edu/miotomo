@@ -1,7 +1,6 @@
-import { type StsConfig, type Voice } from "../utils/deepgramUtils";
 import { loadBookCompanionPrompt, bookCompanionGreetings } from "./prompts";
 
-export const stsConfig: StsConfig = {
+export const stsConfig = {
   type: "Settings",
   experimental: false,
   mip_opt_out: false,
@@ -70,65 +69,4 @@ export const stsConfig: StsConfig = {
     // },
     greeting: bookCompanionGreetings,
   },
-};
-
-export const getWeather = async (location: string): Promise<string | null> => {
-  return `The current weather in ${location} is sunny with a temperature of 31°.`;
-};
-
-type NonEmptyArray<T> = [T, ...T[]];
-export const availableVoices: Voice[] = [
-  {
-    name: "Thalia",
-    canonical_name: "aura-2-thalia-en",
-    provider: {
-      type: "deepgram",
-      model: "aura-2-thalia-en",
-    },
-    metadata: {
-      accent: "American",
-      gender: "female",
-      image: "/voices/thalia.png",
-      color: "#FF6B6B",
-      sample: "/samples/thalia.mp3",
-    },
-  },
-  {
-    name: "Nova",
-    canonical_name: "nova-3-medical",
-    provider: {
-      type: "deepgram",
-      model: "nova-3-medical",
-    },
-    metadata: {
-      accent: "American",
-      gender: "female",
-      image: "/voices/nova.png",
-      color: "#4ECDC4",
-      sample: "/samples/nova.mp3",
-    },
-  },
-  {
-    name: "Eleven",
-    canonical_name: "eleven-english-v1",
-    provider: {
-      type: "elevenlabs",
-      model: "eleven-english-v1",
-    },
-    metadata: {
-      accent: "American",
-      gender: "female",
-      image: "/voices/eleven.png",
-      color: "#45B7D1",
-      sample: "/samples/eleven.mp3",
-    },
-  },
-];
-export const defaultVoice: Voice = availableVoices[0]!;
-
-export const sharedOpenGraphMetadata = {
-  title: "Voice Agent | Deepgram",
-  type: "website",
-  url: "/",
-  description: "Meet Deepgram's Voice Agent API",
 };
