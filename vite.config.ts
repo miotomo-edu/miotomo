@@ -22,9 +22,6 @@ export default defineConfig(({ mode }) => {
         "@": "/src",
       },
     },
-    define: {
-      "process.env.DEEPGRAM_API_KEY": JSON.stringify(env.DEEPGRAM_API_KEY),
-    },
-    base: "/",
+    base: "/miotomo",
   };
 });
