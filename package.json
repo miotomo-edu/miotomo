@@ -10,6 +10,10 @@
     "prettier": "prettier"
   },
   "dependencies": {
+    "@pipecat-ai/client-js": "^1.2.0",
+    "@pipecat-ai/client-react": "^1.0.1",
+    "@pipecat-ai/daily-transport": "^1.2.0",
+    "@pipecat-ai/small-webrtc-transport": "^1.2.0",
     "@deepgram/sdk": "^4.11.1",
     "@headlessui/react": "^2.2.0",
     "@lottiefiles/react-lottie-player": "^3.6.0",

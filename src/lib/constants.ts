@@ -22,6 +22,7 @@ export const stsConfig: StsConfig = {
       provider: {
         type: "deepgram",
         model: "nova-3-general",
+        // endpointing: 1500,
       },
     },
     think: {

@@ -1,723 +1,288 @@
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  lazy,
-  Suspense,
-} from "react";
+  usePipecatClient,
+  usePipecatClientMediaTrack,
+  useRTVIClientEvent,
+} from "@pipecat-ai/client-react";
+import { RTVIEvent } from "@pipecat-ai/client-js";
+import BookTitle from "./layout/BookTitle.jsx";
 import Transcript from "./features/voice/Transcript.jsx";
-import { useDeepgram } from "../context/DeepgramContextProvider.jsx";
-import { useMicrophone } from "../context/MicrophoneContextProvider.jsx";
+import AnimationManager from "./layout/AnimationManager";
 import {
-  EventType,
   useVoiceBot,
   VoiceBotStatus,
 } from "../context/VoiceBotContextProvider.jsx";
-import { createAudioBuffer, playAudioBuffer } from "../utils/audioUtils.js";
-import {
-  sendSocketMessage,
-  sendMicToSocket,
-  sendWarningMessage,
-  sendFinalMessage,
-} from "../utils/deepgramUtils.js";
 import { isMobile } from "react-device-detect";
-import { usePrevious } from "@uidotdev/usehooks";
-import { useStsQueryParams } from "../hooks/UseStsQueryParams.jsx";
-import RateLimited from "./RateLimited.jsx";
-import BookTitle from "./layout/BookTitle.jsx";
-
-const AnimationManager = lazy(() => import("./layout/AnimationManager.jsx"));
 
 export const TalkWithBook = ({
-  defaultStsConfig,
-  onMessageEvent = () => {},
-  requiresUserActionToInitialize = false,
-  chapter,
+  botConfig,
   onNavigate,
   selectedBook,
+  chapter,
   currentCharacter,
   userName = "",
   studentId = null,
 }) => {
-  const { disconnectFromDeepgram } = useDeepgram();
-  const { cleanupMicrophone } = useMicrophone();
-  useEffect(() => {
-    return () => {
-      if (typeof disconnectFromDeepgram === "function") {
-        disconnectFromDeepgram();
-      }
-      cleanupMicrophone();
-    };
-  }, []);
+  const client = usePipecatClient();
+  const logsRef = useRef(null);
+
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isMicActive, setIsMicActive] = useState(false);
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
 
   const {
-    status,
-    messages,
     addVoicebotMessage,
-    messageCount,
-    addBehindTheScenesEvent,
-    isWaitingForUserVoiceAfterSleep,
-    toggleSleep,
+    setConversationConfig,
     startListening,
     startSpeaking,
-    setConversationConfig,
-    conversationSaving,
+    status,
   } = useVoiceBot();
-  const {
-    setupMicrophone,
-    microphone,
-    microphoneState,
-    processor,
-    microphoneAudioContext,
-    startMicrophone,
-    pauseMicrophone,
-    resumeMicrophone,
-    isPaused,
-  } = useMicrophone();
-  const { socket, connectToDeepgram, socketState, rateLimited } = useDeepgram();
-  const { voice, instructions, applyParamsToConfig } = useStsQueryParams();
-  const audioContext = useRef(null);
-  const agentVoiceAnalyser = useRef(null);
-  const userVoiceAnalyser = useRef(null);
-  const startTimeRef = useRef(-1);
-  const [data, setData] = useState();
-  const [exchangeCount, setExchangeCount] = useState(0);
-  const [shouldSpell, setShouldSpell] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(
-    requiresUserActionToInitialize ? false : null,
-  );
-  const previousVoice = usePrevious(voice);
-  const previousInstructions = usePrevious(instructions);
-  const scheduledAudioSources = useRef([]);
-  const warningTimeoutRef = useRef(null);
-  const finalTimeoutRef = useRef(null);
-  const disconnectTimeoutRef = useRef(null);
-  const [isRootPath, setIsRootPath] = useState(
-    window.location.pathname === "/",
-  );
 
-  // console.log("SELECTED BOOK:", selectedBook);
+  // 🎤 Get mic & bot audio tracks from Pipecat
+  const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
+  const botAudioTrack = usePipecatClientMediaTrack("audio", "bot");
 
-  // Enable automatic conversation saving when component mounts
+  // Create analysers from those tracks
+  const userVoiceAnalyser = useMemo(() => {
+    if (!localAudioTrack) return null;
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    const src = ctx.createMediaStreamSource(new MediaStream([localAudioTrack]));
+    src.connect(analyser);
+    return analyser;
+  }, [localAudioTrack]);
+
+  const agentVoiceAnalyser = useMemo(() => {
+    if (!botAudioTrack) return null;
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    const src = ctx.createMediaStreamSource(new MediaStream([botAudioTrack]));
+    src.connect(analyser);
+    return analyser;
+  }, [botAudioTrack]);
+
   useEffect(() => {
     if (studentId && selectedBook?.id) {
-      console.log(
-        "Setting up auto-save for student:",
-        studentId,
-        "book:",
-        selectedBook.id,
-      );
       setConversationConfig({
-        studentId: studentId,
+        studentId,
         bookId: selectedBook.id,
         autoSave: true,
-      });
-    } else {
-      // Disable auto-save if we don't have the required data
-      setConversationConfig({
-        studentId: null,
-        bookId: null,
-        autoSave: false,
       });
     }
   }, [studentId, selectedBook?.id, setConversationConfig]);
 
-  // AUDIO MANAGEMENT
-  /**
-   * Initialize the audio context for managing and playing audio. (just for TTS playback; user audio input logic found in Microphone Context Provider)
-   */
-  useEffect(() => {
-    if (!audioContext.current) {
-      audioContext.current = new (window.AudioContext ||
-        window.webkitAudioContext)({
-        latencyHint: "interactive",
-        sampleRate: 24000,
-      });
-      agentVoiceAnalyser.current = audioContext.current.createAnalyser();
-      agentVoiceAnalyser.current.fftSize = 2048;
-      agentVoiceAnalyser.current.smoothingTimeConstant = 0.96;
+  const addLog = (msg) => {
+    if (logsRef.current) {
+      logsRef.current.textContent = msg;
+      // logsRef.current.scrollTop = logsRef.current.scrollHeight;
     }
-  }, []);
-
-  // useEffect(() => {
-  //   if (messageCount === 3) {
-  //     addVoicebotMessage({ assistant: "THREE" });
-  //   }
-  // }, [messageCount, addVoicebotMessage]);
-
-  /**
-   * Callback to handle audio data processing and playback.
-   * Converts raw audio into an AudioBuffer and plays the processed audio through the web audio context
-   */
-  const bufferAudio = useCallback((data) => {
-    const audioBuffer = createAudioBuffer(audioContext.current, data);
-    if (!audioBuffer) return;
-    scheduledAudioSources.current.push(
-      playAudioBuffer(
-        audioContext.current,
-        audioBuffer,
-        startTimeRef,
-        agentVoiceAnalyser.current,
-      ),
-    );
-  }, []);
-
-  const clearAudioBuffer = () => {
-    scheduledAudioSources.current.forEach((source) => source.stop());
-    scheduledAudioSources.current = [];
+    console.log(`LOG: ${msg}`);
   };
 
-  // MICROPHONE AND SOCKET MANAGEMENT
+  // Send prompt when bot is ready
+  // useRTVIClientEvent(
+  //   RTVIEvent.BotConnected,
+  //   useCallback(() => {
+  //     // Bot is ready - send the initial prompt
+  //     addLog("Bot is ready - send the initial prompt");
+  //     client.sendClientMessage("set-prompt", { prompt: "prompt_1" });
+  //   }, [client]),
+  // );
+
+  // // Handle server responses
+  // useRTVIClientEvent(
+  //   RTVIEvent.ServerMessage,
+  //   useCallback((message) => {
+  //     if (message.data.msg === "prompt-set") {
+  //       console.log("Prompt set successfully");
+  //     }
+  //   }, []),
+  // );
+
+  // Pipecat event bindings
   useEffect(() => {
-    console.log("Initial setup - calling setupMicrophone()");
-    // Only setup automatically if not requiring user action
-    if (microphoneState === null && !requiresUserActionToInitialize) {
-      setupMicrophone();
-    }
-  }, [microphoneState, requiresUserActionToInitialize]);
+    if (!client) return;
 
-  useEffect(() => {
-    console.log("Microphone state changed:", {
-      microphoneState,
-      hasSocket: !!socket,
-      hasConfig: !!defaultStsConfig,
-    });
-    if (microphoneState === 1 && socket && defaultStsConfig) {
-      const onOpen = () => {
-        console.log("Socket opened - sending Settings message");
-        const combinedStsConfig = {
-          ...defaultStsConfig,
-          agent: {
-            ...defaultStsConfig.agent,
-            think: {
-              ...defaultStsConfig.agent.think,
-              prompt: `${defaultStsConfig.agent.think.prompt}\n${instructions}`,
-            },
-          },
-        };
-        sendSocketMessage(socket, combinedStsConfig);
+    const onConnected = () => {
+      setIsConnected(true);
+      setIsConnecting(false);
+      addLog("Connected to Pipecat bot");
+    };
+    const onDisconnected = () => {
+      setIsConnected(false);
+      setIsConnecting(false);
+      addLog("Disconnected");
+    };
+    const onBotReady = () => {
+      addLog("Bot ready! Start talking.");
+      try {
+        console.log("SENDING MESSAGE");
+        client.sendClientMessage("set-language", { language: "en-US" });
+      } catch (error) {
+        console.error("Error sending message to server:", error);
+      }
+    };
+    const onUserStartedSpeaking = () => setIsMicActive(true);
+    const onUserStoppedSpeaking = () => setIsMicActive(false);
+    const onBotStartedSpeaking = () => {
+      setIsBotSpeaking(true);
+      startSpeaking();
+    };
+    const onBotStoppedSpeaking = () => setIsBotSpeaking(false);
 
-        // Wait for Settings to be processed before starting microphone
-        setTimeout(() => {
-          console.log("Starting microphone after Settings sent");
-          startMicrophone();
-          if (isRootPath) {
-            startSpeaking(true);
-            isWaitingForUserVoiceAfterSleep.current = false;
-          } else {
-            startListening(true);
-          }
-        }, 1000); // Give a small delay to ensure Settings is processed
-      };
-
-      socket.addEventListener("open", onOpen);
-      return () => {
-        socket.removeEventListener("open", onOpen);
-        microphone.ondataavailable = null;
-      };
-    }
-  }, [microphone, socket, microphoneState, defaultStsConfig, isRootPath]);
-
-  useEffect(() => {
-    console.log("Checking processor setup:", {
-      hasMicrophone: !!microphone,
-      hasSocket: !!socket,
-      microphoneState,
-      socketState,
-    });
-    if (!microphone) return;
-    if (!socket) return;
-    if (microphoneState !== 2) return;
-    if (socketState !== 1) return;
-
-    // Only set up audio processor after Settings has been sent
-    const setupProcessor = () => {
-      console.log("Setting up audio processor");
-      processor.onaudioprocess = sendMicToSocket(socket);
+    const onUserTranscript = (data) => {
+      if (data.final) {
+        addVoicebotMessage({ user: data.text });
+        startListening();
+      }
+    };
+    const onBotTranscript = (data) => {
+      addVoicebotMessage({ assistant: data.text });
+    };
+    const onServerMessage = (message) => {
+      console.log("Received message from server:", message);
     };
 
-    // Add a small delay to ensure Settings is processed
-    setTimeout(setupProcessor, 1500);
+    client.on(RTVIEvent.Connected, onConnected);
+    client.on(RTVIEvent.Disconnected, onDisconnected);
+    client.on(RTVIEvent.BotReady, onBotReady);
+    client.on(RTVIEvent.UserStartedSpeaking, onUserStartedSpeaking);
+    client.on(RTVIEvent.UserStoppedSpeaking, onUserStoppedSpeaking);
+    client.on(RTVIEvent.BotStartedSpeaking, onBotStartedSpeaking);
+    client.on(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
+    client.on(RTVIEvent.UserTranscript, onUserTranscript);
+    client.on(RTVIEvent.BotTranscript, onBotTranscript);
+    // client.on(RTVIEvent.ServerMessage, onServerMessage);
 
-    // CLEANUP: Remove the audio processor handler when effect dependencies change or component unmounts
     return () => {
-      if (processor) {
-        console.log("shutting down audio processor");
-        processor.onaudioprocess = null;
-        try {
-          processor.disconnect();
-        } catch (e) {}
-        try {
-          microphone?.disconnect?.(processor);
-        } catch (e) {}
-      }
+      client.off(RTVIEvent.Connected, onConnected);
+      client.off(RTVIEvent.Disconnected, onDisconnected);
+      client.off(RTVIEvent.BotReady, onBotReady);
+      client.off(RTVIEvent.UserStartedSpeaking, onUserStartedSpeaking);
+      client.off(RTVIEvent.UserStoppedSpeaking, onUserStoppedSpeaking);
+      client.off(RTVIEvent.BotStartedSpeaking, onBotStartedSpeaking);
+      client.off(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
+      client.off(RTVIEvent.UserTranscript, onUserTranscript);
+      client.off(RTVIEvent.BotTranscript, onBotTranscript);
+      // client.on(RTVIEvent.ServerMessage, onServerMessage);
     };
-  }, [microphone, socket, microphoneState, socketState, processor]);
+  }, [client, addVoicebotMessage, startListening, startSpeaking]);
 
-  /**
-   * Create AnalyserNode for user microphone audio context.
-   * Exposes audio time / frequency data which is used in the
-   * AnimationManager to scale the animations in response to user/agent voice
-   */
-  useEffect(() => {
-    if (microphoneAudioContext) {
-      userVoiceAnalyser.current = microphoneAudioContext.createAnalyser();
-      userVoiceAnalyser.current.fftSize = 2048;
-      userVoiceAnalyser.current.smoothingTimeConstant = 0.96;
-      microphone.connect(userVoiceAnalyser.current);
-    }
-  }, [microphoneAudioContext, microphone]);
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      // const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
+      console.log("client", client);
+      console.log("botConfig", botConfig);
+      if (botConfig?.transportType === "daily") {
+        // const proxyServerURL = "http://localhost:3001";
+        // let cxnDetails = await client.startBot({
+        //   endpoint: `${proxyServerURL}/connect-pipecat`,
+        //   requestData: {
+        //     config: botConfig,
+        //   },
+        // });
+        // cxnDetails = modifyCxnDetails(cxnDetails); // Modify if needed
+        // console.log("cxnDetails", cxnDetails);
+        // await client.connect(cxnDetails);
+        const proxyServerURL =
+          "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run";
+        const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: botConfig }),
+        });
 
-  /**
-   * Handles incoming WebSocket messages. Differentiates between ArrayBuffer data and other data types (basically just string type).
-   * */
-  const onMessage = useCallback(
-    async (event) => {
-      if (event.data instanceof ArrayBuffer) {
-        if (
-          status !== VoiceBotStatus.SLEEPING &&
-          !isWaitingForUserVoiceAfterSleep.current
-        ) {
-          bufferAudio(event.data); // Process the ArrayBuffer data to play the audio
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || `HTTP ${response.status}`);
         }
+
+        const { room_url, token } = await response.json();
+        console.log(room_url, token);
+        await client.connect({ room_url, token });
       } else {
-        console.log("EVENT");
-        console.log(event);
-        // Handle other types of messages such as strings
-        setData(event.data);
-        onMessageEvent(event.data);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bufferAudio, status],
-  );
-
-  /**
-   * Opens Deepgram when the microphone opens.
-   * Runs whenever `microphone` changes state, but exits if no microphone state.
-   */
-  useEffect(() => {
-    console.log("Deepgram connect effect", {
-      microphoneState,
-      socketState,
-      isInitialized,
-      requiresUserActionToInitialize,
-    });
-    if (
-      microphoneState === 1 &&
-      (socketState === -1 || socketState === 3) &&
-      (!requiresUserActionToInitialize ||
-        (requiresUserActionToInitialize && isInitialized))
-    ) {
-      console.log("Calling connectToDeepgram from effect");
-      connectToDeepgram();
-    }
-  }, [
-    microphone,
-    socket,
-    microphoneState,
-    socketState,
-    isInitialized,
-    requiresUserActionToInitialize,
-  ]);
-
-  /**
-   * Sets up a WebSocket message event listener to handle incoming messages through the 'onMessage' callback.
-   */
-  useEffect(() => {
-    if (socket) {
-      socket.addEventListener("message", onMessage);
-      return () => socket.removeEventListener("message", onMessage);
-    }
-  }, [socket, onMessage]);
-
-  useEffect(() => {
-    if (
-      previousVoice &&
-      previousVoice !== voice &&
-      socket &&
-      socketState === 1
-    ) {
-      sendSocketMessage(socket, {
-        type: "UpdateSpeak",
-        model: voice,
-      });
-    }
-  }, [voice, socket, socketState, previousVoice]);
-
-  // useEffect(() => {
-  //   if (socket && socketState === 1) {
-  //     // Set the warning timeout
-  //     console.log("Setting warning timeout");
-  //     warningTimeoutRef.current = setTimeout(() => {
-  //       pauseMicrophone(); // Pause user input
-  //       sendWarningMessage(socket)();
-
-  //       // Optionally resume after the warning is spoken (adjust timing as needed)
-  //       setTimeout(() => {
-  //         resumeMicrophone();
-  //       }, 5000);
-  //     }, 8000);
-
-  //     // Cleanup on unmount or when socket/socketState changes
-  //     return () => {
-  //       if (warningTimeoutRef.current) {
-  //         clearTimeout(warningTimeoutRef.current);
-  //       }
-  //     };
-  //   }
-  // }, [socket, socketState]);
-
-  // useEffect(() => {
-  //   if (socket && socketState === 1) {
-  //     // Send the final message after 10 seconds
-  //     finalTimeoutRef.current = setTimeout(() => {
-  //       pauseMicrophone();
-  //       sendFinalMessage(socket)(); // Inject the final message
-
-  //       // Wait (e.g., 3 seconds) before disconnecting to allow the message to be read
-  //       disconnectTimeoutRef.current = setTimeout(() => {
-  //         if (typeof disconnectFromDeepgram === "function") {
-  //           disconnectFromDeepgram();
-  //         }
-  //       }, 3000); // Adjust this delay as needed for your TTS playback length
-  //     }, 20000); // 10 seconds
-
-  //     // Cleanup on unmount or when socket/socketState changes
-  //     return () => {
-  //       if (finalTimeoutRef.current) {
-  //         clearTimeout(finalTimeoutRef.current);
-  //       }
-  //       if (disconnectTimeoutRef.current) {
-  //         clearTimeout(disconnectTimeoutRef.current);
-  //       }
-  //     };
-  //   }
-  // }, [socket, socketState, disconnectFromDeepgram]);
-
-  const handleUpdateInstructions = useCallback(
-    (instructions) => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        sendSocketMessage(socket, {
-          type: "UpdateInstructions",
-          prompt: `${defaultStsConfig.agent.think.prompt}\n${instructions}`,
+        await client.connect({
+          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book_id=${encodeURIComponent(selectedBook.id)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
+          // connectionUrl: `http://localhost:7860/api/offer`,
         });
       }
-    },
-    [socket, defaultStsConfig],
-  );
 
-  /**
-   * Manage responses to incoming data from WebSocket.
-   * This useEffect primarily handles string-based data that is expected to represent JSON-encoded messages determining actions based on the nature of the message
-   * */
-  useEffect(() => {
-    /**
-     * When the API returns a message event, several possible things can occur.
-     *
-     * 1. If it's a user message, check if it's a wake word or a stop word and add it to the queue.
-     * 2. If it's an agent message, add it to the queue.
-     * 3. If the message type is `AgentAudioDone` switch the app state to `START_LISTENING`
-     */
-
-    if (typeof data === "string") {
-      const userRole = (data) => {
-        const userTranscript = data.content;
-
-        /**
-         * When the user says something, add it to the conversation queue.
-         */
-        if (status !== VoiceBotStatus.SLEEPING) {
-          addVoicebotMessage({ user: userTranscript });
-        }
-
-        setExchangeCount((count) => count + 1);
-      };
-
-      /**
-       * When the assistant/agent says something, add it to the conversation queue.
-       */
-      const assistantRole = (data) => {
-        if (
-          status !== VoiceBotStatus.SLEEPING &&
-          !isWaitingForUserVoiceAfterSleep.current
-        ) {
-          startSpeaking();
-          const assistantTranscript = data.content;
-
-          // Trigger spelling challenge if needed
-          if (exchangeCount >= 2) {
-            setShouldSpell(true);
-            setExchangeCount(0);
-            // Modify assistantTranscript to include a spelling challenge
-            // Example: assistantTranscript += " Can you spell 'adventure' for me?";
-          } else {
-            setShouldSpell(false);
-          }
-
-          addVoicebotMessage({ assistant: assistantTranscript });
-        }
-      };
-
-      try {
-        const parsedData = JSON.parse(data);
-
-        /**
-         * Nothing was parsed so return an error.
-         */
-        if (!parsedData) {
-          throw new Error("No data returned in JSON.");
-        }
-
-        maybeRecordBehindTheScenesEvent(parsedData);
-
-        /**
-         * If it's a user message.
-         */
-        if (parsedData.role === "user") {
-          startListening();
-          userRole(parsedData);
-        }
-
-        /**
-         * If it's an agent message.
-         */
-        if (parsedData.role === "assistant") {
-          if (status !== VoiceBotStatus.SLEEPING) {
-            startSpeaking();
-          }
-          assistantRole(parsedData);
-        }
-
-        /**
-         * The agent has finished speaking so we reset the sleep timer.
-         */
-        if (parsedData.type === EventType.AGENT_AUDIO_DONE) {
-          // Note: It's not quite correct that the agent goes to the listening state upon receiving
-          // `AgentAudioDone`. When that message is sent, it just means that all of the agent's
-          // audio has arrived at the client, but the client will still be in the process of playing
-          // it, which means the agent is still speaking. In practice, with the way the server
-          // currently sends audio, this means Talon will deem the agent speech finished right when
-          // the agent begins speaking the final sentence of its reply.
-          startListening();
-        }
-        if (parsedData.type === EventType.USER_STARTED_SPEAKING) {
-          isWaitingForUserVoiceAfterSleep.current = false;
-          startListening();
-          clearAudioBuffer();
-        }
-        if (parsedData.type === EventType.AGENT_STARTED_SPEAKING) {
-          const { tts_latency, ttt_latency, total_latency } = parsedData;
-          if (!tts_latency || !ttt_latency) return;
-          const latencyMessage = { tts_latency, ttt_latency, total_latency };
-          addVoicebotMessage(latencyMessage);
-        }
-      } catch (error) {
-        console.error(data, error);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, socket]);
-
-  const handleVoiceBotAction = () => {
-    if (requiresUserActionToInitialize && !isInitialized) {
-      setIsInitialized(true);
-    }
-
-    if (status !== VoiceBotStatus.NONE) {
-      toggleSleep();
+      addLog("Connection initiated");
+    } catch (err) {
+      console.error("Connection failed:", err);
+      setIsConnecting(false);
     }
   };
 
-  const maybeRecordBehindTheScenesEvent = (serverMsg) => {
-    switch (serverMsg.type) {
-      case EventType.SETTINGS_APPLIED:
-        addBehindTheScenesEvent({
-          type: EventType.SETTINGS_APPLIED,
-        });
-        break;
-      case EventType.USER_STARTED_SPEAKING:
-        if (status === VoiceBotStatus.SPEAKING) {
-          addBehindTheScenesEvent({
-            type: "Interruption",
-          });
-        }
-        addBehindTheScenesEvent({
-          type: EventType.USER_STARTED_SPEAKING,
-        });
-        break;
-      case EventType.AGENT_STARTED_SPEAKING:
-        addBehindTheScenesEvent({
-          type: EventType.AGENT_STARTED_SPEAKING,
-        });
-        break;
-      case EventType.CONVERSATION_TEXT: {
-        const role = serverMsg.role;
-        const content = serverMsg.content;
-        addBehindTheScenesEvent({
-          type: EventType.CONVERSATION_TEXT,
-          role: role,
-          content: content,
-        });
-        break;
-      }
-      case EventType.END_OF_THOUGHT:
-        addBehindTheScenesEvent({
-          type: EventType.END_OF_THOUGHT,
-        });
-        break;
+  const handleDisconnect = async () => {
+    try {
+      await client.disconnect();
+    } catch (err) {
+      console.error("Disconnect failed:", err);
     }
   };
 
-  const handleInitialize = async () => {
-    if (!isInitialized) {
-      try {
-        setIsInitialized(true);
-
-        // Create or resume the AudioContext within a user gesture
-        if (!microphoneAudioContext) {
-          const audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-          await audioContext.resume(); // Ensure the AudioContext is running
-          console.log("AudioContext resumed");
-          setMicrophoneAudioContext(audioContext);
-        } else if (microphoneAudioContext.state === "suspended") {
-          await microphoneAudioContext.resume();
-          console.log("AudioContext resumed");
-        }
-
-        // Request microphone access
-        console.log("Requesting microphone access...");
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        console.log("Microphone access granted");
-
-        // Call setupMicrophone to complete the setup
-        await setupMicrophone();
-
-        // Connect to Deepgram
-        console.log("Connecting to Deepgram...");
-        connectToDeepgram();
-      } catch (error) {
-        console.error("Failed to initialize:", error);
-        setIsInitialized(false); // Reset if failed
-        alert(
-          "Failed to access the microphone. Please allow microphone access and try again.",
-        );
-      }
-    }
-  };
-
-  if (requiresUserActionToInitialize && !isInitialized) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <button
-          onClick={handleInitialize}
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow-md"
-        >
-          Allow Microphone Access
-        </button>
-        <p className="text-sm text-gray-600 text-center max-w-xs">
-          Click to allow microphone access and start the voice assistant.
-        </p>
-      </div>
-    );
-  }
-
-  if (rateLimited) {
-    return <RateLimited />;
-  }
-
-  // MAIN UI
   return (
     <div className="inset-0 flex flex-col overflow-hidden">
-      {/* Fixed BookTitle */}
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
           chapter={chapter}
           onBack={() => {
-            if (typeof disconnectFromDeepgram === "function") {
-              disconnectFromDeepgram();
-            }
-            if (microphoneAudioContext) {
-              microphoneAudioContext.close();
-            }
-            if (typeof onNavigate === "function") {
-              onNavigate("map");
-            }
+            handleDisconnect();
+            onNavigate?.("map");
           }}
         />
       </div>
 
-      {/* Scrollable transcript area - absolute positioning to control exact boundaries */}
       <div
         className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-        style={{
-          top: "92px", // height of BookTitle
-          bottom: "176px", // height of AnimationManager (80px) + BottomNavBar (64px)
-        }}
+        style={{ top: "92px", bottom: "176px" }}
       >
-        {requiresUserActionToInitialize && !isInitialized ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
-            <button
-              onClick={handleInitialize}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow-md"
-            >
-              Allow Microphone Access
-            </button>
-            <p className="text-sm text-gray-600 text-center max-w-xs">
-              Click to allow microphone access and start the voice assistant.
-            </p>
-          </div>
-        ) : rateLimited ? (
-          <RateLimited />
-        ) : (
-          <Fragment>
-            <Transcript
-              userName={userName}
-              currentCharacter={currentCharacter}
-            />
-          </Fragment>
-        )}
+        <Transcript userName={userName} currentCharacter={currentCharacter} />
+        <div
+          ref={logsRef}
+          className="absolute bottom-0 text-xs p-2 bg-gray-100 mt-4"
+        />
       </div>
 
-      {/* AnimationManager positioned above BottomNavBar */}
-      <div className="absolute left-0 right-0 bottom-20">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AnimationManager
-            agentVoiceAnalyser={agentVoiceAnalyser.current}
-            userVoiceAnalyser={userVoiceAnalyser.current}
-            onOrbClick={toggleSleep}
-            style={{ pointerEvents: "auto" }} // Enable pointer events for the orb
-          />
-          {!microphone ? (
-            <div className="text-base text-gray-400 text-center w-full">
-              {isInitialized
-                ? "Setting up microphone..."
-                : "Waiting for microphone access..."}
-            </div>
-          ) : (
-            <Fragment>
-              {socketState === 0 && (
-                <div className="text-base text-gray-400 text-center w-full">
-                  Loading Deepgram...
-                </div>
-              )}
-              {socketState > 0 && status === VoiceBotStatus.SLEEPING && (
-                <div className="text-xl flex flex-col items-center justify-center">
-                  <div className="text-gray-400 text-sm">
-                    I've stopped listening. {isMobile ? "Tap" : "Click"} the orb
-                    to resume.
-                  </div>
-                </div>
-              )}
-            </Fragment>
-          )}
-        </Suspense>
+      {/* Microphone orb */}
+      <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
+        <AnimationManager
+          agentVoiceAnalyser={agentVoiceAnalyser}
+          userVoiceAnalyser={userVoiceAnalyser}
+        />
+
+        {!isConnected && !isConnecting && (
+          <button
+            onClick={handleConnect}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Start Conversation
+          </button>
+        )}
+        {isConnecting && (
+          <button disabled className="px-4 py-2 bg-gray-400 text-white rounded">
+            Connecting...
+          </button>
+        )}
+        {isConnected && (
+          <button
+            onClick={handleDisconnect}
+            className="px-4 py-2 bg-red-500 text-white rounded"
+          >
+            End Conversation
+          </button>
+        )}
+        {status === VoiceBotStatus.SLEEPING && (
+          <div className="text-gray-400 text-sm">
+            I've stopped listening. {isMobile ? "Tap" : "Click"} to resume.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { PipecatClientAudio } from "@pipecat-ai/client-react";
 
 // Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
@@ -13,7 +14,7 @@ import { TalkWithBook } from "./TalkWithBook";
 import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
-import { MicrophoneContextProvider } from "../context/MicrophoneContextProvider";
+
 import {
   loadBookCompanionPrompt,
   the_green_ray,
@@ -25,8 +26,7 @@ import { getBookSectionType } from "../utils/bookUtils";
 
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
-// Assuming defaultStsConfig is passed as a prop from main.tsx
-const App = ({ defaultStsConfig }) => {
+const App = ({ defaultStsConfig, transportType }) => {
   // 1. All useState and useRef hooks
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
@@ -167,25 +167,49 @@ const App = ({ defaultStsConfig }) => {
   // console.log(`PROMPT ###### \n\n${introduction}\n${customization}\n${prompt}`);
 
   // 6. useMemo hooks (after the values they depend on are defined)
-  const updatedStsConfig = useMemo(
+  // const updatedStsConfig = useMemo(
+  //   () => ({
+  //     ...defaultStsConfig,
+  //     agent: {
+  //       ...defaultStsConfig.agent,
+  //       think: {
+  //         ...defaultStsConfig.agent.think,
+  //         prompt: `${introduction}\n${customization}\n${prompt}`,
+  //       },
+  //       greeting,
+  //       speak: {
+  //         provider: {
+  //           type: "deepgram",
+  //           model: currentCharacter?.voice ?? "aura-2-thalia-en",
+  //         },
+  //       },
+  //     },
+  //   }),
+  //   [defaultStsConfig, prompt, selectedBook, introduction, greeting],
+  // );
+
+  const updatedBotConfig = useMemo(
     () => ({
-      ...defaultStsConfig,
-      agent: {
-        ...defaultStsConfig.agent,
-        think: {
-          ...defaultStsConfig.agent.think,
-          prompt: `${introduction}\n${customization}\n${prompt}`,
-        },
-        greeting,
-        speak: {
-          provider: {
-            type: "deepgram",
-            model: currentCharacter?.voice ?? "aura-2-thalia-en",
-          },
-        },
+      prompt: `${introduction}\n${customization}\n${prompt}`,
+      greeting,
+      voice: currentCharacter?.voice ?? "default-voice",
+      transportType,
+      metadata: {
+        book: selectedBook,
+        chapter: selectedChapter,
+        studentName: userName,
+        character: currentCharacter,
       },
     }),
-    [defaultStsConfig, prompt, selectedBook, introduction, greeting],
+    [
+      prompt,
+      selectedBook,
+      introduction,
+      greeting,
+      currentCharacter,
+      selectedChapter,
+      userName,
+    ],
   );
 
   if (studentLoading) return <div>Loading student...</div>;
@@ -279,19 +303,18 @@ const App = ({ defaultStsConfig }) => {
         );
       case "interactive":
         return (
-          <MicrophoneContextProvider>
-            <VoiceBotProvider>
-              <TalkWithBook
-                defaultStsConfig={updatedStsConfig}
-                onNavigate={setActiveComponent}
-                selectedBook={selectedBook}
-                chapter={selectedChapter}
-                currentCharacter={currentCharacter}
-                userName={userName}
-                studentId={studentId}
-              />
-            </VoiceBotProvider>
-          </MicrophoneContextProvider>
+          <VoiceBotProvider>
+            <TalkWithBook
+              botConfig={updatedBotConfig}
+              onNavigate={setActiveComponent}
+              selectedBook={selectedBook}
+              chapter={selectedChapter}
+              currentCharacter={currentCharacter}
+              userName={userName}
+              studentId={studentId}
+            />
+            <PipecatClientAudio volume={1.0} muted={false} />
+          </VoiceBotProvider>
         );
       default:
         return <LandingPage />; // Default to landing page
