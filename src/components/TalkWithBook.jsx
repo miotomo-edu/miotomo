@@ -178,33 +178,36 @@ export const TalkWithBook = ({
       console.log("client", client);
       console.log("botConfig", botConfig);
       if (botConfig?.transportType === "daily") {
-        const proxyServerURL = "http://localhost:3001";
-        let cxnDetails = await client.startBot({
-          endpoint: `${proxyServerURL}/connect-pipecat`,
-          requestData: {
-            config: botConfig,
-          },
-        });
-        // cxnDetails = modifyCxnDetails(cxnDetails); // Modify if needed
-        console.log("cxnDetails", cxnDetails);
-        await client.connect(cxnDetails);
-        // const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify({ config: botConfig }),
+        // const proxyServerURL = "http://localhost:3001";
+        // let cxnDetails = await client.startBot({
+        //   endpoint: `${proxyServerURL}/connect-pipecat`,
+        //   requestData: {
+        //     config: botConfig,
+        //   },
         // });
+        // cxnDetails = modifyCxnDetails(cxnDetails); // Modify if needed
+        // console.log("cxnDetails", cxnDetails);
+        // await client.connect(cxnDetails);
+        const proxyServerURL =
+          "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run";
+        const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: botConfig }),
+        });
 
-        // if (!response.ok) {
-        //   const errData = await response.json();
-        //   throw new Error(errData.error || `HTTP ${response.status}`);
-        // }
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || `HTTP ${response.status}`);
+        }
 
-        // const { room_url, token } = await response.json();
-        // console.log(room_url, token);
-        // await client.connect({ room_url, token });
+        const { room_url, token } = await response.json();
+        console.log(room_url, token);
+        await client.connect({ room_url, token });
       } else {
         await client.connect({
-          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
+          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book_id=${encodeURIComponent(selectedBook.id)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
+          // connectionUrl: `http://localhost:7860/api/offer`,
         });
       }
 

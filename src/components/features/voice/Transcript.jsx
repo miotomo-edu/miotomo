@@ -6,7 +6,7 @@ import userAvatar from "../../../assets/img/user-avatar.png";
 function Transcript({ userName = "", currentCharacter }) {
   const { messages } = useConversation();
   const messagesEndRef = useRef(null);
-
+  // console.log(messages);
   // Filter out consecutive duplicates
   const filteredMessages = messages.filter((msg, idx, arr) => {
     if (idx === 0) return true;
