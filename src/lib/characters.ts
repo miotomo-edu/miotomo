@@ -34,7 +34,7 @@ export const characterData: Character[] = [
     x: 50,
     prompt: "spelling",
     voice: "aura-2-callista-en",
-    // disabled: true,
+    disabled: false,
   },
   {
     name: "Argoo",
