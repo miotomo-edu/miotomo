@@ -54,19 +54,6 @@ export const stsConfig = {
         model: "aura-2-thalia-en",
       },
     },
-    // "speak": {
-    //   "provider": {
-    //     "type": "eleven_labs",
-    //     "model_id": "eleven_multilingual_v2",
-    //     // "language_code": "en-EN"
-    //   },
-    //   "endpoint": {
-    //     "url": "https://api.elevenlabs.io/v2/text-to-speech",
-    //     "headers": {
-    //       "xi-api-key": "sk_7640198eca4c2340a57d0c306b5efb6842786d934b26e47f"
-    //     }
-    //   }
-    // },
     greeting: bookCompanionGreetings,
   },
 };
