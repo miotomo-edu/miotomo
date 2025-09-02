@@ -23,5 +23,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     base: "/",
+    build: {
+      sourcemap: true,
+    },
   };
 });
