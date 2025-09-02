@@ -22,6 +22,6 @@ export default defineConfig(({ mode }) => {
         "@": "/src",
       },
     },
-    base: "/miotomo",
+    base: "/",
   };
 });
