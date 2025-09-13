@@ -24,9 +24,21 @@ function Transcript({ userName = "", currentCharacter }) {
 
   const processSpellingText = (text) => {
     if (currentCharacter?.prompt !== "spelling") return text;
-    return text.replace(/\*\*([^*]+)\*\*/g, (_, word) =>
+
+    // Case 1: **WORD**
+    let result = text.replace(/\*\*([^*]+)\*\*/g, (_, word) =>
       "*".repeat(word.length),
     );
+
+    // Case 2: "can you spell WORD"
+    // Only apply if case 1 didn't already replace
+    if (result === text) {
+      result = result.replace(/can you spell ([A-Z]+)\??/i, (match, word) => {
+        return match.replace(word, "*".repeat(word.length));
+      });
+    }
+
+    return result;
   };
 
   const assistantAvatarUrl = currentCharacter?.icon || assistantAvatar;

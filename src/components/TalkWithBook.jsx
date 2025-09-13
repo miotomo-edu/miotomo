@@ -206,7 +206,7 @@ export const TalkWithBook = ({
         await client.connect({ room_url, token });
       } else {
         await client.connect({
-          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(userName)}&chapter=${encodeURIComponent(chapter)}&book_id=${encodeURIComponent(selectedBook.id)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
+          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(userName)}&chapter_old=${encodeURIComponent(botConfig.metadata.book.progress)}&chapter=${encodeURIComponent(chapter)}&book_id=${encodeURIComponent(selectedBook.id)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
           // connectionUrl: `http://localhost:7860/api/offer`,
         });
       }

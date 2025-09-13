@@ -19,7 +19,7 @@ import echoAvatar from "../assets/img/echo-avatar.png";
 
 export const characterData: Character[] = [
   {
-    name: "Miotomo",
+    name: "Tomo",
     icon: miotomoAvatar,
     bg: "bg-purple-200",
     modality: "Wise companion",
