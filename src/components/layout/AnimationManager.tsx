@@ -105,7 +105,7 @@ const AnimationManager: React.FC<Props> = ({
       >
         <MicrophoneStatus overrideStatus={visualStatus} />
       </button>
-      {!isMicEnabled && <div className="text-xs text-gray-500 mt-1">Muted</div>}
+      {/*{!isMicEnabled && <div className="text-xs text-gray-500 mt-1">Muted</div>}*/}
     </div>
   );
 };

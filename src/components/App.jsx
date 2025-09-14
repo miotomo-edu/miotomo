@@ -37,6 +37,7 @@ const App = ({ defaultStsConfig, transportType }) => {
   const mainRef = useRef(null);
   const [userName, setUserName] = useState("");
   const [currentCharacter, setCurrentCharacter] = useState(null);
+  const disconnectRef = useRef(null);
 
   const [studentId, setStudentId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -237,8 +238,11 @@ const App = ({ defaultStsConfig, transportType }) => {
     setActiveComponent("interactive");
   };
 
-  // Function to switch components
   const handleNavigationClick = (componentName) => {
+    // If leaving interactive, trigger disconnect
+    if (activeComponent === "interactive" && disconnectRef.current) {
+      disconnectRef.current();
+    }
     setActiveComponent(componentName);
     prevActiveComponent.current = componentName;
   };
@@ -312,6 +316,9 @@ const App = ({ defaultStsConfig, transportType }) => {
               currentCharacter={currentCharacter}
               userName={userName}
               studentId={studentId}
+              showControlButton={false}
+              showPipecatStatus={false}
+              onDisconnectRequest={disconnectRef}
             />
             <PipecatClientAudio volume={1.0} muted={false} />
           </VoiceBotProvider>

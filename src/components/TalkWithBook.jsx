@@ -22,9 +22,14 @@ export const TalkWithBook = ({
   currentCharacter,
   userName = "",
   studentId = null,
+  // Hide control button by default; when hidden we auto-connect
+  showControlButton = false,
+  // A ref-like object from the parent so it can call disconnect()
+  onDisconnectRequest,
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
+  const startedRef = useRef(false); // prevent duplicate auto-connects
 
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -64,6 +69,7 @@ export const TalkWithBook = ({
     return analyser;
   }, [botAudioTrack]);
 
+  // Conversation/session metadata for persistence
   useEffect(() => {
     if (studentId && selectedBook?.id) {
       setConversationConfig({
@@ -76,33 +82,85 @@ export const TalkWithBook = ({
 
   const addLog = (msg) => {
     if (logsRef.current) {
-      logsRef.current.textContent = msg;
-      // logsRef.current.scrollTop = logsRef.current.scrollHeight;
+      // logsRef.current.textContent = msg;
     }
     console.log(`LOG: ${msg}`);
   };
 
-  // Send prompt when bot is ready
-  // useRTVIClientEvent(
-  //   RTVIEvent.BotConnected,
-  //   useCallback(() => {
-  //     // Bot is ready - send the initial prompt
-  //     addLog("Bot is ready - send the initial prompt");
-  //     client.sendClientMessage("set-prompt", { prompt: "prompt_1" });
-  //   }, [client]),
-  // );
+  // --- Connection handlers -------------------------------------------------
 
-  // // Handle server responses
-  // useRTVIClientEvent(
-  //   RTVIEvent.ServerMessage,
-  //   useCallback((message) => {
-  //     if (message.data.msg === "prompt-set") {
-  //       console.log("Prompt set successfully");
-  //     }
-  //   }, []),
-  // );
+  const handleConnect = useCallback(async () => {
+    setIsConnecting(true);
+    try {
+      // const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
+      console.log("client", client);
+      console.log("botConfig", botConfig);
+      if (botConfig?.transportType === "daily") {
+        const proxyServerURL =
+          "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run";
+        const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: botConfig }),
+        });
 
-  // Pipecat event bindings
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || `HTTP ${response.status}`);
+        }
+
+        const { room_url, token } = await response.json();
+        console.log(room_url, token);
+        await client.connect({ room_url, token });
+      } else {
+        await client.connect({
+          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(
+            userName,
+          )}&chapter_old=${encodeURIComponent(
+            botConfig.metadata.book.progress,
+          )}&chapter=${encodeURIComponent(
+            chapter,
+          )}&book_id=${encodeURIComponent(
+            selectedBook.id,
+          )}&book=${encodeURIComponent(
+            selectedBook.title,
+          )}&prompt=${encodeURIComponent(
+            botConfig.metadata.character.prompt,
+          )}&section_type=${encodeURIComponent(
+            botConfig.metadata.book.section_type,
+          )}&character_name=${encodeURIComponent(
+            botConfig.metadata.character.name,
+          )}`,
+          // connectionUrl: `http://localhost:7860/api/offer`,
+        });
+      }
+
+      addLog("Connection initiated");
+    } catch (err) {
+      console.error("Connection failed:", err);
+      setIsConnecting(false);
+      startedRef.current = false; // allow retry on failure
+    }
+  }, [client, botConfig, userName, chapter, selectedBook]);
+
+  const handleDisconnect = useCallback(async () => {
+    try {
+      await client.disconnect();
+    } catch (err) {
+      console.error("Disconnect failed:", err);
+    }
+  }, [client]);
+
+  // Allow parent (BottomNavBar navigation) to trigger a disconnect
+  useEffect(() => {
+    if (!onDisconnectRequest) return;
+    onDisconnectRequest.current = handleDisconnect;
+    return () => {
+      onDisconnectRequest.current = null;
+    };
+  }, [onDisconnectRequest, handleDisconnect]);
+
+  // --- Pipecat event bindings (MOUNT BEFORE auto-connect) ------------------
   useEffect(() => {
     if (!client) return;
 
@@ -110,6 +168,7 @@ export const TalkWithBook = ({
       setIsConnected(true);
       setIsConnecting(false);
       addLog("Connected to Pipecat bot");
+      // client.sendClientMessage("start-chat");
     };
     const onDisconnected = () => {
       setIsConnected(false);
@@ -120,7 +179,8 @@ export const TalkWithBook = ({
       addLog("Bot ready! Start talking.");
       try {
         console.log("SENDING MESSAGE");
-        client.sendClientMessage("set-language", { language: "en-US" });
+        // client.sendClientMessage("set-language", { language: "en-US" });
+        client.sendClientMessage("start-chat");
       } catch (error) {
         console.error("Error sending message to server:", error);
       }
@@ -142,9 +202,6 @@ export const TalkWithBook = ({
     const onBotTranscript = (data) => {
       addVoicebotMessage({ assistant: data.text });
     };
-    const onServerMessage = (message) => {
-      console.log("Received message from server:", message);
-    };
 
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
@@ -155,7 +212,6 @@ export const TalkWithBook = ({
     client.on(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
     client.on(RTVIEvent.UserTranscript, onUserTranscript);
     client.on(RTVIEvent.BotTranscript, onBotTranscript);
-    // client.on(RTVIEvent.ServerMessage, onServerMessage);
 
     return () => {
       client.off(RTVIEvent.Connected, onConnected);
@@ -167,64 +223,78 @@ export const TalkWithBook = ({
       client.off(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
       client.off(RTVIEvent.UserTranscript, onUserTranscript);
       client.off(RTVIEvent.BotTranscript, onBotTranscript);
-      // client.on(RTVIEvent.ServerMessage, onServerMessage);
     };
   }, [client, addVoicebotMessage, startListening, startSpeaking]);
 
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      // const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
-      console.log("client", client);
-      console.log("botConfig", botConfig);
-      if (botConfig?.transportType === "daily") {
-        // const proxyServerURL = "http://localhost:3001";
-        // let cxnDetails = await client.startBot({
-        //   endpoint: `${proxyServerURL}/connect-pipecat`,
-        //   requestData: {
-        //     config: botConfig,
-        //   },
-        // });
-        // cxnDetails = modifyCxnDetails(cxnDetails); // Modify if needed
-        // console.log("cxnDetails", cxnDetails);
-        // await client.connect(cxnDetails);
-        const proxyServerURL =
-          "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run";
-        const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ config: botConfig }),
-        });
+  // --- Auto-connect when button is hidden ----------------------------------
+  useEffect(() => {
+    if (showControlButton) return; // only autostart when hidden
+    if (startedRef.current) return; // prevent double-start
+    if (!client) return; // need client
+    if (!botConfig) return; // need config
+    if (!selectedBook?.id || !chapter || !currentCharacter) return; // need inputs
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || `HTTP ${response.status}`);
-        }
+    startedRef.current = true;
+    // microtask to ensure listener effect above has committed
+    setTimeout(() => {
+      handleConnect();
+    }, 0);
+  }, [
+    showControlButton,
+    client,
+    botConfig,
+    selectedBook?.id,
+    chapter,
+    currentCharacter,
+    handleConnect,
+  ]);
 
-        const { room_url, token } = await response.json();
-        console.log(room_url, token);
-        await client.connect({ room_url, token });
-      } else {
-        await client.connect({
-          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(userName)}&chapter_old=${encodeURIComponent(botConfig.metadata.book.progress)}&chapter=${encodeURIComponent(chapter)}&book_id=${encodeURIComponent(selectedBook.id)}&book=${encodeURIComponent(selectedBook.title)}&prompt=${encodeURIComponent(botConfig.metadata.character.prompt)}&section_type=${encodeURIComponent(botConfig.metadata.book.section_type)}&character_name=${encodeURIComponent(botConfig.metadata.character.name)}`,
-          // connectionUrl: `http://localhost:7860/api/offer`,
-        });
+  // --- Autoplay/mic gating fallback: start on first interaction ------------
+  useEffect(() => {
+    if (showControlButton) return; // only relevant when auto-starting
+
+    const onFirstInteraction = async () => {
+      try {
+        userVoiceAnalyser?.context?.resume?.();
+      } catch {}
+      try {
+        agentVoiceAnalyser?.context?.resume?.();
+      } catch {}
+
+      if (!isConnected && !isConnecting && !startedRef.current) {
+        startedRef.current = true;
+        handleConnect();
       }
 
-      addLog("Connection initiated");
-    } catch (err) {
-      console.error("Connection failed:", err);
-      setIsConnecting(false);
-    }
-  };
+      window.removeEventListener("click", onFirstInteraction);
+      window.removeEventListener("touchstart", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+    };
 
-  const handleDisconnect = async () => {
-    try {
-      await client.disconnect();
-    } catch (err) {
-      console.error("Disconnect failed:", err);
-    }
-  };
+    window.addEventListener("click", onFirstInteraction, { once: true });
+    window.addEventListener("touchstart", onFirstInteraction, { once: true });
+    window.addEventListener("keydown", onFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener("click", onFirstInteraction);
+      window.removeEventListener("touchstart", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+    };
+  }, [
+    showControlButton,
+    isConnected,
+    isConnecting,
+    userVoiceAnalyser,
+    agentVoiceAnalyser,
+    handleConnect,
+  ]);
+
+  // --- Cleanup on unmount ---------------------------------------------------
+  useEffect(() => {
+    return () => {
+      handleDisconnect();
+    };
+  }, [handleDisconnect]);
 
   return (
     <div className="inset-0 flex flex-col overflow-hidden">
@@ -256,27 +326,33 @@ export const TalkWithBook = ({
           agentVoiceAnalyser={agentVoiceAnalyser}
           userVoiceAnalyser={userVoiceAnalyser}
         />
-
-        {!isConnected && !isConnecting && (
-          <button
-            onClick={handleConnect}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            Start Conversation
-          </button>
-        )}
-        {isConnecting && (
-          <button disabled className="px-4 py-2 bg-gray-400 text-white rounded">
-            Connecting...
-          </button>
-        )}
-        {isConnected && (
-          <button
-            onClick={handleDisconnect}
-            className="px-4 py-2 bg-red-500 text-white rounded"
-          >
-            End Conversation
-          </button>
+        {showControlButton && (
+          <>
+            {!isConnected && !isConnecting && (
+              <button
+                onClick={handleConnect}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Start Conversation
+              </button>
+            )}
+            {isConnecting && (
+              <button
+                disabled
+                className="px-4 py-2 bg-gray-400 text-white rounded"
+              >
+                Connecting...
+              </button>
+            )}
+            {isConnected && (
+              <button
+                onClick={handleDisconnect}
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                End Conversation
+              </button>
+            )}
+          </>
         )}
         {status === VoiceBotStatus.SLEEPING && (
           <div className="text-gray-400 text-sm">
