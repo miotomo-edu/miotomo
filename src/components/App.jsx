@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { PipecatClientAudio } from "@pipecat-ai/client-react";
 
-// Removed BrowserRouter, Route, Routes imports
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
 import HomePage from "./sections/HomePage";
@@ -11,23 +10,23 @@ import RewardsSection from "./sections/RewardsSection";
 import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
 import { TalkWithBook } from "./TalkWithBook";
+import ProgressSection from "./sections/ProgressSection";
 import BottomNavBar from "./common/BottomNavBar";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
-
 import {
   loadBookCompanionPrompt,
   the_green_ray,
   f1_growing_wings,
   f1_surving_to_drive,
 } from "../lib/prompts";
-
 import { getBookSectionType } from "../utils/bookUtils";
-
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
+// ⬇️ Reusable connection manager (from your new hook file)
+import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
+
 const App = ({ defaultStsConfig, transportType }) => {
-  // 1. All useState and useRef hooks
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
   const [prompt, setPrompt] = useState("");
@@ -37,26 +36,21 @@ const App = ({ defaultStsConfig, transportType }) => {
   const mainRef = useRef(null);
   const [userName, setUserName] = useState("");
   const [currentCharacter, setCurrentCharacter] = useState(null);
+
+  // Used to trigger disconnect from BottomNavBar or when leaving interactive
   const disconnectRef = useRef(null);
 
-  const [studentId, setStudentId] = useState(() => {
+  const [studentId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("studentId") || "";
   });
 
-  const setBooksArray = (newBooks) => {
-    console.log("setBooksArray called with:", newBooks);
-    setBooks(Array.isArray(newBooks) ? newBooks : []);
-  };
-
-  // 2. All data fetching hooks
   const {
     data: student,
     isLoading: studentLoading,
     error: studentError,
   } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
 
-  // 3. All useEffect hooks
   useEffect(() => {
     if (currentCharacter?.prompt) {
       loadBookCompanionPrompt(currentCharacter.prompt).then(setPrompt);
@@ -64,84 +58,11 @@ const App = ({ defaultStsConfig, transportType }) => {
   }, [currentCharacter]);
 
   useEffect(() => {
-    // Scroll multiple potential scroll containers
-    const scrollToTop = () => {
-      // Scroll the main container
-      if (mainRef.current) {
-        mainRef.current.scrollTo({ top: 0, behavior: "instant" });
-        mainRef.current.scrollTop = 0;
-      }
-
-      // Also scroll the window/body for mobile
-      window.scrollTo({ top: 0, behavior: "instant" });
-      document.body.scrollTop = 0;
-      document.documentElement.scrollTop = 0;
-    };
-
-    // Use both setTimeout and requestAnimationFrame for maximum compatibility
-    setTimeout(() => {
-      requestAnimationFrame(scrollToTop);
-    }, 0);
-  }, [activeComponent]);
-
-  useEffect(() => {
     if (student?.name) setUserName(student.name);
   }, [student]);
 
-  // Add these useEffects to your App.jsx component
+  // --- Viewport helpers omitted for brevity ---
 
-  // 1. Dynamic viewport height
-  useEffect(() => {
-    const setViewportHeight = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
-    };
-
-    setViewportHeight();
-    window.addEventListener("resize", setViewportHeight);
-    window.addEventListener("orientationchange", () => {
-      setTimeout(setViewportHeight, 100);
-    });
-
-    return () => {
-      window.removeEventListener("resize", setViewportHeight);
-      window.removeEventListener("orientationchange", setViewportHeight);
-    };
-  }, []);
-
-  // 2. Force address bar hide on mobile
-  useEffect(() => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      const hideAddressBar = () => {
-        // Prevent scrolling on the body
-        document.body.style.overflow = "hidden";
-        document.body.style.position = "fixed";
-        document.body.style.width = "100%";
-        document.body.style.height = "100%";
-
-        // Force a minimal scroll to hide address bar
-        setTimeout(() => {
-          window.scrollTo(0, 1);
-          setTimeout(() => {
-            window.scrollTo(0, 0);
-          }, 0);
-        }, 100);
-      };
-
-      hideAddressBar();
-      window.addEventListener("orientationchange", hideAddressBar);
-      window.addEventListener("resize", hideAddressBar);
-
-      return () => {
-        window.removeEventListener("orientationchange", hideAddressBar);
-        window.removeEventListener("resize", hideAddressBar);
-      };
-    }
-  }, []);
-
-  // 5. Derived state (variables that depend on state/props)
   const introduction =
     selectedBook && currentCharacter
       ? `You are ${currentCharacter.name}, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}. Focus on chapter ${selectedChapter}.`
@@ -161,40 +82,19 @@ const App = ({ defaultStsConfig, transportType }) => {
         return "";
     }
   })();
+
   const greeting = selectedBook
-    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying ${getBookSectionType(selectedBook.section_type)} ${selectedChapter} of "${selectedBook.title}"?`
+    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying ${getBookSectionType(
+        selectedBook.section_type,
+      )} ${selectedChapter} of "${selectedBook.title}"?`
     : `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying your book?`;
-
-  // console.log(`PROMPT ###### \n\n${introduction}\n${customization}\n${prompt}`);
-
-  // 6. useMemo hooks (after the values they depend on are defined)
-  // const updatedStsConfig = useMemo(
-  //   () => ({
-  //     ...defaultStsConfig,
-  //     agent: {
-  //       ...defaultStsConfig.agent,
-  //       think: {
-  //         ...defaultStsConfig.agent.think,
-  //         prompt: `${introduction}\n${customization}\n${prompt}`,
-  //       },
-  //       greeting,
-  //       speak: {
-  //         provider: {
-  //           type: "deepgram",
-  //           model: currentCharacter?.voice ?? "aura-2-thalia-en",
-  //         },
-  //       },
-  //     },
-  //   }),
-  //   [defaultStsConfig, prompt, selectedBook, introduction, greeting],
-  // );
 
   const updatedBotConfig = useMemo(
     () => ({
       prompt: `${introduction}\n${customization}\n${prompt}`,
       greeting,
       voice: currentCharacter?.voice ?? "default-voice",
-      transportType,
+      transportType, // 'daily' or 'webrtc' from main.tsx
       metadata: {
         book: selectedBook,
         chapter: selectedChapter,
@@ -210,12 +110,12 @@ const App = ({ defaultStsConfig, transportType }) => {
       currentCharacter,
       selectedChapter,
       userName,
+      transportType,
     ],
   );
 
   if (studentLoading) return <div>Loading student...</div>;
   if (studentError) return <div>Error loading student.</div>;
-
   if (!studentId || studentError || (!studentLoading && !student)) {
     return (
       <div
@@ -239,7 +139,7 @@ const App = ({ defaultStsConfig, transportType }) => {
   };
 
   const handleNavigationClick = (componentName) => {
-    // If leaving interactive, trigger disconnect
+    // When leaving the talk screen, disconnect.
     if (activeComponent === "interactive" && disconnectRef.current) {
       disconnectRef.current();
     }
@@ -247,7 +147,6 @@ const App = ({ defaultStsConfig, transportType }) => {
     prevActiveComponent.current = componentName;
   };
 
-  // Conditional rendering based on activeComponent state
   const renderComponent = () => {
     switch (activeComponent) {
       case "landing":
@@ -256,7 +155,7 @@ const App = ({ defaultStsConfig, transportType }) => {
         return (
           <HomePage
             books={books}
-            setBooks={setBooksArray}
+            setBooks={(arr) => setBooks(Array.isArray(arr) ? arr : [])}
             onContinue={() => setActiveComponent("interactive")}
             selectedBook={selectedBook}
             selectedChapter={selectedChapter}
@@ -274,7 +173,7 @@ const App = ({ defaultStsConfig, transportType }) => {
         return (
           <LibraryPage
             books={books}
-            setBooks={setBooksArray}
+            setBooks={(arr) => setBooks(Array.isArray(arr) ? arr : [])}
             selectedBook={selectedBook}
             selectedChapter={selectedChapter}
             onBookAndCharacterSelect={handleBookAndCharacterSelect}
@@ -286,6 +185,12 @@ const App = ({ defaultStsConfig, transportType }) => {
               setSelectedChapter(chapter);
               setActiveComponent("map");
             }}
+          />
+        );
+      case "progress":
+        return (
+          <ProgressSection
+            conversationId={"7163b97f-bb82-4c30-aa72-ab204647becf"}
           />
         );
       case "profile":
@@ -316,17 +221,19 @@ const App = ({ defaultStsConfig, transportType }) => {
               currentCharacter={currentCharacter}
               userName={userName}
               studentId={studentId}
-              showControlButton={false}
-              showPipecatStatus={false}
+              showControlButton={false} // hide controls; autostart path
               onDisconnectRequest={disconnectRef}
             />
             <PipecatClientAudio volume={1.0} muted={false} />
           </VoiceBotProvider>
         );
       default:
-        return <LandingPage />; // Default to landing page
+        return <LandingPage />;
     }
   };
+
+  // 👉 IMPORTANT: Key the connection manager on book:chapter:character so it remounts
+  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${currentCharacter?.name || "none"}`;
 
   return (
     <div className="app-mobile-shell">
@@ -339,6 +246,20 @@ const App = ({ defaultStsConfig, transportType }) => {
           </div>
         )}
       </Layout>
+
+      {/* 🔌 Pre-connect as soon as we have enough info (even before TalkWithBook mounts) */}
+      {selectedBook && currentCharacter && (
+        <PipecatConnectionManager
+          key={connectionKey}
+          autoConnect
+          botConfig={updatedBotConfig}
+          userName={userName}
+          selectedBook={selectedBook}
+          chapter={selectedChapter}
+          onDisconnectRef={disconnectRef}
+        />
+      )}
+
       {activeComponent !== "landing" && (
         <BottomNavBar
           onItemClick={handleNavigationClick}

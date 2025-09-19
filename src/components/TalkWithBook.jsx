@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   usePipecatClient,
   usePipecatClientMediaTrack,
-  useRTVIClientEvent,
+  usePipecatClientMicControl,
 } from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
@@ -14,6 +14,8 @@ import {
 } from "../context/VoiceBotContextProvider.jsx";
 import { isMobile } from "react-device-detect";
 
+import { usePipecatConnection } from "../hooks/usePipecatConnection";
+
 export const TalkWithBook = ({
   botConfig,
   onNavigate,
@@ -22,17 +24,15 @@ export const TalkWithBook = ({
   currentCharacter,
   userName = "",
   studentId = null,
-  // Hide control button by default; when hidden we auto-connect
   showControlButton = false,
-  // A ref-like object from the parent so it can call disconnect()
   onDisconnectRequest,
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
-  const startedRef = useRef(false); // prevent duplicate auto-connects
 
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const startedHereRef = useRef(false);
+  const startedChatRef = useRef(false);
+
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
 
@@ -44,11 +44,14 @@ export const TalkWithBook = ({
     status,
   } = useVoiceBot();
 
-  // 🎤 Get mic & bot audio tracks from Pipecat
+  // ✅ Mic control hook (keeps UI state in sync)
+  const { enableMic } = usePipecatClientMicControl();
+
+  // 🎤 Tracks
   const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
   const botAudioTrack = usePipecatClientMediaTrack("audio", "bot");
 
-  // Create analysers from those tracks
+  // Analysers
   const userVoiceAnalyser = useMemo(() => {
     if (!localAudioTrack) return null;
     const ctx = new AudioContext();
@@ -69,7 +72,11 @@ export const TalkWithBook = ({
     return analyser;
   }, [botAudioTrack]);
 
-  // Conversation/session metadata for persistence
+  // Connection hook
+  const { connect, disconnect, sendClientMessage, isConnected, isConnecting } =
+    usePipecatConnection();
+
+  // Persist session metadata
   useEffect(() => {
     if (studentId && selectedBook?.id) {
       setConversationConfig({
@@ -82,109 +89,73 @@ export const TalkWithBook = ({
 
   const addLog = (msg) => {
     if (logsRef.current) {
-      // logsRef.current.textContent = msg;
+      logsRef.current.textContent = msg;
     }
     console.log(`LOG: ${msg}`);
   };
 
-  // --- Connection handlers -------------------------------------------------
+  // Wrap connect/disconnect to mark ownership
+  const connectHere = useCallback(async () => {
+    startedHereRef.current = true;
+    await connect({ botConfig, userName, selectedBook, chapter });
+  }, [connect, botConfig, userName, selectedBook, chapter]);
 
-  const handleConnect = useCallback(async () => {
-    setIsConnecting(true);
-    try {
-      // const proxyServerURL = "https://pipecat-proxy-server.onrender.com";
-      console.log("client", client);
-      console.log("botConfig", botConfig);
-      if (botConfig?.transportType === "daily") {
-        const proxyServerURL =
-          "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run";
-        const response = await fetch(`${proxyServerURL}/connect-pipecat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ config: botConfig }),
-        });
+  const disconnectHere = useCallback(async () => {
+    startedHereRef.current = false;
+    await disconnect();
+  }, [disconnect]);
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || `HTTP ${response.status}`);
-        }
-
-        const { room_url, token } = await response.json();
-        console.log(room_url, token);
-        await client.connect({ room_url, token });
-      } else {
-        await client.connect({
-          webrtcUrl: `http://localhost:8000/api/offer?student=${encodeURIComponent(
-            userName,
-          )}&chapter_old=${encodeURIComponent(
-            botConfig.metadata.book.progress,
-          )}&chapter=${encodeURIComponent(
-            chapter,
-          )}&book_id=${encodeURIComponent(
-            selectedBook.id,
-          )}&book=${encodeURIComponent(
-            selectedBook.title,
-          )}&prompt=${encodeURIComponent(
-            botConfig.metadata.character.prompt,
-          )}&section_type=${encodeURIComponent(
-            botConfig.metadata.book.section_type,
-          )}&character_name=${encodeURIComponent(
-            botConfig.metadata.character.name,
-          )}`,
-          // connectionUrl: `http://localhost:7860/api/offer`,
-        });
-      }
-
-      addLog("Connection initiated");
-    } catch (err) {
-      console.error("Connection failed:", err);
-      setIsConnecting(false);
-      startedRef.current = false; // allow retry on failure
-    }
-  }, [client, botConfig, userName, chapter, selectedBook]);
-
-  const handleDisconnect = useCallback(async () => {
-    try {
-      await client.disconnect();
-    } catch (err) {
-      console.error("Disconnect failed:", err);
-    }
-  }, [client]);
-
-  // Allow parent (BottomNavBar navigation) to trigger a disconnect
+  // Allow parent to trigger disconnect
   useEffect(() => {
     if (!onDisconnectRequest) return;
-    onDisconnectRequest.current = handleDisconnect;
+    onDisconnectRequest.current = disconnectHere;
     return () => {
       onDisconnectRequest.current = null;
     };
-  }, [onDisconnectRequest, handleDisconnect]);
+  }, [onDisconnectRequest, disconnectHere]);
 
-  // --- Pipecat event bindings (MOUNT BEFORE auto-connect) ------------------
+  // ---- Pipecat event bindings ----
   useEffect(() => {
     if (!client) return;
 
     const onConnected = () => {
-      setIsConnected(true);
-      setIsConnecting(false);
       addLog("Connected to Pipecat bot");
-      // client.sendClientMessage("start-chat");
+      startedChatRef.current = false;
+      // Do NOT force mic here; we do it on BotReady (or fallback).
     };
+
     const onDisconnected = () => {
-      setIsConnected(false);
-      setIsConnecting(false);
       addLog("Disconnected");
+      startedChatRef.current = false;
     };
+
     const onBotReady = () => {
-      addLog("Bot ready! Start talking.");
+      addLog("Bot ready!");
+      // ✅ Force mic ON via hook so UI reflects it
       try {
-        console.log("SENDING MESSAGE");
-        // client.sendClientMessage("set-language", { language: "en-US" });
-        client.sendClientMessage("start-chat");
+        enableMic(true); // updates isMicEnabled used by AnimationManager
+        // Also align server + UI “mode”
+        sendClientMessage("control", { action: "resumeListening" });
+        startListening(); // set VoiceBotStatus to LISTENING visually
+        console.log("Mic set ON on BotReady (hook)");
+      } catch (e) {
+        console.warn("Mic reset on BotReady failed", e);
+      }
+
+      if (startedChatRef.current) return;
+      try {
+        // sendClientMessage("set-language", { language: "en-US" });
+        sendClientMessage("start-chat", {
+          book_id: selectedBook.id,
+          chapter: chapter ?? "",
+          chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
+        });
+        startedChatRef.current = true;
       } catch (error) {
-        console.error("Error sending message to server:", error);
+        console.error("Error sending start messages:", error);
       }
     };
+
     const onUserStartedSpeaking = () => setIsMicActive(true);
     const onUserStoppedSpeaking = () => setIsMicActive(false);
     const onBotStartedSpeaking = () => {
@@ -224,77 +195,80 @@ export const TalkWithBook = ({
       client.off(RTVIEvent.UserTranscript, onUserTranscript);
       client.off(RTVIEvent.BotTranscript, onBotTranscript);
     };
-  }, [client, addVoicebotMessage, startListening, startSpeaking]);
-
-  // --- Auto-connect when button is hidden ----------------------------------
-  useEffect(() => {
-    if (showControlButton) return; // only autostart when hidden
-    if (startedRef.current) return; // prevent double-start
-    if (!client) return; // need client
-    if (!botConfig) return; // need config
-    if (!selectedBook?.id || !chapter || !currentCharacter) return; // need inputs
-
-    startedRef.current = true;
-    // microtask to ensure listener effect above has committed
-    setTimeout(() => {
-      handleConnect();
-    }, 0);
   }, [
-    showControlButton,
     client,
-    botConfig,
-    selectedBook?.id,
-    chapter,
-    currentCharacter,
-    handleConnect,
+    enableMic,
+    sendClientMessage,
+    botConfig?.greeting,
+    addVoicebotMessage,
+    startListening,
+    startSpeaking,
   ]);
 
-  // --- Autoplay/mic gating fallback: start on first interaction ------------
+  // --- Auto-connect when button is hidden ---
   useEffect(() => {
-    if (showControlButton) return; // only relevant when auto-starting
-
-    const onFirstInteraction = async () => {
-      try {
-        userVoiceAnalyser?.context?.resume?.();
-      } catch {}
-      try {
-        agentVoiceAnalyser?.context?.resume?.();
-      } catch {}
-
-      if (!isConnected && !isConnecting && !startedRef.current) {
-        startedRef.current = true;
-        handleConnect();
+    if (!showControlButton && !isConnected && !isConnecting) {
+      if (botConfig && selectedBook?.id && chapter && currentCharacter) {
+        connectHere().catch((err) => console.error("Auto-connect failed", err));
       }
-
-      window.removeEventListener("click", onFirstInteraction);
-      window.removeEventListener("touchstart", onFirstInteraction);
-      window.removeEventListener("keydown", onFirstInteraction);
-    };
-
-    window.addEventListener("click", onFirstInteraction, { once: true });
-    window.addEventListener("touchstart", onFirstInteraction, { once: true });
-    window.addEventListener("keydown", onFirstInteraction, { once: true });
-
-    return () => {
-      window.removeEventListener("click", onFirstInteraction);
-      window.removeEventListener("touchstart", onFirstInteraction);
-      window.removeEventListener("keydown", onFirstInteraction);
-    };
+    }
   }, [
     showControlButton,
     isConnected,
     isConnecting,
-    userVoiceAnalyser,
-    agentVoiceAnalyser,
-    handleConnect,
+    botConfig,
+    selectedBook?.id,
+    chapter,
+    currentCharacter,
+    connectHere,
   ]);
 
-  // --- Cleanup on unmount ---------------------------------------------------
+  // --- Fallback for missed BotReady (pre-connect case) ---
+  useEffect(() => {
+    if (
+      !startedChatRef.current &&
+      isConnected &&
+      !isConnecting &&
+      botConfig &&
+      selectedBook?.id &&
+      chapter &&
+      currentCharacter
+    ) {
+      try {
+        // ✅ Mirror BotReady path: ensure mic + UI state are synced
+        enableMic(true);
+        sendClientMessage("control", { action: "resumeListening" });
+        startListening();
+        console.log("Mic set ON via fallback (hook)");
+
+        sendClientMessage("set-language", { language: "en-US" });
+        sendClientMessage("start-chat", { greeting: botConfig?.greeting });
+        startedChatRef.current = true;
+        addLog("start-chat sent (fallback)");
+      } catch (e) {
+        console.error("fallback start-chat failed:", e);
+      }
+    }
+  }, [
+    isConnected,
+    isConnecting,
+    botConfig,
+    selectedBook?.id,
+    chapter,
+    currentCharacter,
+    enableMic,
+    sendClientMessage,
+    startListening,
+  ]);
+
+  // --- Cleanup ---
   useEffect(() => {
     return () => {
-      handleDisconnect();
+      if (startedHereRef.current) {
+        disconnectHere();
+      }
     };
-  }, [handleDisconnect]);
+  }, [disconnectHere]);
 
   return (
     <div className="inset-0 flex flex-col overflow-hidden">
@@ -303,7 +277,7 @@ export const TalkWithBook = ({
           book={selectedBook}
           chapter={chapter}
           onBack={() => {
-            handleDisconnect();
+            disconnectHere();
             onNavigate?.("map");
           }}
         />
@@ -320,17 +294,17 @@ export const TalkWithBook = ({
         />
       </div>
 
-      {/* Microphone orb */}
       <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
         <AnimationManager
           agentVoiceAnalyser={agentVoiceAnalyser}
           userVoiceAnalyser={userVoiceAnalyser}
         />
+
         {showControlButton && (
           <>
             {!isConnected && !isConnecting && (
               <button
-                onClick={handleConnect}
+                onClick={connectHere}
                 className="px-4 py-2 bg-blue-500 text-white rounded"
               >
                 Start Conversation
@@ -346,7 +320,7 @@ export const TalkWithBook = ({
             )}
             {isConnected && (
               <button
-                onClick={handleDisconnect}
+                onClick={disconnectHere}
                 className="px-4 py-2 bg-red-500 text-white rounded"
               >
                 End Conversation
@@ -354,6 +328,7 @@ export const TalkWithBook = ({
             )}
           </>
         )}
+
         {status === VoiceBotStatus.SLEEPING && (
           <div className="text-gray-400 text-sm">
             I've stopped listening. {isMobile ? "Tap" : "Click"} to resume.
