@@ -283,14 +283,14 @@ function mapMetricsToProgress(metrics: any, utterances: any) {
           metrics.reading_comprehension?.score > 0
             ? {
                 emoji: "📖",
-                text: metrics.reading_comprehension.example,
+                text: "Asked deep questions about character motivations",
                 score: "Excellent",
               }
             : [],
           metrics.critical_thinking?.score > 0
             ? {
-                emoji: "🤔",
-                text: metrics.critical_thinking.example,
+                emoji: "🔗",
+                text: "Connected story to real-life experiences",
                 score: "Excellent",
               }
             : [],
