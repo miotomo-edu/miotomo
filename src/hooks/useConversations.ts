@@ -14,6 +14,7 @@ export interface ConversationData {
   messages: ConversationMessage[];
   created_at?: string;
   updated_at?: string;
+  env: string;
 }
 
 export interface UseConversationsReturn {
@@ -78,12 +79,10 @@ export const useConversations = (): UseConversationsReturn => {
           student_id: studentId,
           book_id: bookId,
           messages: conversationMessages,
+          env: window.location.hostname === "localhost" ? "dev" : "prod",
         };
 
-        const tableName =
-          window.location.hostname === "localhost"
-            ? "conversations_dev"
-            : "conversations";
+        const tableName = "conversations";
 
         const { data, error } = await supabase
           .from(tableName)
@@ -148,10 +147,7 @@ export const useConversations = (): UseConversationsReturn => {
           messages: conversationMessages,
         };
 
-        const tableName =
-          window.location.hostname === "localhost"
-            ? "conversations_dev"
-            : "conversations";
+        const tableName = "conversations";
 
         const { data, error } = await supabase
           .from(tableName)
@@ -188,10 +184,7 @@ export const useConversations = (): UseConversationsReturn => {
       setError(null);
 
       try {
-        const tableName =
-          window.location.hostname === "localhost"
-            ? "conversations_dev"
-            : "conversations";
+        const tableName = "conversations";
 
         let query = supabase
           .from(tableName)
@@ -244,10 +237,7 @@ export const useConversations = (): UseConversationsReturn => {
     setError(null);
 
     try {
-      const tableName =
-        window.location.hostname === "localhost"
-          ? "conversations_dev"
-          : "conversations";
+      const tableName = "conversations";
 
       const { data, error } = await supabase
         .from(tableName)
@@ -289,10 +279,7 @@ export const useConversations = (): UseConversationsReturn => {
     setError(null);
 
     try {
-      const tableName =
-        window.location.hostname === "localhost"
-          ? "conversations_dev"
-          : "conversations";
+      const tableName = "conversations";
 
       const { data, error } = await supabase
         .from(tableName)
