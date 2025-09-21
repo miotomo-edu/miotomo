@@ -8,22 +8,15 @@ import React, {
 } from "react";
 import {
   voiceBotReducer,
-  INCREMENT_SLEEP_TIMER,
   START_SPEAKING,
   START_LISTENING,
-  START_SLEEPING,
   ADD_MESSAGE,
-  SET_PARAMS_ON_COPY_URL,
-  ADD_BEHIND_SCENES_EVENT,
-  CLEAR_MESSAGES,
   SET_CONVERSATION_CONFIG,
 } from "./VoiceBotReducer";
 
 import { USE_MOCK_DATA, mockMessages } from "../utils/mockData";
 import { useConversations } from "../hooks/useConversations";
 import { useConversationPersistence } from "../hooks/useConversationPersistence"; // <-- NEW
-
-const defaultSleepTimeoutSeconds = 30;
 
 export enum EventType {
   SETTINGS_APPLIED = "SettingsApplied",
@@ -46,28 +39,11 @@ export type ConversationMessage = UserMessage | AssistantMessage;
 export type UserMessage = { user: string };
 export type AssistantMessage = { assistant: string };
 
-export type BehindTheScenesEvent =
-  | { type: EventType.SETTINGS_APPLIED }
-  | { type: EventType.USER_STARTED_SPEAKING }
-  | { type: EventType.AGENT_STARTED_SPEAKING }
-  | {
-      type: EventType.CONVERSATION_TEXT;
-      role: "user" | "assistant";
-      content: string;
-    }
-  | { type: "Interruption" }
-  | { type: EventType.END_OF_THOUGHT };
-
 export const isConversationMessage = (
   voiceBotMessage: VoiceBotMessage,
 ): voiceBotMessage is ConversationMessage =>
   isUserMessage(voiceBotMessage as UserMessage) ||
   isAssistantMessage(voiceBotMessage as AssistantMessage);
-
-export const isLatencyMessage = (
-  voiceBotMessage: VoiceBotMessage,
-): voiceBotMessage is LatencyMessage =>
-  (voiceBotMessage as LatencyMessage).tts_latency !== undefined;
 
 export const isUserMessage = (
   conversationMessage: ConversationMessage,
@@ -97,10 +73,7 @@ export interface ConversationConfig {
 
 export interface VoiceBotState {
   status: VoiceBotStatus;
-  sleepTimer: number;
   messages: VoiceBotMessage[];
-  attachParamsToCopyUrl: boolean;
-  behindTheScenesEvents: BehindTheScenesEvent[];
   messageCount: number;
   conversationConfig: ConversationConfig;
   currentConversationId: string | null;
@@ -108,16 +81,9 @@ export interface VoiceBotState {
 
 export interface VoiceBotContext extends VoiceBotState {
   addVoicebotMessage: (newMessage: VoiceBotMessage) => void;
-  addBehindTheScenesEvent: (data: BehindTheScenesEvent) => void;
-  isWaitingForUserVoiceAfterSleep: React.Ref<boolean>;
   startSpeaking: (wakeFromSleep?: boolean) => void;
   startListening: (wakeFromSleep?: boolean) => void;
-  startSleeping: () => void;
-  toggleSleep: () => void;
-  displayOrder: VoiceBotMessage[];
-  setAttachParamsToCopyUrl: (attachParamsToCopyUrl: boolean) => void;
   setConversationConfig: (config: ConversationConfig) => void;
-  clearConversation: () => void;
   conversationSaving: boolean;
   conversationSaveError: string | null;
 }
@@ -150,49 +116,26 @@ export function VoiceBotProvider({ children }) {
   const [state, dispatch] = useReducer(voiceBotReducer, initialState);
   const { createConversation, updateConversation } = useConversations();
 
-  // Timer for sleep
-  useRef(() => {
-    const interval = setInterval(() => {
-      dispatch({ type: INCREMENT_SLEEP_TIMER });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Sleep after timeout
-  useRef(() => {
-    if (state.sleepTimer > defaultSleepTimeoutSeconds) {
-      startSleeping();
-    }
-  }, [state.sleepTimer]);
-
-  // ---- NEW: Use persistence hook ----
+  // Use persistence hook
   const previousConfigRef = useRef(state.conversationConfig);
   const [currentConversationId, setCurrentConversationId] = React.useState<
     string | null
   >(null);
 
-  const {
-    conversationSaving,
-    conversationSaveError,
-    resetSession,
-    sessionConversationId,
-  } = useConversationPersistence({
-    conversationConfig: state.conversationConfig,
-    messages: state.messages,
-    messageCount: state.messageCount,
-    createConversation,
-    updateConversation,
-    onSessionIdChange: setCurrentConversationId,
-    debounceMs: 2000,
-  });
+  const { conversationSaving, conversationSaveError, resetSession } =
+    useConversationPersistence({
+      conversationConfig: state.conversationConfig,
+      messages: state.messages,
+      messageCount: state.messageCount,
+      createConversation,
+      updateConversation,
+      onSessionIdChange: setCurrentConversationId,
+      debounceMs: 2000,
+    });
 
   // Message/event functions
   const addVoicebotMessage = (newMessage) => {
     dispatch({ type: ADD_MESSAGE, payload: newMessage });
-  };
-
-  const addBehindTheScenesEvent = (event) => {
-    dispatch({ type: ADD_BEHIND_SCENES_EVENT, payload: event });
   };
 
   // Status functions
@@ -214,51 +157,6 @@ export function VoiceBotProvider({ children }) {
     [state.status],
   );
 
-  const startSleeping = () => {
-    dispatch({ type: START_SLEEPING });
-  };
-
-  const toggleSleep = useCallback(() => {
-    if (state.status === VoiceBotStatus.SLEEPING) {
-      startListening(true);
-    } else {
-      startSleeping();
-    }
-  }, [state.status, startListening]);
-
-  // Display order logic unchanged
-  const displayOrder = useMemo(() => {
-    const conv = state.messages.filter(isConversationMessage);
-    const lat = state.messages.filter(isLatencyMessage);
-
-    const acc = [];
-    conv.forEach((conversationMessage, i, arr) => {
-      const previousMessage = arr[i - 1];
-      if (
-        previousMessage &&
-        isAssistantMessage(previousMessage) &&
-        isUserMessage(conversationMessage)
-      ) {
-        const latencyMessage = lat.shift();
-        if (latencyMessage) acc.push(latencyMessage);
-      }
-      acc.push(conversationMessage);
-      if (isAssistantMessage(conversationMessage) && i === arr.length - 1) {
-        const latencyMessage = lat.shift();
-        if (latencyMessage) acc.push(latencyMessage);
-      }
-    });
-    return acc;
-  }, [state.messages]);
-
-  // Attach params to copy URL
-  const setAttachParamsToCopyUrl = useCallback((attachParamsToCopyUrl) => {
-    dispatch({
-      type: SET_PARAMS_ON_COPY_URL,
-      payload: attachParamsToCopyUrl,
-    });
-  }, []);
-
   // Conversation config
   const setConversationConfig = useCallback(
     (config) => {
@@ -277,39 +175,23 @@ export function VoiceBotProvider({ children }) {
     [resetSession],
   );
 
-  // Clear conversation
-  const clearConversation = useCallback(() => {
-    dispatch({ type: CLEAR_MESSAGES });
-    resetSession();
-  }, [resetSession]);
-
   // Context value
   const contextValue = useMemo(
     () => ({
       ...state,
-      displayOrder,
       addVoicebotMessage,
-      addBehindTheScenesEvent,
       startSpeaking,
       startListening,
-      startSleeping,
-      toggleSleep,
-      setAttachParamsToCopyUrl,
       setConversationConfig,
-      clearConversation,
       conversationSaving,
       conversationSaveError,
       currentConversationId,
     }),
     [
       state,
-      displayOrder,
       startListening,
       startSpeaking,
-      toggleSleep,
-      setAttachParamsToCopyUrl,
       setConversationConfig,
-      clearConversation,
       conversationSaving,
       conversationSaveError,
       currentConversationId,

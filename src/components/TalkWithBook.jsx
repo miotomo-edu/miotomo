@@ -289,12 +289,11 @@ export const TalkWithBook = ({
         style={{ top: "92px", bottom: "176px" }}
       >
         <Transcript userName={userName} currentCharacter={currentCharacter} />
-        <div
-          ref={logsRef}
-          className="absolute bottom-0 text-xs p-2 bg-gray-100 mt-4"
-        />
       </div>
-
+      <div
+        ref={logsRef}
+        className="absolute top-0 right-0 text-xs p-2 bg-white mt-0"
+      />
       <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
         <AnimationManager
           agentVoiceAnalyser={agentVoiceAnalyser}
