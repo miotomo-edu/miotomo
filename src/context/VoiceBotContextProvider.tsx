@@ -55,7 +55,11 @@ export const isAssistantMessage = (
 ): conversationMessage is AssistantMessage =>
   (conversationMessage as AssistantMessage).assistant !== undefined;
 
-export type VoiceBotAction = { type: string };
+export type VoiceBotAction =
+  | { type: typeof ADD_MESSAGE; payload: VoiceBotMessage }
+  | { type: typeof START_SPEAKING }
+  | { type: typeof START_LISTENING }
+  | { type: typeof SET_CONVERSATION_CONFIG; payload: ConversationConfig };
 
 export enum VoiceBotStatus {
   LISTENING = "listening",
@@ -76,7 +80,7 @@ export interface VoiceBotState {
   messages: VoiceBotMessage[];
   messageCount: number;
   conversationConfig: ConversationConfig;
-  currentConversationId: string | null;
+  // currentConversationId: string | null;
 }
 
 export interface VoiceBotContext extends VoiceBotState {
@@ -90,20 +94,19 @@ export interface VoiceBotContext extends VoiceBotState {
 
 const initialState = {
   status: VoiceBotStatus.SPEAKING,
-  sleepTimer: 0,
   messages: USE_MOCK_DATA ? mockMessages : [],
-  attachParamsToCopyUrl: true,
-  behindTheScenesEvents: [],
   messageCount: 0,
   conversationConfig: {
     studentId: null,
     bookId: null,
     autoSave: false,
   },
-  currentConversationId: null,
+  // currentConversationId: null,
 };
 
-export const VoiceBotContext = createContext(undefined);
+export const VoiceBotContext = createContext<VoiceBotContext | undefined>(
+  undefined,
+);
 
 export function useVoiceBot() {
   const context = useContext(VoiceBotContext);
@@ -185,7 +188,7 @@ export function VoiceBotProvider({ children }) {
       setConversationConfig,
       conversationSaving,
       conversationSaveError,
-      currentConversationId,
+      // currentConversationId,
     }),
     [
       state,
@@ -194,7 +197,7 @@ export function VoiceBotProvider({ children }) {
       setConversationConfig,
       conversationSaving,
       conversationSaveError,
-      currentConversationId,
+      // currentConversationId,
     ],
   );
 
