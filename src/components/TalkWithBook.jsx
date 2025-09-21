@@ -126,6 +126,7 @@ export const TalkWithBook = ({
 
     const onDisconnected = () => {
       addLog("Disconnected");
+      enableMic(false);
       startedChatRef.current = false;
     };
 

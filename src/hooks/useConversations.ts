@@ -29,7 +29,11 @@ export interface UseConversationsReturn {
   ) => Promise<{ data: any; error: any }>;
   getConversations: (
     studentId?: string,
-    bookId?: string,
+    bookId?: string | null,
+  ) => Promise<{ data: any; error: any }>;
+  getLastConversation: (
+    studentId?: string,
+    bookId?: string | null,
   ) => Promise<{ data: any; error: any }>;
   getConversationById: (
     conversationId: string,
@@ -179,7 +183,7 @@ export const useConversations = (): UseConversationsReturn => {
   );
 
   const getConversations = useCallback(
-    async (studentId?: string, bookId?: string) => {
+    async (studentId?: string, bookId?: string | null) => {
       setLoading(true);
       setError(null);
 
@@ -220,6 +224,52 @@ export const useConversations = (): UseConversationsReturn => {
         console.error("Error fetching conversations:", err);
         setError(errorMessage);
         return { data: [], error: err }; // Return empty array instead of null
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const getLastConversation = useCallback(
+    async (studentId?: string, bookId?: string | null) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const tableName = "conversations";
+
+        let query = supabase
+          .from(tableName)
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (studentId) {
+          query = query.eq("student_id", studentId);
+        }
+
+        // Only filter by bookId if it's a truthy string value
+        if (bookId) {
+          query = query.eq("book_id", bookId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Error fetching last conversation:", error);
+          setError(error.message);
+          return { data: null, error };
+        }
+
+        // Return the first (and only) item or null if no conversations found
+        return { data: data?.[0] || null, error: null };
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
+        console.error("Error fetching last conversation:", err);
+        setError(errorMessage);
+        return { data: null, error: err };
       } finally {
         setLoading(false);
       }
@@ -309,6 +359,7 @@ export const useConversations = (): UseConversationsReturn => {
     createConversation,
     updateConversation,
     getConversations,
+    getLastConversation,
     getConversationById,
     deleteConversation,
     loading,

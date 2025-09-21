@@ -44,21 +44,65 @@ type WeekData = {
   categories: WeekCategory[];
 };
 
+interface ProgressSectionProps {
+  conversationId?: string;
+  userName?: string;
+  studentId?: string;
+  selectedBook?: {
+    id: string;
+    title?: string;
+    author?: string;
+    cover?: string;
+  };
+}
+
 // ---------------- Component ----------------
-const ProgressSection: React.FC<{ conversationId: string }> = ({
+const ProgressSection: React.FC<ProgressSectionProps> = ({
   conversationId,
+  userName,
+  studentId,
+  selectedBook,
 }) => {
   const [view, setView] = useState<"today" | "week" | "month">("today");
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const { data, loading, error } = useProgress(conversationId);
+  const shouldFetchProgress = conversationId || studentId;
+  const { data, loading, error } = useProgress(
+    conversationId || "",
+    studentId || "",
+    selectedBook?.id ?? null,
+  );
 
-  if (loading) {
+  if (shouldFetchProgress && loading) {
     return <div className="p-6">Loading progress…</div>;
   }
-  if (error) {
+  if (shouldFetchProgress && error) {
     return <div className="p-6 text-red-500">Error: {error.message}</div>;
   }
+
+  if (!shouldFetchProgress) {
+    return (
+      <section className="py-6 px-4 pb-24">
+        <div className="bg-white rounded-xl shadow p-6 text-center">
+          <div className="text-gray-500 mb-4">
+            <span className="text-4xl">📊</span>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            Progress Tracking
+          </h3>
+          <p className="text-gray-500 text-sm">
+            Start a conversation to see your learning progress here!
+          </p>
+          {userName && (
+            <p className="text-gray-400 text-xs mt-2">
+              Hi {userName}! Your progress will appear once you begin reading.
+            </p>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   if (!data) {
     return <div className="p-6">No progress available</div>;
   }

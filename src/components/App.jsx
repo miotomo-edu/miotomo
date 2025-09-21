@@ -190,7 +190,9 @@ const App = ({ defaultStsConfig, transportType }) => {
       case "progress":
         return (
           <ProgressSection
-            conversationId={"7163b97f-bb82-4c30-aa72-ab204647becf"}
+            userName={userName}
+            studentId={studentId}
+            selectedBook={selectedBook}
           />
         );
       case "profile":
