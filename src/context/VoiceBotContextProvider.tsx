@@ -73,6 +73,8 @@ export interface ConversationConfig {
   studentId: string | null;
   bookId: string | null;
   autoSave: boolean;
+  from: number;
+  to: number;
 }
 
 export interface VoiceBotState {
@@ -100,6 +102,8 @@ const initialState = {
     studentId: null,
     bookId: null,
     autoSave: false,
+    from: 1,
+    to: 1,
   },
   // currentConversationId: null,
 };

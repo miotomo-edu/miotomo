@@ -83,6 +83,8 @@ export const TalkWithBook = ({
         studentId,
         bookId: selectedBook.id,
         autoSave: true,
+        from: chapter,
+        to: botConfig?.metadata?.book?.progress ?? chapter,
       });
     }
   }, [studentId, selectedBook?.id, setConversationConfig]);

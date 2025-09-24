@@ -15,12 +15,16 @@ export interface ConversationData {
   created_at?: string;
   updated_at?: string;
   env: string;
+  from: number;
+  to: number;
 }
 
 export interface UseConversationsReturn {
   createConversation: (
     studentId: string,
     bookId: string,
+    from: number,
+    to: number,
     messages: VoiceBotMessage[],
   ) => Promise<{ data: any; error: any; conversationId?: string }>;
   updateConversation: (
@@ -50,7 +54,13 @@ export const useConversations = (): UseConversationsReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const createConversation = useCallback(
-    async (studentId: string, bookId: string, messages: VoiceBotMessage[]) => {
+    async (
+      studentId: string,
+      bookId: string,
+      messages: VoiceBotMessage[],
+      from: number,
+      to: number,
+    ) => {
       // Fail silently if required parameters are missing
       if (!studentId || !bookId) {
         console.warn("Missing required parameters for conversation creation");
@@ -84,6 +94,8 @@ export const useConversations = (): UseConversationsReturn => {
           book_id: bookId,
           messages: conversationMessages,
           env: window.location.hostname === "localhost" ? "dev" : "prod",
+          from: from,
+          to: to,
         };
 
         const tableName = "conversations";

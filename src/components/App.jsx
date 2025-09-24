@@ -12,7 +12,7 @@ import MapSection from "./sections/MapSection";
 import { TalkWithBook } from "./TalkWithBook";
 import ProgressSection from "./sections/ProgressSection";
 import BottomNavBar from "./common/BottomNavBar";
-
+import { usePingOnMount } from "../hooks/usePingOnMount";
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import {
   loadBookCompanionPrompt,
@@ -23,10 +23,14 @@ import {
 import { getBookSectionType } from "../utils/bookUtils";
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
-// ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
 
+const WAKEUP_URL =
+  "https://littleark--2ee0422496c511f08e120224a6c84d84.web.val.run";
+
 const App = ({ defaultStsConfig, transportType }) => {
+  usePingOnMount(WAKEUP_URL);
+
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
   const [prompt, setPrompt] = useState("");

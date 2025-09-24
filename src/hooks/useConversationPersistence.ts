@@ -74,6 +74,8 @@ export function useConversationPersistence({
             conversationConfig.studentId!,
             conversationConfig.bookId!,
             messages,
+            conversationConfig.from,
+            conversationConfig.to ?? conversationConfig.from,
           );
           if (result.error) {
             setConversationSaveError(result.error);
