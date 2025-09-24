@@ -66,9 +66,20 @@ export function usePipecatConnection(options = {}) {
       smallWebRTCOfferUrlBase = "http://localhost:8000/api/offer",
     }) => {
       if (!client) throw new Error("Pipecat client missing");
-      if (startedRef.current) return; // already connecting/connected
+      if (startedRef.current) {
+        console.log("🔄 Connect already in progress, skipping");
+        return;
+      }
       startedRef.current = true;
       setIsConnecting(true);
+
+      console.log("🚀 Starting connection...", {
+        transportType: botConfig?.transportType,
+        selectedBook: selectedBook?.id,
+        chapter,
+        userName,
+      });
+
       try {
         if (botConfig?.transportType === "daily") {
           // 1) Create Daily room/token via your proxy
@@ -93,7 +104,9 @@ export function usePipecatConnection(options = {}) {
             selectedBook,
             chapter,
           });
+          console.log("🔗 WebRTC URL:", webrtcUrl);
           await client.connect({ webrtcUrl });
+          console.log("✅ WebRTC connection initiated");
         }
       } catch (err) {
         console.error("Pipecat connect failed:", err);

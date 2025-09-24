@@ -118,19 +118,27 @@ export const TalkWithBook = ({
   useEffect(() => {
     if (!client) return;
 
+    const debugAllEvents = (event) => {
+      console.log("📡 Pipecat event:", event.type || event, event);
+    };
+
     const onConnected = () => {
-      addLog("Connected to Pipecat bot");
+      addLog("✅ Connected to Pipecat bot");
+      console.log("✅ RTVIEvent.Connected fired");
       startedChatRef.current = false;
       // Do NOT force mic here; we do it on BotReady (or fallback).
     };
 
     const onDisconnected = () => {
-      addLog("Disconnected");
+      addLog("❌ Disconnected");
+      console.log("❌ RTVIEvent.Disconnected fired");
+      enableMic(false); // ✅ Reset mic on disconnect
       startedChatRef.current = false;
     };
 
     const onBotReady = () => {
-      addLog("Bot ready!");
+      addLog("🤖 Bot ready!");
+      console.log("🤖 RTVIEvent.BotReady fired - THIS SHOULD APPEAR!");
       // ✅ Force mic ON via hook so UI reflects it
       try {
         enableMic(true); // updates isMicEnabled used by AnimationManager
@@ -159,6 +167,7 @@ export const TalkWithBook = ({
     const onUserStartedSpeaking = () => setIsMicActive(true);
     const onUserStoppedSpeaking = () => setIsMicActive(false);
     const onBotStartedSpeaking = () => {
+      console.log("🗣️ Bot started speaking");
       setIsBotSpeaking(true);
       startSpeaking();
     };
@@ -174,6 +183,7 @@ export const TalkWithBook = ({
       addVoicebotMessage({ assistant: data.text });
     };
 
+    console.log("🎧 Registering event listeners...");
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
     client.on(RTVIEvent.BotReady, onBotReady);
