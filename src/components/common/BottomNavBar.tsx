@@ -1,9 +1,9 @@
 import React from "react";
 import { HomeIcon } from "./icons/HomeIcon";
 import { LibraryIcon } from "./icons/LibraryIcon";
-import { RewardIcon } from "./icons/RewardIcon";
+// import { RewardIcon } from "./icons/RewardIcon";
 import { InsightsIcon } from "./icons/InsightsIcon";
-import { SettingsIcon } from "./icons/SettingsIcon";
+// import { SettingsIcon } from "./icons/SettingsIcon";
 
 interface BottomNavBarProps {
   items?: { label: string; componentName: string; icon?: React.ReactNode }[];

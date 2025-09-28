@@ -44,33 +44,44 @@ export const TalkWithBook = ({
     status,
   } = useVoiceBot();
 
-  // ✅ Mic control hook (keeps UI state in sync)
   const { enableMic } = usePipecatClientMicControl();
 
   // 🎤 Tracks
   const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
   const botAudioTrack = usePipecatClientMediaTrack("audio", "bot");
 
-  // Analysers
-  const userVoiceAnalyser = useMemo(() => {
-    if (!localAudioTrack) return null;
+  // 🔹 Helper to create analyser safely
+  const createAnalyser = (track) => {
+    if (!track) return null;
     const ctx = new AudioContext();
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 128;
-    const src = ctx.createMediaStreamSource(new MediaStream([localAudioTrack]));
+    const src = ctx.createMediaStreamSource(new MediaStream([track]));
     src.connect(analyser);
-    return analyser;
-  }, [localAudioTrack]);
+    return { analyser, ctx };
+  };
 
-  const agentVoiceAnalyser = useMemo(() => {
-    if (!botAudioTrack) return null;
-    const ctx = new AudioContext();
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 128;
-    const src = ctx.createMediaStreamSource(new MediaStream([botAudioTrack]));
-    src.connect(analyser);
-    return analyser;
-  }, [botAudioTrack]);
+  // Analysers
+  const userVoiceAnalyser = useMemo(
+    () => createAnalyser(localAudioTrack),
+    [localAudioTrack],
+  );
+  const agentVoiceAnalyser = useMemo(
+    () => createAnalyser(botAudioTrack),
+    [botAudioTrack],
+  );
+
+  // Cleanup audio contexts to avoid leaks
+  useEffect(() => {
+    return () => {
+      userVoiceAnalyser?.ctx?.close();
+    };
+  }, [userVoiceAnalyser]);
+  useEffect(() => {
+    return () => {
+      agentVoiceAnalyser?.ctx?.close();
+    };
+  }, [agentVoiceAnalyser]);
 
   // Connection hook
   const { connect, disconnect, sendClientMessage, isConnected, isConnecting } =
@@ -89,18 +100,36 @@ export const TalkWithBook = ({
 
   const addLog = (msg) => {
     if (logsRef.current) {
-      logsRef.current.textContent = msg;
+      logsRef.current.textContent += `\n${msg}`; // append instead of overwrite
     }
     console.log(`LOG: ${msg}`);
   };
 
+  // 🔹 Unified mic sync helper
+  const syncMic = useCallback(
+    (enabled = true) => {
+      try {
+        enableMic(enabled);
+        if (enabled) {
+          sendClientMessage("control", { action: "resumeListening" });
+          startListening();
+        }
+      } catch (e) {
+        console.warn("Mic sync failed", e);
+      }
+    },
+    [enableMic, sendClientMessage, startListening],
+  );
+
   // Wrap connect/disconnect to mark ownership
   const connectHere = useCallback(async () => {
+    console.log("connectHere");
     startedHereRef.current = true;
     await connect({ botConfig, userName, selectedBook, chapter });
   }, [connect, botConfig, userName, selectedBook, chapter]);
 
   const disconnectHere = useCallback(async () => {
+    console.log("disconnectHere");
     startedHereRef.current = false;
     await disconnect();
   }, [disconnect]);
@@ -114,45 +143,35 @@ export const TalkWithBook = ({
     };
   }, [onDisconnectRequest, disconnectHere]);
 
+  // ✅ Guard for repeated checks
+  const hasRequiredData = !!(
+    botConfig &&
+    selectedBook?.id &&
+    chapter &&
+    currentCharacter
+  );
+
   // ---- Pipecat event bindings ----
   useEffect(() => {
     if (!client) return;
 
-    const debugAllEvents = (event) => {
-      console.log("📡 Pipecat event:", event.type || event, event);
-    };
-
     const onConnected = () => {
       addLog("✅ Connected to Pipecat bot");
-      console.log("✅ RTVIEvent.Connected fired");
       startedChatRef.current = false;
-      // Do NOT force mic here; we do it on BotReady (or fallback).
     };
 
     const onDisconnected = () => {
       addLog("❌ Disconnected");
-      console.log("❌ RTVIEvent.Disconnected fired");
-      enableMic(false); // ✅ Reset mic on disconnect
+      enableMic(false); // Reset mic on disconnect
       startedChatRef.current = false;
     };
 
     const onBotReady = () => {
       addLog("🤖 Bot ready!");
-      console.log("🤖 RTVIEvent.BotReady fired - THIS SHOULD APPEAR!");
-      // ✅ Force mic ON via hook so UI reflects it
-      try {
-        enableMic(true); // updates isMicEnabled used by AnimationManager
-        // Also align server + UI “mode”
-        sendClientMessage("control", { action: "resumeListening" });
-        startListening(); // set VoiceBotStatus to LISTENING visually
-        console.log("Mic set ON on BotReady (hook)");
-      } catch (e) {
-        console.warn("Mic reset on BotReady failed", e);
-      }
+      syncMic(true);
 
       if (startedChatRef.current) return;
       try {
-        // sendClientMessage("set-language", { language: "en-US" });
         sendClientMessage("start-chat", {
           book_id: selectedBook.id,
           chapter: chapter ?? "",
@@ -167,7 +186,6 @@ export const TalkWithBook = ({
     const onUserStartedSpeaking = () => setIsMicActive(true);
     const onUserStoppedSpeaking = () => setIsMicActive(false);
     const onBotStartedSpeaking = () => {
-      console.log("🗣️ Bot started speaking");
       setIsBotSpeaking(true);
       startSpeaking();
     };
@@ -183,7 +201,6 @@ export const TalkWithBook = ({
       addVoicebotMessage({ assistant: data.text });
     };
 
-    console.log("🎧 Registering event listeners...");
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
     client.on(RTVIEvent.BotReady, onBotReady);
@@ -209,7 +226,6 @@ export const TalkWithBook = ({
     client,
     enableMic,
     sendClientMessage,
-    botConfig?.greeting,
     addVoicebotMessage,
     startListening,
     startSpeaking,
@@ -217,19 +233,19 @@ export const TalkWithBook = ({
 
   // --- Auto-connect when button is hidden ---
   useEffect(() => {
-    if (!showControlButton && !isConnected && !isConnecting) {
-      if (botConfig && selectedBook?.id && chapter && currentCharacter) {
-        connectHere().catch((err) => console.error("Auto-connect failed", err));
-      }
+    if (
+      !showControlButton &&
+      !isConnected &&
+      !isConnecting &&
+      hasRequiredData
+    ) {
+      connectHere().catch((err) => console.error("Auto-connect failed", err));
     }
   }, [
     showControlButton,
     isConnected,
     isConnecting,
-    botConfig,
-    selectedBook?.id,
-    chapter,
-    currentCharacter,
+    hasRequiredData,
     connectHere,
   ]);
 
@@ -239,18 +255,10 @@ export const TalkWithBook = ({
       !startedChatRef.current &&
       isConnected &&
       !isConnecting &&
-      botConfig &&
-      selectedBook?.id &&
-      chapter &&
-      currentCharacter
+      hasRequiredData
     ) {
       try {
-        // ✅ Mirror BotReady path: ensure mic + UI state are synced
-        enableMic(true);
-        sendClientMessage("control", { action: "resumeListening" });
-        startListening();
-        console.log("Mic set ON via fallback (hook)");
-
+        syncMic(true);
         sendClientMessage("set-language", { language: "en-US" });
         sendClientMessage("start-chat", { greeting: botConfig?.greeting });
         startedChatRef.current = true;
@@ -262,13 +270,10 @@ export const TalkWithBook = ({
   }, [
     isConnected,
     isConnecting,
-    botConfig,
-    selectedBook?.id,
-    chapter,
-    currentCharacter,
-    enableMic,
+    hasRequiredData,
+    botConfig?.greeting,
+    syncMic,
     sendClientMessage,
-    startListening,
   ]);
 
   // --- Cleanup ---
@@ -298,16 +303,15 @@ export const TalkWithBook = ({
         style={{ top: "92px", bottom: "176px" }}
       >
         <Transcript userName={userName} currentCharacter={currentCharacter} />
-        <div
-          ref={logsRef}
-          className="absolute bottom-0 text-xs p-2 bg-gray-100 mt-4"
-        />
       </div>
-
+      <div
+        ref={logsRef}
+        className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
+      />
       <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
         <AnimationManager
-          agentVoiceAnalyser={agentVoiceAnalyser}
-          userVoiceAnalyser={userVoiceAnalyser}
+          agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
+          userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
         />
 
         {showControlButton && (

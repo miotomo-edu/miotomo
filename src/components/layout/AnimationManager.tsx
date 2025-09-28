@@ -44,6 +44,10 @@ const AnimationManager: React.FC<Props> = ({
   const [agentVolume, setAgentVolume] = useState(0);
   const [userVolume, setUserVolume] = useState(0);
 
+  useEffect(() => {
+    console.log("🎤 Mic state changed:", isMicEnabled);
+  }, [isMicEnabled]);
+
   // Animate agent volume
   useEffect(() => {
     if (!agentVoiceAnalyser) return;
@@ -68,6 +72,7 @@ const AnimationManager: React.FC<Props> = ({
 
   const toggleMic = () => {
     const newState = !isMicEnabled;
+    console.log("🎤 Mic toggleMic", newState);
     enableMic(newState);
     // Also send explicit control to bot if required
     client.sendClientMessage("control", {
