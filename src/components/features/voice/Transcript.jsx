@@ -23,7 +23,7 @@ function Transcript({ userName = "", currentCharacter }) {
   }, [messages]);
 
   const processSpellingText = (text) => {
-    if (currentCharacter?.prompt !== "spelling") return text;
+    // if (currentCharacter?.prompt !== "spelling") return text;
 
     // Case 1: **WORD**
     let result = text.replace(/\*\*([^*]+)\*\*/g, (_, word) =>

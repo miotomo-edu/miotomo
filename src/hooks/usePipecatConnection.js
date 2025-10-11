@@ -29,6 +29,13 @@ function buildSmallWebRTCUrl({
     prompt: String(botConfig?.metadata?.character?.prompt ?? ""),
     section_type: String(botConfig?.metadata?.book?.section_type ?? ""),
     character_name: String(botConfig?.metadata?.character?.name ?? ""),
+    modalities: String(
+      botConfig?.metadata?.character?.modalities ??
+        "storytelling,spelling,debating",
+    ),
+    modality_handoff_default: String(
+      botConfig?.metadata?.character?.modality_handoff_default ?? 1,
+    ),
   });
   return `${base}?${params.toString()}`;
 }
