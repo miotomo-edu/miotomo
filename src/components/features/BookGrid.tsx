@@ -1,5 +1,5 @@
 import React from "react";
-import BookCard from "./BookCard";
+import MiniBookCard from "./MiniBookCard";
 import { Book } from "../sections/LibrarySection";
 
 type BookGridProps = {
@@ -8,12 +8,14 @@ type BookGridProps = {
 };
 
 const BookGrid: React.FC<BookGridProps> = ({ books, onBookAction }) => (
-  <div className="grid grid-cols-2 gap-6">
+  <div className="grid grid-cols-3 gap-6">
     {books.map((book) => (
-      <BookCard
+      <MiniBookCard
         key={book.id}
-        {...book}
-        onAction={() => onBookAction(book.id)}
+        id={book.id} // Pass id explicitly
+        thumbnailUrl={book.thumbnailUrl}
+        title={book.title}
+        onAction={onBookAction}
       />
     ))}
   </div>

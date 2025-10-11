@@ -22,6 +22,7 @@ export function useBooks(studentId: string) {
           progress: 0, // Default progress
           chapters: 1,
           section_type: "chapters",
+          lastReadDate: null,
         }));
       }
 
@@ -32,6 +33,7 @@ export function useBooks(studentId: string) {
           `
           status,
           progress,
+          last_read_date,
           book:books (
             id,
             title,
@@ -52,9 +54,10 @@ export function useBooks(studentId: string) {
         author: item.book.author,
         thumbnailUrl: item.book.cover || "",
         status: item.status as "new" | "started" | "read",
-        progress: item.progress,
-        chapters: item.book.chapters,
+        progress: item.progress ?? 0,
+        chapters: item.book.chapters ?? 1,
         section_type: item.book.section_type,
+        lastReadDate: item.last_read_date,
       }));
     },
     enabled: studentId !== undefined, // Only run if studentId is defined
