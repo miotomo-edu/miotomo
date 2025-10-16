@@ -6,7 +6,6 @@ import {
 } from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
-import Transcript from "./features/voice/Transcript.jsx";
 import AnimationManager from "./layout/AnimationManager";
 import {
   useVoiceBot,
@@ -183,8 +182,16 @@ export const TalkWithBook = ({
       }
     };
 
-    const onUserStartedSpeaking = () => setIsMicActive(true);
-    const onUserStoppedSpeaking = () => setIsMicActive(false);
+    const onUserStartedSpeaking = () => {
+      console.log("User started speaking");
+      setIsMicActive(true);
+    };
+
+    const onUserStoppedSpeaking = () => {
+      console.log("User stopped speaking");
+      setIsMicActive(false);
+    };
+
     const onBotStartedSpeaking = () => {
       setIsBotSpeaking(true);
       startSpeaking();
@@ -299,12 +306,6 @@ export const TalkWithBook = ({
       </div>
 
       <div
-        className="absolute left-0 right-0 overflow-y-auto overflow-x-hidden"
-        style={{ top: "92px", bottom: "176px" }}
-      >
-        <Transcript userName={userName} currentCharacter={currentCharacter} />
-      </div>
-      <div
         ref={logsRef}
         className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
       />
@@ -312,6 +313,8 @@ export const TalkWithBook = ({
         <AnimationManager
           agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
           userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
+          isUserSpeaking={isMicActive}
+          isBotSpeaking={isBotSpeaking}
         />
 
         {showControlButton && (

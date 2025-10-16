@@ -1,13 +1,26 @@
 export function LibraryIcon(props) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" {...props}>
-      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5">
-        <path d="M5 19.5V5a2 2 0 0 1 2-2h11.4a.6.6 0 0 1 .6.6V21M9 7h6m-8.5 8H19M6.5 18H19M6.5 21H19"></path>
-        <path
-          strokeLinejoin="round"
-          d="M6.5 18c-1 0-1.5-.672-1.5-1.5S5.5 15 6.5 15m0 6c-1 0-1.5-.672-1.5-1.5S5.5 18 6.5 18"
-        ></path>
-      </g>
+    <svg
+      width="25"
+      height="25"
+      viewBox="0 0 25 25"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M12.4531 7.5V21.5"
+        stroke="black"
+        strokeWidth={props.strokeWidth ?? 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.45312 18.5C3.18791 18.5 2.93355 18.3946 2.74602 18.2071C2.55848 18.0196 2.45313 17.7652 2.45312 17.5V4.5C2.45312 4.23478 2.55848 3.98043 2.74602 3.79289C2.93355 3.60536 3.18791 3.5 3.45312 3.5H8.45312C9.51399 3.5 10.5314 3.92143 11.2816 4.67157C12.0317 5.42172 12.4531 6.43913 12.4531 7.5C12.4531 6.43913 12.8746 5.42172 13.6247 4.67157C14.3748 3.92143 15.3923 3.5 16.4531 3.5H21.4531C21.7183 3.5 21.9727 3.60536 22.1602 3.79289C22.3478 3.98043 22.4531 4.23478 22.4531 4.5V17.5C22.4531 17.7652 22.3478 18.0196 22.1602 18.2071C21.9727 18.3946 21.7183 18.5 21.4531 18.5H15.4531C14.6575 18.5 13.8944 18.8161 13.3318 19.3787C12.7692 19.9413 12.4531 20.7044 12.4531 21.5C12.4531 20.7044 12.1371 19.9413 11.5744 19.3787C11.0118 18.8161 10.2488 18.5 9.45312 18.5H3.45312Z"
+        stroke="black"
+        strokeWidth={props.strokeWidth ?? 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

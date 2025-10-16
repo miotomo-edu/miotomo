@@ -12,6 +12,7 @@ import MapSection from "./sections/MapSection";
 import { TalkWithBook } from "./TalkWithBook";
 import ProgressSection from "./sections/ProgressSection";
 import BottomNavBar from "./common/BottomNavBar";
+import OnboardingFlow from "./sections/Onboarding/OnboardingFlow";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import {
@@ -150,7 +151,13 @@ const App = ({ defaultStsConfig, transportType }) => {
   const renderComponent = () => {
     switch (activeComponent) {
       case "landing":
-        return <LandingPage onContinue={() => setActiveComponent("home")} />;
+        return (
+          <LandingPage onContinue={() => setActiveComponent("onboarding")} />
+        );
+      case "onboarding":
+        return (
+          <OnboardingFlow onFinish={() => setActiveComponent("library")} />
+        );
       case "home":
         return (
           <HomePage
@@ -260,7 +267,7 @@ const App = ({ defaultStsConfig, transportType }) => {
         />
       )}
 
-      {activeComponent !== "landing" && (
+      {activeComponent !== "landing" && activeComponent !== "onboarding" && (
         <BottomNavBar
           onItemClick={handleNavigationClick}
           activeComponentName={activeComponent}

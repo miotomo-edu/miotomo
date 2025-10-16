@@ -13,6 +13,7 @@ export type Book = {
   progress: number;
   chapters: number;
   section_type: string;
+  lastReadDate?: string | null;
 };
 
 type LibrarySectionProps = {
@@ -97,9 +98,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
 
   return (
     <section className="py-6 px-4 pb-24">
-      <h2 className="text-3xl font-semibold mb-4">
-        Pick a book and chat with Miotomo
-      </h2>
+      <h2 className="text-xl font-semibold mb-4">My library</h2>
       <BookGrid books={fetchedBooks || books} onBookAction={handleBookAction} />
 
       <ChapterSelectorModal
