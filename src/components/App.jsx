@@ -235,6 +235,7 @@ const App = ({ defaultStsConfig, transportType }) => {
               studentId={studentId}
               showControlButton={false} // hide controls; autostart path
               onDisconnectRequest={disconnectRef}
+              connectionManagedExternally={shouldShowConnectionManager}
             />
             <PipecatClientAudio volume={1.0} muted={false} />
           </VoiceBotProvider>

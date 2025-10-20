@@ -157,9 +157,14 @@ export function usePipecatConnection(options = {}) {
           }
           const { room_url, token } = await response.json();
           // 2) Connect Pipecat client to Daily
+          console.log("🔐 Daily credentials received", {
+            room_url,
+            hasToken: Boolean(token),
+          });
           await client.connect({ room_url, token });
         } else {
           // Small WebRTC transport
+          console.log("🌐 Using Small WebRTC transport");
           const webrtcUrl = buildSmallWebRTCUrl({
             base: smallWebRTCOfferUrlBase,
             userName,
@@ -286,6 +291,13 @@ export function PipecatConnectionManager({
 
   const hasConnectedRef = useRef(false);
   const isMountedRef = useRef(true);
+  const lastSignatureRef = useRef(null);
+
+  const connectionSignature = `${selectedBook?.id ?? ""}|${
+    chapter ?? ""
+  }|${botConfig?.metadata?.character?.name ?? ""}|${
+    botConfig?.transportType ?? ""
+  }`;
 
   // Track mount state
   useEffect(() => {
@@ -308,7 +320,13 @@ export function PipecatConnectionManager({
   useEffect(() => {
     if (!autoConnect) return;
     if (!botConfig || !selectedBook?.id || !chapter) return;
-    if (hasConnectedRef.current) return; // Prevent re-connect on re-renders
+
+    if (lastSignatureRef.current !== connectionSignature) {
+      hasConnectedRef.current = false;
+      lastSignatureRef.current = connectionSignature;
+    }
+
+    if (hasConnectedRef.current) return;
     if (isConnected || isConnecting) return;
 
     console.log(
@@ -327,14 +345,13 @@ export function PipecatConnectionManager({
       dailyProxyUrl,
       smallWebRTCOfferUrlBase,
     }).catch((err) => {
-      // Don't log if it's just a "already started" error (race condition with TalkWithBook)
       if (!err?.message?.includes("already started")) {
         console.error("Auto-connect failed:", err);
       } else {
         console.log("ℹ️ Connection already in progress from another component");
       }
       if (isMountedRef.current) {
-        hasConnectedRef.current = false; // Allow retry on error if still mounted
+        hasConnectedRef.current = false;
       }
     });
   }, [
@@ -348,12 +365,8 @@ export function PipecatConnectionManager({
     isConnecting,
     dailyProxyUrl,
     smallWebRTCOfferUrlBase,
+    connectionSignature,
   ]);
-
-  // Reset connection flag when key params change
-  useEffect(() => {
-    hasConnectedRef.current = false;
-  }, [selectedBook?.id, chapter, botConfig?.metadata?.character?.name]);
 
   // Clean up on unmount
   useEffect(() => {

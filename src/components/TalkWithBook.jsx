@@ -25,6 +25,7 @@ export const TalkWithBook = ({
   studentId = null,
   showControlButton = false,
   onDisconnectRequest,
+  connectionManagedExternally = false,
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
@@ -307,11 +308,15 @@ export const TalkWithBook = ({
   // --- Auto-connect when button is hidden ---
   useEffect(() => {
     if (
-      !showControlButton &&
-      !isConnected &&
-      !isConnecting &&
-      hasRequiredData
+      connectionManagedExternally ||
+      showControlButton ||
+      isConnected ||
+      isConnecting ||
+      !hasRequiredData
     ) {
+      return;
+    }
+
       // Check if client is already connecting
       const clientState = client?.state;
       if (clientState === "ready" || clientState === "connecting") {
@@ -330,7 +335,6 @@ export const TalkWithBook = ({
           console.error("Auto-connect failed", err);
         }
       });
-    }
   }, [
     showControlButton,
     isConnected,
@@ -338,6 +342,7 @@ export const TalkWithBook = ({
     hasRequiredData,
     connectHere,
     client,
+    connectionManagedExternally,
   ]);
 
   // --- Fallback for missed BotReady (pre-connect case) ---
