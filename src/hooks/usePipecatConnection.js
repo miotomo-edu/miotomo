@@ -5,7 +5,7 @@
 // Works with the existing PipecatClientProvider.
 // Keep event binding (transcripts, BotReady -> start-chat, etc.) in your screen components.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePipecatClient } from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 
@@ -48,18 +48,42 @@ export function usePipecatConnection(options = {}) {
   const client = usePipecatClient();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const startedRef = useRef(false); // prevent duplicate connects (StrictMode etc.)
+  const connectingRef = useRef(false); // Track in-progress connection attempts
+  const disconnectingRef = useRef(false); // Track in-progress disconnection
 
   // Basic connection state listeners (keep other event bindings in your pages)
   useEffect(() => {
     if (!client) return;
-    const onConnected = () => setIsConnected(true);
-    const onDisconnected = () => setIsConnected(false);
+
+    const onConnected = () => {
+      console.log("📡 Client connected event");
+      setIsConnected(true);
+      setIsConnecting(false);
+      connectingRef.current = false;
+    };
+
+    const onDisconnected = () => {
+      console.log("📡 Client disconnected event");
+      setIsConnected(false);
+      setIsConnecting(false);
+      connectingRef.current = false;
+      disconnectingRef.current = false;
+    };
+
+    const onConnecting = () => {
+      console.log("📡 Client connecting event");
+      setIsConnecting(true);
+      connectingRef.current = true;
+    };
+
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
+    client.on(RTVIEvent.Connecting, onConnecting);
+
     return () => {
       client.off(RTVIEvent.Connected, onConnected);
       client.off(RTVIEvent.Disconnected, onDisconnected);
+      client.off(RTVIEvent.Connecting, onConnecting);
     };
   }, [client]);
 
@@ -73,11 +97,43 @@ export function usePipecatConnection(options = {}) {
       smallWebRTCOfferUrlBase = "http://localhost:8000/api/offer",
     }) => {
       if (!client) throw new Error("Pipecat client missing");
-      if (startedRef.current) {
+
+      // Check if client is already in a connected/connecting state
+      const clientState = client.state;
+      console.log("📊 Client state:", clientState);
+
+      // Prevent duplicate connections
+      if (connectingRef.current) {
         console.log("🔄 Connect already in progress, skipping");
         return;
       }
-      startedRef.current = true;
+
+      // If client is already connected or connecting, skip
+      if (clientState === "ready" || clientState === "connecting") {
+        console.log(
+          "⚠️ Client already",
+          clientState,
+          "- skipping duplicate connect",
+        );
+        return;
+      }
+
+      // If already connected according to our state, disconnect first
+      if (isConnected && !disconnectingRef.current) {
+        console.log("⚠️ Already connected, disconnecting first...");
+        try {
+          disconnectingRef.current = true;
+          await client.disconnect();
+          // Wait for clean disconnect
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        } catch (err) {
+          console.warn("Error during pre-connect disconnect:", err);
+        } finally {
+          disconnectingRef.current = false;
+        }
+      }
+
+      connectingRef.current = true;
       setIsConnecting(true);
 
       console.log("🚀 Starting connection...", {
@@ -117,31 +173,84 @@ export function usePipecatConnection(options = {}) {
         }
       } catch (err) {
         console.error("Pipecat connect failed:", err);
-        startedRef.current = false; // allow retry on next call
-        throw err;
-      } finally {
+        connectingRef.current = false;
         setIsConnecting(false);
+        throw err;
       }
     },
-    [client],
+    [client, isConnected],
   );
 
   const disconnect = useCallback(async () => {
-    if (!client) return;
+    if (!client) {
+      console.log("⚠️ No client to disconnect");
+      return;
+    }
+
+    if (disconnectingRef.current) {
+      console.log("🔄 Disconnect already in progress, skipping");
+      return;
+    }
+
+    console.log("🔌 Starting disconnect...");
+    disconnectingRef.current = true;
+    connectingRef.current = false;
+
     try {
+      // Force stop all media tracks first
+      try {
+        const tracks = client.tracks();
+        if (tracks) {
+          console.log("🎤 Stopping media tracks...");
+          Object.values(tracks).forEach((track) => {
+            if (track && typeof track.stop === "function") {
+              try {
+                track.stop();
+                console.log("✅ Stopped track:", track.kind);
+              } catch (e) {
+                console.warn("Error stopping individual track:", e);
+              }
+            }
+          });
+        }
+      } catch (trackErr) {
+        console.warn("Error stopping tracks:", trackErr);
+      }
+
+      // Now disconnect the client
       await client.disconnect();
+      console.log("✅ Disconnected successfully");
+
+      // Give extra time for full cleanup
+      await new Promise((resolve) => setTimeout(resolve, 300));
     } catch (err) {
       console.error("Pipecat disconnect failed:", err);
     } finally {
-      startedRef.current = false;
+      disconnectingRef.current = false;
+      setIsConnecting(false);
+      setIsConnected(false);
     }
   }, [client]);
 
   const sendClientMessage = useCallback(
     (type, data) => {
-      if (!client) return;
+      if (!client) {
+        console.warn("⚠️ Cannot send message - no client");
+        return;
+      }
+
+      // Check if client is in ready state
+      const clientState = client.state;
+      if (clientState !== "ready") {
+        console.warn(
+          `⚠️ Cannot send message - client state is '${clientState}', not 'ready'`,
+        );
+        return;
+      }
+
       try {
         client.sendClientMessage(type, data);
+        console.log(`📤 Sent message: ${type}`, data);
       } catch (err) {
         console.error("sendClientMessage failed:", err);
       }
@@ -175,6 +284,17 @@ export function PipecatConnectionManager({
   const { connect, disconnect, isConnected, isConnecting } =
     usePipecatConnection();
 
+  const hasConnectedRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  // Track mount state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // expose disconnect to parent
   useEffect(() => {
     if (!onDisconnectRef) return;
@@ -188,7 +308,17 @@ export function PipecatConnectionManager({
   useEffect(() => {
     if (!autoConnect) return;
     if (!botConfig || !selectedBook?.id || !chapter) return;
-    console.log("AUTO CONNECT", selectedBook.id, chapter);
+    if (hasConnectedRef.current) return; // Prevent re-connect on re-renders
+    if (isConnected || isConnecting) return;
+
+    console.log(
+      "🔄 AUTO CONNECT",
+      selectedBook.id,
+      chapter,
+      botConfig.metadata?.character?.name,
+    );
+    hasConnectedRef.current = true;
+
     connect({
       botConfig,
       userName,
@@ -196,13 +326,42 @@ export function PipecatConnectionManager({
       chapter,
       dailyProxyUrl,
       smallWebRTCOfferUrlBase,
-    }).catch(() => {});
-    // no deps on connect params to avoid reconnect loop; manage via keys in parent
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoConnect, botConfig, selectedBook?.id, chapter]);
+    }).catch((err) => {
+      // Don't log if it's just a "already started" error (race condition with TalkWithBook)
+      if (!err?.message?.includes("already started")) {
+        console.error("Auto-connect failed:", err);
+      } else {
+        console.log("ℹ️ Connection already in progress from another component");
+      }
+      if (isMountedRef.current) {
+        hasConnectedRef.current = false; // Allow retry on error if still mounted
+      }
+    });
+  }, [
+    autoConnect,
+    botConfig,
+    userName,
+    selectedBook?.id,
+    chapter,
+    connect,
+    isConnected,
+    isConnecting,
+    dailyProxyUrl,
+    smallWebRTCOfferUrlBase,
+  ]);
 
-  // clean up
-  useEffect(() => () => void disconnect(), [disconnect]);
+  // Reset connection flag when key params change
+  useEffect(() => {
+    hasConnectedRef.current = false;
+  }, [selectedBook?.id, chapter, botConfig?.metadata?.character?.name]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      console.log("🧹 PipecatConnectionManager unmounting, disconnecting...");
+      disconnect();
+    };
+  }, [disconnect]);
 
   return null; // headless
 }

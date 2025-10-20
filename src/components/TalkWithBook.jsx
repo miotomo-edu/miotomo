@@ -49,36 +49,52 @@ export const TalkWithBook = ({
   const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
   const botAudioTrack = usePipecatClientMediaTrack("audio", "bot");
 
-  // 🔹 Helper to create analyser safely
-  const createAnalyser = (track) => {
+  // 🔹 Helper to create analyser safely with proper cleanup
+  const createAnalyser = useCallback((track) => {
     if (!track) return null;
-    const ctx = new AudioContext();
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 128;
-    const src = ctx.createMediaStreamSource(new MediaStream([track]));
-    src.connect(analyser);
-    return { analyser, ctx };
-  };
+    try {
+      const ctx = new AudioContext();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      const src = ctx.createMediaStreamSource(new MediaStream([track]));
+      src.connect(analyser);
+      return { analyser, ctx, src };
+    } catch (err) {
+      console.error("Failed to create analyser:", err);
+      return null;
+    }
+  }, []);
 
-  // Analysers
+  // Analysers - recreate when tracks change
   const userVoiceAnalyser = useMemo(
     () => createAnalyser(localAudioTrack),
-    [localAudioTrack],
+    [localAudioTrack, createAnalyser],
   );
   const agentVoiceAnalyser = useMemo(
     () => createAnalyser(botAudioTrack),
-    [botAudioTrack],
+    [botAudioTrack, createAnalyser],
   );
 
-  // Cleanup audio contexts to avoid leaks
+  // Cleanup audio contexts to avoid leaks - FIXED
   useEffect(() => {
     return () => {
-      userVoiceAnalyser?.ctx?.close();
+      if (userVoiceAnalyser?.ctx?.state !== "closed") {
+        userVoiceAnalyser?.src?.disconnect();
+        userVoiceAnalyser?.ctx
+          ?.close()
+          .catch((e) => console.warn("Error closing user audio context:", e));
+      }
     };
   }, [userVoiceAnalyser]);
+
   useEffect(() => {
     return () => {
-      agentVoiceAnalyser?.ctx?.close();
+      if (agentVoiceAnalyser?.ctx?.state !== "closed") {
+        agentVoiceAnalyser?.src?.disconnect();
+        agentVoiceAnalyser?.ctx
+          ?.close()
+          .catch((e) => console.warn("Error closing agent audio context:", e));
+      }
     };
   }, [agentVoiceAnalyser]);
 
@@ -99,7 +115,7 @@ export const TalkWithBook = ({
 
   const addLog = (msg) => {
     if (logsRef.current) {
-      logsRef.current.textContent += `\n${msg}`; // append instead of overwrite
+      logsRef.current.textContent += `\n${msg}`;
     }
     console.log(`LOG: ${msg}`);
   };
@@ -107,18 +123,39 @@ export const TalkWithBook = ({
   // 🔹 Unified mic sync helper
   const syncMic = useCallback(
     (enabled = true) => {
+      console.log(
+        `🎤 syncMic called with enabled=${enabled}, isConnected=${isConnected}`,
+      );
+
+      // Don't try to send messages if not connected
+      if (!isConnected) {
+        console.warn("⚠️ Cannot sync mic - not connected yet");
+        return;
+      }
+
       try {
         enableMic(enabled);
         if (enabled) {
           sendClientMessage("control", { action: "resumeListening" });
           startListening();
+          console.log("✅ Mic enabled and listening resumed");
+        } else {
+          console.log("✅ Mic disabled");
         }
       } catch (e) {
-        console.warn("Mic sync failed", e);
+        console.error("❌ Mic sync failed", e);
       }
     },
-    [enableMic, sendClientMessage, startListening],
+    [enableMic, sendClientMessage, startListening, isConnected],
   );
+
+  // Reset refs when component mounts
+  useEffect(() => {
+    startedChatRef.current = false;
+    return () => {
+      startedChatRef.current = false;
+    };
+  }, []);
 
   // Wrap connect/disconnect to mark ownership
   const connectHere = useCallback(async () => {
@@ -128,10 +165,20 @@ export const TalkWithBook = ({
   }, [connect, botConfig, userName, selectedBook, chapter]);
 
   const disconnectHere = useCallback(async () => {
-    console.log("disconnectHere");
+    console.log("🔴 disconnectHere called");
+
+    // Disable mic first
+    try {
+      enableMic(false);
+    } catch (e) {
+      console.warn("Failed to disable mic:", e);
+    }
+
     startedHereRef.current = false;
+    startedChatRef.current = false; // Reset chat started flag
+
     await disconnect();
-  }, [disconnect]);
+  }, [disconnect, enableMic]);
 
   // Allow parent to trigger disconnect
   useEffect(() => {
@@ -142,7 +189,7 @@ export const TalkWithBook = ({
     };
   }, [onDisconnectRequest, disconnectHere]);
 
-  // ✅ Guard for repeated checks
+  // ✅ Guard for required checks
   const hasRequiredData = !!(
     botConfig &&
     selectedBook?.id &&
@@ -161,25 +208,40 @@ export const TalkWithBook = ({
 
     const onDisconnected = () => {
       addLog("❌ Disconnected");
-      enableMic(false); // Reset mic on disconnect
+      enableMic(false);
       startedChatRef.current = false;
     };
 
     const onBotReady = () => {
       addLog("🤖 Bot ready!");
-      syncMic(true);
 
-      if (startedChatRef.current) return;
-      try {
-        sendClientMessage("start-chat", {
-          book_id: selectedBook.id,
-          chapter: chapter ?? "",
-          chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
-        });
-        startedChatRef.current = true;
-      } catch (error) {
-        console.error("Error sending start messages:", error);
+      if (startedChatRef.current) {
+        console.log("⚠️ Chat already started, skipping start-chat");
+        return;
       }
+
+      // Wait a bit for connection to fully stabilize before sending messages
+      setTimeout(() => {
+        if (!isConnected) {
+          console.warn("⚠️ Bot ready but not connected yet, skipping mic sync");
+          return;
+        }
+
+        // CRITICAL: Enable mic when bot is ready
+        syncMic(true);
+
+        try {
+          sendClientMessage("start-chat", {
+            book_id: selectedBook.id,
+            chapter: chapter ?? "",
+            chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
+          });
+          startedChatRef.current = true;
+          addLog("✅ start-chat sent");
+        } catch (error) {
+          console.error("Error sending start messages:", error);
+        }
+      }, 200);
     };
 
     const onUserStartedSpeaking = () => {
@@ -236,6 +298,10 @@ export const TalkWithBook = ({
     addVoicebotMessage,
     startListening,
     startSpeaking,
+    syncMic,
+    selectedBook?.id,
+    chapter,
+    botConfig?.metadata?.book?.progress,
   ]);
 
   // --- Auto-connect when button is hidden ---
@@ -246,7 +312,24 @@ export const TalkWithBook = ({
       !isConnecting &&
       hasRequiredData
     ) {
-      connectHere().catch((err) => console.error("Auto-connect failed", err));
+      // Check if client is already connecting
+      const clientState = client?.state;
+      if (clientState === "ready" || clientState === "connecting") {
+        console.log(
+          "⏭️ TalkWithBook: Client already",
+          clientState,
+          "- skipping auto-connect",
+        );
+        return;
+      }
+
+      console.log("🎯 TalkWithBook: Auto-connecting...");
+      connectHere().catch((err) => {
+        // Don't log if it's just a "already started" error
+        if (!err.message?.includes("already started")) {
+          console.error("Auto-connect failed", err);
+        }
+      });
     }
   }, [
     showControlButton,
@@ -254,6 +337,7 @@ export const TalkWithBook = ({
     isConnecting,
     hasRequiredData,
     connectHere,
+    client,
   ]);
 
   // --- Fallback for missed BotReady (pre-connect case) ---
@@ -264,15 +348,22 @@ export const TalkWithBook = ({
       !isConnecting &&
       hasRequiredData
     ) {
-      try {
-        syncMic(true);
-        sendClientMessage("set-language", { language: "en-US" });
-        sendClientMessage("start-chat", { greeting: botConfig?.greeting });
-        startedChatRef.current = true;
-        addLog("start-chat sent (fallback)");
-      } catch (e) {
-        console.error("fallback start-chat failed:", e);
-      }
+      console.log("🔧 Fallback: Bot connected but chat not started");
+
+      // Wait a bit to ensure connection is fully ready
+      const timer = setTimeout(() => {
+        try {
+          syncMic(true);
+          sendClientMessage("set-language", { language: "en-US" });
+          sendClientMessage("start-chat", { greeting: botConfig?.greeting });
+          startedChatRef.current = true;
+          addLog("start-chat sent (fallback)");
+        } catch (e) {
+          console.error("fallback start-chat failed:", e);
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
     }
   }, [
     isConnected,
@@ -283,7 +374,18 @@ export const TalkWithBook = ({
     sendClientMessage,
   ]);
 
-  // --- Cleanup ---
+  // --- Safety: Re-enable mic if connected but not active ---
+  useEffect(() => {
+    if (isConnected && !isConnecting && hasRequiredData) {
+      const timer = setTimeout(() => {
+        console.log("🔍 Safety check: Ensuring mic is enabled");
+        syncMic(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isConnecting, hasRequiredData, syncMic]);
+
+  // --- Cleanup on unmount ---
   useEffect(() => {
     return () => {
       if (startedHereRef.current) {

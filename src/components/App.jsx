@@ -62,8 +62,6 @@ const App = ({ defaultStsConfig, transportType }) => {
     if (student?.name) setUserName(student.name);
   }, [student]);
 
-  // --- Viewport helpers omitted for brevity ---
-
   const introduction =
     selectedBook && currentCharacter
       ? `You are ${currentCharacter.name}, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}. Focus on chapter ${selectedChapter}.`
@@ -139,10 +137,17 @@ const App = ({ defaultStsConfig, transportType }) => {
     setActiveComponent("interactive");
   };
 
-  const handleNavigationClick = (componentName) => {
-    // When leaving the talk screen, disconnect.
+  const handleNavigationClick = async (componentName) => {
+    // CRITICAL: When leaving the talk screen, ensure full disconnect
     if (activeComponent === "interactive" && disconnectRef.current) {
-      disconnectRef.current();
+      console.log("🔌 Triggering disconnect from navigation");
+      try {
+        await disconnectRef.current();
+        // Give time for cleanup
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (err) {
+        console.error("Error during navigation disconnect:", err);
+      }
     }
     setActiveComponent(componentName);
     prevActiveComponent.current = componentName;
@@ -242,6 +247,10 @@ const App = ({ defaultStsConfig, transportType }) => {
   // 👉 IMPORTANT: Key the connection manager on book:chapter:character so it remounts
   const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${currentCharacter?.name || "none"}`;
 
+  // Only show connection manager when we're actually on the interactive screen
+  const shouldShowConnectionManager =
+    activeComponent === "interactive" && selectedBook && currentCharacter;
+
   return (
     <div className="app-mobile-shell">
       <Layout mainRef={mainRef}>
@@ -254,8 +263,8 @@ const App = ({ defaultStsConfig, transportType }) => {
         )}
       </Layout>
 
-      {/* 🔌 Pre-connect as soon as we have enough info (even before TalkWithBook mounts) */}
-      {selectedBook && currentCharacter && (
+      {/* 🔌 Only pre-connect when on interactive screen */}
+      {shouldShowConnectionManager && (
         <PipecatConnectionManager
           key={connectionKey}
           autoConnect
