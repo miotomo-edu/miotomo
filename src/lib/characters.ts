@@ -9,19 +9,31 @@ export type Character = {
   disabled?: boolean;
   voice?: string;
   modalities?: string;
+  images?: {
+    idle: string;
+    sleeping?: string;
+    listening?: string;
+  };
 };
 
-import miotomoAvatar from "../assets/img/miotomo-avatar.png";
-import sparkoAvatar from "../assets/img/sparko-avatar.png";
-import arguAvatar from "../assets/img/argu-avatar.png";
-import wordieAvatar from "../assets/img/wordie-avatar.png";
+import miotomoAvatar from "../assets/img/characters/cat.svg";
+import sparkoAvatar from "../assets/img/characters/octopus.svg";
+import sparkoListeningAvatar from "../assets/img/characters/octopus_listening.svg";
+import sparkoSleepingAvatar from "../assets/img/characters/octopus_sleep.svg";
+import arguAvatar from "../assets/img/characters/fox.svg";
+import wordieAvatar from "../assets/img/characters/panda.svg";
 import fizzAvatar from "../assets/img/fizz-avatar.png";
-import echoAvatar from "../assets/img/echo-avatar.png";
+import echoAvatar from "../assets/img/characters/parrot.svg";
 
 export const characterData: Character[] = [
   {
     name: "Tomo",
     icon: miotomoAvatar,
+    images: {
+      idle: miotomoAvatar,
+      sleeping: miotomoAvatar,
+      listening: miotomoAvatar,
+    },
     bg: "bg-purple-200",
     modality: "Wise companion",
     x: 30,
@@ -31,6 +43,11 @@ export const characterData: Character[] = [
   {
     name: "Sparko",
     icon: sparkoAvatar,
+    images: {
+      idle: sparkoAvatar,
+      sleeping: sparkoSleepingAvatar,
+      listening: sparkoListeningAvatar,
+    },
     bg: "bg-yellow-200",
     modality: "Spelling",
     x: 50,
@@ -42,6 +59,11 @@ export const characterData: Character[] = [
   {
     name: "Argoo",
     icon: arguAvatar,
+    images: {
+      idle: arguAvatar,
+      sleeping: arguAvatar,
+      listening: arguAvatar,
+    },
     bg: "",
     customBg: "#C6DDAF",
     modality: "Little debater",
@@ -53,6 +75,11 @@ export const characterData: Character[] = [
   {
     name: "Wordie",
     icon: wordieAvatar,
+    images: {
+      idle: wordieAvatar,
+      sleeping: wordieAvatar,
+      listening: wordieAvatar,
+    },
     bg: "bg-green-200",
     modality: "Word wizard",
     x: 40,
@@ -63,6 +90,11 @@ export const characterData: Character[] = [
   {
     name: "Fizz",
     icon: fizzAvatar,
+    images: {
+      idle: fizzAvatar,
+      sleeping: fizzAvatar,
+      listening: fizzAvatar,
+    },
     bg: "bg-orange-200",
     modality: "Story booster",
     x: 65,
@@ -72,6 +104,11 @@ export const characterData: Character[] = [
   {
     name: "Echo",
     icon: echoAvatar,
+    images: {
+      idle: echoAvatar,
+      sleeping: echoAvatar,
+      listening: echoAvatar,
+    },
     bg: "bg-pink-200",
     modality: "Story twist",
     x: 50,

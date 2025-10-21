@@ -1,23 +1,43 @@
 import React, { useMemo } from "react";
-import OctopusCharacterImage from "../../../assets/img/octopus.svg";
-import OctopusSleepImage from "../../../assets/img/octopus_sleep.svg";
-import OctopusListeningImage from "../../../assets/img/octopus_listening.svg";
 import useAnalyserVolume from "../../../hooks/useAnalyserVolume";
+
+interface CharacterImages {
+  idle: string;
+  sleeping?: string;
+  listening?: string;
+}
 
 interface Props {
   analyser?: AnalyserNode | null;
   isSleeping?: boolean;
   isListening?: boolean;
+  images: CharacterImages;
+  characterName?: string;
 }
 
 const MAX_JUMP_DISTANCE_PX = 56;
 
-const OctopusAvatar: React.FC<Props> = ({
+const CharacterAvatar: React.FC<Props> = ({
   analyser,
   isSleeping = false,
   isListening = false,
+  images,
+  characterName = "character",
 }) => {
-  const rawVolume = useAnalyserVolume(isSleeping ? null : analyser, 36, 0.15);
+  const baselineImage = images?.idle;
+  const sleepingImage = images?.sleeping || baselineImage;
+  const listeningImage = images?.listening || baselineImage;
+  const displayImage = isSleeping
+    ? sleepingImage
+    : isListening
+      ? listeningImage
+      : baselineImage;
+
+  const rawVolume = useAnalyserVolume(
+    isSleeping ? null : analyser,
+    36,
+    0.15,
+  );
   const clampedVolume = useMemo(
     () => Math.min(Math.max(rawVolume, 0), 1),
     [rawVolume],
@@ -31,12 +51,6 @@ const OctopusAvatar: React.FC<Props> = ({
     [clampedVolume, isSleeping],
   );
 
-  const imageSrc = isSleeping
-    ? OctopusSleepImage
-    : isListening
-      ? OctopusListeningImage
-      : OctopusCharacterImage;
-
   return (
     <div className="pointer-events-none flex h-full w-full items-end justify-center pb-2">
       <div
@@ -46,14 +60,16 @@ const OctopusAvatar: React.FC<Props> = ({
           transform: translateY,
         }}
       >
-        <img
-          src={imageSrc}
-          alt="Octopus guide"
-          className="w-full max-h-[25vh] object-contain drop-shadow-2xl"
-        />
+        {displayImage && (
+          <img
+            src={displayImage}
+            alt={`${characterName} avatar`}
+            className="w-full max-h-[25vh] object-contain drop-shadow-2xl"
+          />
+        )}
       </div>
     </div>
   );
 };
 
-export default OctopusAvatar;
+export default CharacterAvatar;

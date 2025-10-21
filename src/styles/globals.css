@@ -151,7 +151,7 @@ h2 {
   height: 90px;
 }
 
-.octopus-orb-wrapper {
+.character-orb-wrapper {
   --active-volume: 0;
   display: inline-flex;
   transition: transform 160ms ease;

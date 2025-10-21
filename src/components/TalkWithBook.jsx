@@ -422,6 +422,8 @@ export const TalkWithBook = ({
           userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
           isUserSpeaking={isMicActive}
           isBotSpeaking={isBotSpeaking}
+          characterImages={currentCharacter?.images}
+          characterName={currentCharacter?.name}
         />
 
         {showControlButton && (

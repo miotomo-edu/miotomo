@@ -4,14 +4,20 @@ import {
   usePipecatClientMicControl,
 } from "@pipecat-ai/client-react";
 import useAnalyserVolume from "../../hooks/useAnalyserVolume";
-import OctopusAvatar from "../features/voice/OctopusAvatar";
-import OctopusContainer from "../features/voice/OctopusContainer";
+import CharacterAvatar from "../features/voice/CharacterAvatar";
+import CharacterContainer from "../features/voice/CharacterContainer";
 
 interface Props {
   agentVoiceAnalyser?: AnalyserNode;
   userVoiceAnalyser?: AnalyserNode;
   isUserSpeaking?: boolean;
   isBotSpeaking?: boolean;
+  characterImages?: {
+    idle: string;
+    sleeping?: string;
+    listening?: string;
+  };
+  characterName?: string;
 }
 
 const AnimationManager: React.FC<Props> = ({
@@ -19,6 +25,8 @@ const AnimationManager: React.FC<Props> = ({
   userVoiceAnalyser,
   isUserSpeaking = false,
   isBotSpeaking = false,
+  characterImages,
+  characterName,
 }) => {
   const client = usePipecatClient();
 
@@ -94,24 +102,31 @@ const AnimationManager: React.FC<Props> = ({
   const displayVolume = isSleepingDisplay ? 0 : activeVolume;
 
   const isListeningDisplay = Boolean(
-    isMicEnabled && (isUserSpeaking || (isUserSpeakingTransient && !isBotSpeaking)),
+    isMicEnabled &&
+      (isUserSpeaking || (isUserSpeakingTransient && !isBotSpeaking)),
   );
 
   return (
     <div className="flex items-center justify-center gap-4">
-      <OctopusContainer activeVolume={displayVolume}>
+      <CharacterContainer activeVolume={displayVolume}>
         <button
           onClick={handleOrbClick}
           className="relative inline-flex items-center justify-center"
           aria-label="Toggle microphone"
         >
-          <OctopusAvatar
-            analyser={isMicEnabled ? userVoiceAnalyser ?? null : null}
+          <CharacterAvatar
+            analyser={isMicEnabled ? (userVoiceAnalyser ?? null) : null}
             isSleeping={isSleepingDisplay}
             isListening={isListeningDisplay}
+            images={
+              characterImages ?? {
+                idle: "",
+              }
+            }
+            characterName={characterName}
           />
         </button>
-      </OctopusContainer>
+      </CharacterContainer>
     </div>
   );
 };
