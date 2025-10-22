@@ -271,6 +271,10 @@ export const TalkWithBook = ({
       addVoicebotMessage({ assistant: data.text });
     };
 
+    const onServerMessage = (msg) => {
+      console.log("!!!! Server message:", msg);
+    };
+
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
     client.on(RTVIEvent.BotReady, onBotReady);
@@ -280,6 +284,7 @@ export const TalkWithBook = ({
     client.on(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
     client.on(RTVIEvent.UserTranscript, onUserTranscript);
     client.on(RTVIEvent.BotTranscript, onBotTranscript);
+    client.on(RTVIEvent.ServerMessage, onServerMessage);
 
     return () => {
       client.off(RTVIEvent.Connected, onConnected);
@@ -291,6 +296,7 @@ export const TalkWithBook = ({
       client.off(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
       client.off(RTVIEvent.UserTranscript, onUserTranscript);
       client.off(RTVIEvent.BotTranscript, onBotTranscript);
+      client.off(RTVIEvent.ServerMessage, onServerMessage);
     };
   }, [
     client,
@@ -317,24 +323,24 @@ export const TalkWithBook = ({
       return;
     }
 
-      // Check if client is already connecting
-      const clientState = client?.state;
-      if (clientState === "ready" || clientState === "connecting") {
-        console.log(
-          "⏭️ TalkWithBook: Client already",
-          clientState,
-          "- skipping auto-connect",
-        );
-        return;
-      }
+    // Check if client is already connecting
+    const clientState = client?.state;
+    if (clientState === "ready" || clientState === "connecting") {
+      console.log(
+        "⏭️ TalkWithBook: Client already",
+        clientState,
+        "- skipping auto-connect",
+      );
+      return;
+    }
 
-      console.log("🎯 TalkWithBook: Auto-connecting...");
-      connectHere().catch((err) => {
-        // Don't log if it's just a "already started" error
-        if (!err.message?.includes("already started")) {
-          console.error("Auto-connect failed", err);
-        }
-      });
+    console.log("🎯 TalkWithBook: Auto-connecting...");
+    connectHere().catch((err) => {
+      // Don't log if it's just a "already started" error
+      if (!err.message?.includes("already started")) {
+        console.error("Auto-connect failed", err);
+      }
+    });
   }, [
     showControlButton,
     isConnected,
