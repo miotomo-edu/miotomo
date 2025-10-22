@@ -17,13 +17,22 @@ export type Character = {
 };
 
 import miotomoAvatar from "../assets/img/characters/cat.svg";
+import miotomoSleepingAvatar from "../assets/img/characters/cat_sleeping.svg";
+
 import sparkoAvatar from "../assets/img/characters/octopus.svg";
 import sparkoListeningAvatar from "../assets/img/characters/octopus_listening.svg";
-import sparkoSleepingAvatar from "../assets/img/characters/octopus_sleep.svg";
+import sparkoSleepingAvatar from "../assets/img/characters/octopus_sleeping.svg";
+
 import arguAvatar from "../assets/img/characters/fox.svg";
+import arguSleepingAvatar from "../assets/img/characters/fox_sleeping.svg";
+
 import wordieAvatar from "../assets/img/characters/panda.svg";
+import wordieSleepingAvatar from "../assets/img/characters/panda_sleeping.svg";
+
 import fizzAvatar from "../assets/img/fizz-avatar.png";
+
 import echoAvatar from "../assets/img/characters/parrot.svg";
+import echoSleepingAvatar from "../assets/img/characters/parrot_sleeping.svg";
 
 export const characterData: Character[] = [
   {
@@ -31,7 +40,7 @@ export const characterData: Character[] = [
     icon: miotomoAvatar,
     images: {
       idle: miotomoAvatar,
-      sleeping: miotomoAvatar,
+      sleeping: miotomoSleepingAvatar,
       listening: miotomoAvatar,
     },
     bg: "bg-purple-200",
@@ -61,7 +70,7 @@ export const characterData: Character[] = [
     icon: arguAvatar,
     images: {
       idle: arguAvatar,
-      sleeping: arguAvatar,
+      sleeping: arguSleepingAvatar,
       listening: arguAvatar,
     },
     bg: "",
@@ -77,7 +86,7 @@ export const characterData: Character[] = [
     icon: wordieAvatar,
     images: {
       idle: wordieAvatar,
-      sleeping: wordieAvatar,
+      sleeping: wordieSleepingAvatar,
       listening: wordieAvatar,
     },
     bg: "bg-green-200",
@@ -106,7 +115,7 @@ export const characterData: Character[] = [
     icon: echoAvatar,
     images: {
       idle: echoAvatar,
-      sleeping: echoAvatar,
+      sleeping: echoSleepingAvatar,
       listening: echoAvatar,
     },
     bg: "bg-pink-200",
