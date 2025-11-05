@@ -7,6 +7,7 @@ import {
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
 import AnimationManager from "./layout/AnimationManager";
+import VocabularyPanel from "./features/modality/VocabularyPanel";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -35,6 +36,7 @@ export const TalkWithBook = ({
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [serverEvent, setServerEvent] = useState(null);
 
   const {
     addVoicebotMessage,
@@ -273,6 +275,7 @@ export const TalkWithBook = ({
 
     const onServerMessage = (msg) => {
       console.log("!!!! Server message:", msg);
+      setServerEvent(msg);
     };
 
     client.on(RTVIEvent.Connected, onConnected);
@@ -405,6 +408,40 @@ export const TalkWithBook = ({
     };
   }, [disconnectHere]);
 
+  const modalityKey = useMemo(() => {
+    const raw =
+      currentCharacter?.modalities?.toLowerCase?.() ??
+      currentCharacter?.modality?.toLowerCase?.() ??
+      "";
+    return raw;
+  }, [currentCharacter]);
+
+  const renderedServerContent = useMemo(() => {
+    if (modalityKey.includes("vocab")) {
+      return (
+        <VocabularyPanel event={serverEvent} isWaiting={!serverEvent} />
+      );
+    }
+
+    if (!serverEvent) {
+      return (
+        <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-gray-500">
+          Start chatting with Miotomo to see updates here.
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-full w-full overflow-auto px-6 py-5">
+        <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-gray-700">
+          {typeof serverEvent === "string"
+            ? serverEvent
+            : JSON.stringify(serverEvent, null, 2)}
+        </pre>
+      </div>
+    );
+  }, [modalityKey, serverEvent]);
+
   return (
     <div className="inset-0 flex flex-col overflow-hidden">
       <div className="flex-none">
@@ -416,6 +453,12 @@ export const TalkWithBook = ({
             onNavigate?.("map");
           }}
         />
+      </div>
+
+      <div className="flex-1 px-6 pt-4 overflow-hidden">
+        <div className="h-full w-full rounded-[32px] border border-black/5 bg-white/70 shadow-sm backdrop-blur-sm">
+          {renderedServerContent}
+        </div>
       </div>
 
       <div
