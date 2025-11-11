@@ -27,7 +27,7 @@ import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
 
-const App = ({ defaultStsConfig, transportType }) => {
+const App = ({ transportType }) => {
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
   const [prompt, setPrompt] = useState("");
@@ -113,24 +113,6 @@ const App = ({ defaultStsConfig, transportType }) => {
     ],
   );
 
-  if (studentLoading) return <div>Loading student...</div>;
-  if (studentError) return <div>Error loading student.</div>;
-  if (!studentId || studentError || (!studentLoading && !student)) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "2rem",
-        }}
-      >
-        coming soon...
-      </div>
-    );
-  }
-
   const handleBookAndCharacterSelect = (book, character) => {
     setSelectedBook(book);
     setCurrentCharacter(character);
@@ -152,6 +134,36 @@ const App = ({ defaultStsConfig, transportType }) => {
     setActiveComponent(componentName);
     prevActiveComponent.current = componentName;
   };
+
+  const isInteractiveView = activeComponent === "interactive";
+  const characterAccent =
+    isInteractiveView && currentCharacter?.customBg
+      ? currentCharacter.customBg
+      : undefined;
+  const characterBgClass =
+    isInteractiveView && currentCharacter?.bg ? currentCharacter.bg : "";
+
+  const shouldShowConnectionManager =
+    isInteractiveView && selectedBook && currentCharacter;
+
+  useEffect(() => {
+    if (!isInteractiveView) return;
+
+    const scrollTargets = [
+      mainRef.current,
+      window,
+      document.documentElement,
+    ];
+
+    scrollTargets.forEach((target) => {
+      if (!target) return;
+      if ("scrollTo" in target) {
+        target.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      } else if (target instanceof HTMLElement) {
+        target.scrollTop = 0;
+      }
+    });
+  }, [isInteractiveView, mainRef]);
 
   const renderComponent = () => {
     switch (activeComponent) {
@@ -248,17 +260,46 @@ const App = ({ defaultStsConfig, transportType }) => {
   // 👉 IMPORTANT: Key the connection manager on book:chapter:character so it remounts
   const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${currentCharacter?.name || "none"}`;
 
-  // Only show connection manager when we're actually on the interactive screen
-  const shouldShowConnectionManager =
-    activeComponent === "interactive" && selectedBook && currentCharacter;
+  const appShellStyle = characterAccent
+    ? {
+        backgroundColor: characterAccent,
+        transition: "background-color 0.4s ease",
+      }
+    : undefined;
+
+  if (studentLoading) return <div>Loading student...</div>;
+  if (studentError) return <div>Error loading student.</div>;
+  if (!studentId || studentError || (!studentLoading && !student)) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "2rem",
+        }}
+      >
+        coming soon...
+      </div>
+    );
+  }
 
   return (
-    <div className="app-mobile-shell">
-      <Layout mainRef={mainRef}>
+    <div
+      className={`app-mobile-shell ${characterBgClass}`}
+      style={appShellStyle}
+    >
+      <Layout mainRef={mainRef} disableScroll={isInteractiveView}>
         {activeComponent === "landing" ? (
           renderComponent()
         ) : (
-          <div style={{ flexGrow: 1, overflowY: "auto" }}>
+          <div
+            style={{
+              flexGrow: 1,
+              overflowY: isInteractiveView ? "hidden" : "auto",
+            }}
+          >
             {renderComponent()}
           </div>
         )}
@@ -281,6 +322,12 @@ const App = ({ defaultStsConfig, transportType }) => {
         <BottomNavBar
           onItemClick={handleNavigationClick}
           activeComponentName={activeComponent}
+          className={isInteractiveView ? "backdrop-blur-sm" : ""}
+          style={
+            isInteractiveView
+              ? { backgroundColor: "rgba(255,255,255,0.6)" }
+              : undefined
+          }
         />
       )}
     </div>

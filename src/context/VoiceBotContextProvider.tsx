@@ -13,6 +13,7 @@ import {
   START_SPEAKING,
   START_LISTENING,
   START_SLEEPING,
+  START_THINKING,
   ADD_MESSAGE,
   SET_PARAMS_ON_COPY_URL,
   ADD_BEHIND_SCENES_EVENT,
@@ -112,6 +113,7 @@ export interface VoiceBotContext extends VoiceBotState {
   isWaitingForUserVoiceAfterSleep: React.Ref<boolean>;
   startSpeaking: (wakeFromSleep?: boolean) => void;
   startListening: (wakeFromSleep?: boolean) => void;
+  startThinking: () => void;
   startSleeping: () => void;
   toggleSleep: () => void;
   displayOrder: VoiceBotMessage[];
@@ -338,6 +340,12 @@ export function VoiceBotProvider({ children }: Props) {
     [state.status],
   );
 
+  const startThinking = useCallback(() => {
+    if (state.status !== VoiceBotStatus.SLEEPING) {
+      dispatch({ type: START_THINKING });
+    }
+  }, [state.status]);
+
   const startSleeping = () => {
     isWaitingForUserVoiceAfterSleep.current = true;
     dispatch({ type: START_SLEEPING });
@@ -444,6 +452,7 @@ export function VoiceBotProvider({ children }: Props) {
       addBehindTheScenesEvent,
       startSpeaking,
       startListening,
+      startThinking,
       startSleeping,
       toggleSleep,
       setAttachParamsToCopyUrl,
@@ -460,6 +469,7 @@ export function VoiceBotProvider({ children }: Props) {
       setAttachParamsToCopyUrl,
       setConversationConfig,
       displayOrder,
+      startThinking,
       clearConversation,
       conversationSaving,
       conversationSaveError,

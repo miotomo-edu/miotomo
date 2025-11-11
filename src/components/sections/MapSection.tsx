@@ -17,12 +17,7 @@ const MapSection: React.FC<MapSectionProps> = ({
   onBack,
 }) => {
   return (
-    <div
-      className="min-h-screen w-full flex flex-col items-center"
-      style={{
-        background: "linear-gradient(to bottom, #C492F1 0%, #E85C33 100%)",
-      }}
-    >
+    <div className="min-h-screen w-full flex flex-col items-center bg-white">
       <BookTitle book={book} onBack={onBack} chapter={chapter} />
       <section className="py-6 px-4 pb-24 flex flex-col items-center w-full">
         <h2 className="text-3xl font-semibold mb-4">
@@ -41,12 +36,12 @@ const MapSection: React.FC<MapSectionProps> = ({
                 }
               }}
               disabled={character.disabled}
-              className={`absolute flex flex-col items-center justify-center ${character.bg} hover:brightness-105 rounded-full w-44 h-44 shadow-md transition-all duration-200 focus:outline-none
+              className={`absolute flex flex-col items-center justify-center ${character.bg} hover:brightness-105 rounded-full w-44 h-44 transition-all duration-200 border-4 focus:outline-none
                 ${character.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
               `}
               style={{
                 ...(character.customBg
-                  ? { backgroundColor: character.customBg }
+                  ? { borderColor: character.customBg }
                   : {}),
                 left: `${character.x}%`,
                 transform: "translateX(-50%)",

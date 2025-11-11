@@ -18,6 +18,7 @@ export type Character = {
 
 import miotomoAvatar from "../assets/img/characters/cat.svg";
 import miotomoSleepingAvatar from "../assets/img/characters/cat_sleeping.svg";
+import miotomoListeningAvatar from "../assets/img/characters/cat_listening.svg";
 
 import sparkoAvatar from "../assets/img/characters/octopus.svg";
 import sparkoListeningAvatar from "../assets/img/characters/octopus_listening.svg";
@@ -41,23 +42,25 @@ export const characterData: Character[] = [
     images: {
       idle: miotomoAvatar,
       sleeping: miotomoSleepingAvatar,
-      listening: miotomoAvatar,
+      listening: miotomoListeningAvatar,
     },
-    bg: "bg-purple-200",
+    bg: "",
+    customBg: "#F2D47C",
     modality: "Wise companion",
     x: 30,
     prompt: "storytelling",
     modalities: "storytelling",
   },
   {
-    name: "Sparko",
+    name: "Gigi",
     icon: sparkoAvatar,
     images: {
       idle: sparkoAvatar,
       sleeping: sparkoSleepingAvatar,
       listening: sparkoListeningAvatar,
     },
-    bg: "bg-yellow-200",
+    bg: "",
+    customBg: "#92B1D1",
     modality: "Spelling",
     x: 50,
     prompt: "spelling",
@@ -74,7 +77,7 @@ export const characterData: Character[] = [
       listening: arguAvatar,
     },
     bg: "",
-    customBg: "#C6DDAF",
+    customBg: "#E49C88",
     modality: "Little debater",
     x: 70,
     prompt: "debating",
@@ -89,27 +92,29 @@ export const characterData: Character[] = [
       sleeping: wordieSleepingAvatar,
       listening: wordieAvatar,
     },
-    bg: "bg-green-200",
+    bg: "",
+    customBg: "#92949E",
     modality: "Word wizard",
     x: 40,
     prompt: "vocabulary",
     modalities: "vocabulary",
     voice: "aura-2-ophelia-en",
   },
-  {
-    name: "Fizz",
-    icon: fizzAvatar,
-    images: {
-      idle: fizzAvatar,
-      sleeping: fizzAvatar,
-      listening: fizzAvatar,
-    },
-    bg: "bg-orange-200",
-    modality: "Story booster",
-    x: 65,
-    prompt: "game",
-    voice: "aura-2-luna-en",
-  },
+  // {
+  //   name: "Fizz",
+  //   icon: fizzAvatar,
+  //   images: {
+  //     idle: fizzAvatar,
+  //     sleeping: fizzAvatar,
+  //     listening: fizzAvatar,
+  //   },
+  //   bg: "",
+  //   customBg: "#C6DDAF",
+  //   modality: "Story booster",
+  //   x: 65,
+  //   prompt: "game",
+  //   voice: "aura-2-luna-en",
+  // },
   {
     name: "Echo",
     icon: echoAvatar,
@@ -118,7 +123,8 @@ export const characterData: Character[] = [
       sleeping: echoSleepingAvatar,
       listening: echoAvatar,
     },
-    bg: "bg-pink-200",
+    bg: "",
+    customBg: "#97BBA0",
     modality: "Story twist",
     x: 50,
     prompt: "storytelling",

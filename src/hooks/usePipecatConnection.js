@@ -44,6 +44,16 @@ function buildSmallWebRTCUrl({
  * Reusable connection hook.
  * Returns connect(), disconnect(), sendClientMessage(), and connection state.
  */
+const resolveEnvVar = (key) => {
+  const value = import.meta.env?.[key];
+  if (!value) {
+    throw new Error(
+      `${key} is not defined. Create a .env.local (or export the variable) with ${key}=<url>.`,
+    );
+  }
+  return value;
+};
+
 export function usePipecatConnection(options = {}) {
   const client = usePipecatClient();
   const [isConnecting, setIsConnecting] = useState(false);
@@ -93,8 +103,8 @@ export function usePipecatConnection(options = {}) {
       userName,
       selectedBook,
       chapter,
-      dailyProxyUrl = "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run",
-      smallWebRTCOfferUrlBase = "http://localhost:8000/api/offer",
+      dailyProxyUrl,
+      smallWebRTCOfferUrlBase,
     }) => {
       if (!client) throw new Error("Pipecat client missing");
 
@@ -144,9 +154,19 @@ export function usePipecatConnection(options = {}) {
       });
 
       try {
+        const resolvedDailyProxyUrl =
+          dailyProxyUrl ?? resolveEnvVar("VITE_DAILY_PROXY_URL");
+        const resolvedSmallWebRTCUrl =
+          smallWebRTCOfferUrlBase ?? resolveEnvVar("VITE_SMALL_WEBRTC_URL");
+
         if (botConfig?.transportType === "daily") {
           // 1) Create Daily room/token via your proxy
-          const response = await fetch(`${dailyProxyUrl}/connect-pipecat`, {
+          if (!resolvedDailyProxyUrl) {
+            throw new Error(
+              "Daily proxy URL missing. Set VITE_DAILY_PROXY_URL or pass dailyProxyUrl to usePipecatConnection connect().",
+            );
+          }
+          const response = await fetch(`${resolvedDailyProxyUrl}/connect-pipecat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ config: botConfig }),
@@ -165,8 +185,13 @@ export function usePipecatConnection(options = {}) {
         } else {
           // Small WebRTC transport
           console.log("🌐 Using Small WebRTC transport");
+          if (!resolvedSmallWebRTCUrl) {
+            throw new Error(
+              "Small WebRTC offer URL missing. Set VITE_SMALL_WEBRTC_URL or pass smallWebRTCOfferUrlBase to usePipecatConnection connect().",
+            );
+          }
           const webrtcUrl = buildSmallWebRTCUrl({
-            base: smallWebRTCOfferUrlBase,
+            base: resolvedSmallWebRTCUrl,
             userName,
             botConfig,
             selectedBook,

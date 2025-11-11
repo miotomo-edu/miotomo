@@ -36,6 +36,7 @@ export const TalkWithBook = ({
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [isBotThinking, setIsBotThinking] = useState(false);
   const [serverEvent, setServerEvent] = useState(null);
 
   const {
@@ -43,6 +44,7 @@ export const TalkWithBook = ({
     setConversationConfig,
     startListening,
     startSpeaking,
+    startThinking,
     status,
   } = useVoiceBot();
 
@@ -213,6 +215,7 @@ export const TalkWithBook = ({
       addLog("❌ Disconnected");
       enableMic(false);
       startedChatRef.current = false;
+      setIsBotThinking(false);
     };
 
     const onBotReady = () => {
@@ -259,9 +262,20 @@ export const TalkWithBook = ({
 
     const onBotStartedSpeaking = () => {
       setIsBotSpeaking(true);
+      setIsBotThinking(false);
       startSpeaking();
     };
     const onBotStoppedSpeaking = () => setIsBotSpeaking(false);
+    const onBotLlmStarted = () => {
+      setIsBotThinking(true);
+      startThinking();
+    };
+    const onBotLlmStopped = () => {
+      setIsBotThinking(false);
+      if (!isBotSpeaking) {
+        startListening();
+      }
+    };
 
     const onUserTranscript = (data) => {
       if (data.final) {
@@ -285,6 +299,8 @@ export const TalkWithBook = ({
     client.on(RTVIEvent.UserStoppedSpeaking, onUserStoppedSpeaking);
     client.on(RTVIEvent.BotStartedSpeaking, onBotStartedSpeaking);
     client.on(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
+    client.on(RTVIEvent.BotLlmStarted, onBotLlmStarted);
+    client.on(RTVIEvent.BotLlmStopped, onBotLlmStopped);
     client.on(RTVIEvent.UserTranscript, onUserTranscript);
     client.on(RTVIEvent.BotTranscript, onBotTranscript);
     client.on(RTVIEvent.ServerMessage, onServerMessage);
@@ -297,6 +313,8 @@ export const TalkWithBook = ({
       client.off(RTVIEvent.UserStoppedSpeaking, onUserStoppedSpeaking);
       client.off(RTVIEvent.BotStartedSpeaking, onBotStartedSpeaking);
       client.off(RTVIEvent.BotStoppedSpeaking, onBotStoppedSpeaking);
+      client.off(RTVIEvent.BotLlmStarted, onBotLlmStarted);
+      client.off(RTVIEvent.BotLlmStopped, onBotLlmStopped);
       client.off(RTVIEvent.UserTranscript, onUserTranscript);
       client.off(RTVIEvent.BotTranscript, onBotTranscript);
       client.off(RTVIEvent.ServerMessage, onServerMessage);
@@ -308,7 +326,9 @@ export const TalkWithBook = ({
     addVoicebotMessage,
     startListening,
     startSpeaking,
+    startThinking,
     syncMic,
+    isBotSpeaking,
     selectedBook?.id,
     chapter,
     botConfig?.metadata?.book?.progress,
@@ -418,9 +438,7 @@ export const TalkWithBook = ({
 
   const renderedServerContent = useMemo(() => {
     if (modalityKey.includes("vocab")) {
-      return (
-        <VocabularyPanel event={serverEvent} isWaiting={!serverEvent} />
-      );
+      return <VocabularyPanel event={serverEvent} isWaiting={!serverEvent} />;
     }
 
     if (!serverEvent) {
@@ -442,8 +460,20 @@ export const TalkWithBook = ({
     );
   }, [modalityKey, serverEvent]);
 
+  const characterAccent = currentCharacter?.customBg ?? "";
+  const characterBgClass = currentCharacter?.bg ?? "";
+  const talkBackgroundStyle = useMemo(() => {
+    if (!characterAccent) return undefined;
+    return {
+      backgroundColor: characterAccent,
+    };
+  }, [characterAccent]);
+
   return (
-    <div className="inset-0 flex flex-col overflow-hidden">
+    <div
+      className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass}`}
+      style={talkBackgroundStyle}
+    >
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
@@ -465,7 +495,7 @@ export const TalkWithBook = ({
         ref={logsRef}
         className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
       />
-      <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center gap-2">
+      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
         <AnimationManager
           agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
           userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
@@ -474,6 +504,13 @@ export const TalkWithBook = ({
           characterImages={currentCharacter?.images}
           characterName={currentCharacter?.name}
         />
+
+        {isBotThinking && (
+          <div className="flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 shadow-sm">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
+            Tomo is thinking...
+          </div>
+        )}
 
         {showControlButton && (
           <>
