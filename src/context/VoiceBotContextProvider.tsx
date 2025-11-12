@@ -15,25 +15,15 @@ import {
   START_SLEEPING,
   START_THINKING,
   ADD_MESSAGE,
-  SET_PARAMS_ON_COPY_URL,
-  ADD_BEHIND_SCENES_EVENT,
   CLEAR_MESSAGES,
   SET_CONVERSATION_CONFIG,
+  SET_CURRENT_CONVERSATION_ID,
 } from "./VoiceBotReducer";
 
 import { USE_MOCK_DATA, mockMessages } from "../utils/mockData";
 import { useConversations } from "../hooks/useConversations";
 
 const defaultSleepTimeoutSeconds = 30;
-
-export enum EventType {
-  SETTINGS_APPLIED = "SettingsApplied",
-  AGENT_AUDIO_DONE = "AgentAudioDone",
-  USER_STARTED_SPEAKING = "UserStartedSpeaking",
-  AGENT_STARTED_SPEAKING = "AgentStartedSpeaking",
-  CONVERSATION_TEXT = "ConversationText",
-  END_OF_THOUGHT = "EndOfThought",
-}
 
 export type VoiceBotMessage = LatencyMessage | ConversationMessage;
 
@@ -46,18 +36,6 @@ export type ConversationMessage = UserMessage | AssistantMessage;
 
 export type UserMessage = { user: string };
 export type AssistantMessage = { assistant: string };
-
-export type BehindTheScenesEvent =
-  | { type: EventType.SETTINGS_APPLIED }
-  | { type: EventType.USER_STARTED_SPEAKING }
-  | { type: EventType.AGENT_STARTED_SPEAKING }
-  | {
-      type: EventType.CONVERSATION_TEXT;
-      role: "user" | "assistant";
-      content: string;
-    }
-  | { type: "Interruption" }
-  | { type: EventType.END_OF_THOUGHT };
 
 export const isConversationMessage = (
   voiceBotMessage: VoiceBotMessage,
@@ -100,8 +78,6 @@ export interface VoiceBotState {
   status: VoiceBotStatus;
   sleepTimer: number;
   messages: VoiceBotMessage[];
-  attachParamsToCopyUrl: boolean;
-  behindTheScenesEvents: BehindTheScenesEvent[];
   messageCount: number;
   conversationConfig: ConversationConfig;
   currentConversationId: string | null;
@@ -109,7 +85,6 @@ export interface VoiceBotState {
 
 export interface VoiceBotContext extends VoiceBotState {
   addVoicebotMessage: (newMessage: VoiceBotMessage) => void;
-  addBehindTheScenesEvent: (data: BehindTheScenesEvent) => void;
   isWaitingForUserVoiceAfterSleep: React.Ref<boolean>;
   startSpeaking: (wakeFromSleep?: boolean) => void;
   startListening: (wakeFromSleep?: boolean) => void;
@@ -117,7 +92,6 @@ export interface VoiceBotContext extends VoiceBotState {
   startSleeping: () => void;
   toggleSleep: () => void;
   displayOrder: VoiceBotMessage[];
-  setAttachParamsToCopyUrl: (attachParamsToCopyUrl: boolean) => void;
   setConversationConfig: (config: ConversationConfig) => void;
   clearConversation: () => void;
   conversationSaving: boolean;
@@ -128,8 +102,6 @@ const initialState: VoiceBotState = {
   status: VoiceBotStatus.SPEAKING,
   sleepTimer: 0,
   messages: USE_MOCK_DATA ? mockMessages : [],
-  attachParamsToCopyUrl: true,
-  behindTheScenesEvents: [],
   messageCount: 0,
   conversationConfig: {
     studentId: null,
@@ -269,7 +241,7 @@ export function VoiceBotProvider({ children }: Props) {
               // Update the state with the new conversation ID
               try {
                 dispatch({
-                  type: "SET_CURRENT_CONVERSATION_ID",
+                  type: SET_CURRENT_CONVERSATION_ID,
                   payload: result.conversationId || null,
                 });
               } catch (dispatchError) {
@@ -316,10 +288,6 @@ export function VoiceBotProvider({ children }: Props) {
   const addVoicebotMessage = (newMessage: VoiceBotMessage) => {
     console.log("addVoicebotMessage", newMessage);
     dispatch({ type: ADD_MESSAGE, payload: newMessage });
-  };
-
-  const addBehindTheScenesEvent = (event: BehindTheScenesEvent) => {
-    dispatch({ type: ADD_BEHIND_SCENES_EVENT, payload: event });
   };
 
   const startSpeaking = useCallback(
@@ -385,16 +353,6 @@ export function VoiceBotProvider({ children }: Props) {
     return acc;
   }, [state.messages]);
 
-  const setAttachParamsToCopyUrl = useCallback(
-    (attachParamsToCopyUrl: boolean) => {
-      dispatch({
-        type: SET_PARAMS_ON_COPY_URL,
-        payload: attachParamsToCopyUrl,
-      });
-    },
-    [],
-  );
-
   const setConversationConfig = useCallback((config: ConversationConfig) => {
     // Check if config actually changed to prevent unnecessary updates
     const prev = previousConfigRef.current;
@@ -411,7 +369,7 @@ export function VoiceBotProvider({ children }: Props) {
     // Always reset session tracking when configuration changes
     // This ensures each new session (even same student/book) gets a new conversation
     sessionConversationId.current = null;
-    dispatch({ type: "SET_CURRENT_CONVERSATION_ID", payload: null });
+    dispatch({ type: SET_CURRENT_CONVERSATION_ID, payload: null });
     lastSavedMessageCount.current = 0;
     isCurrentlySaving.current = false;
 
@@ -430,7 +388,7 @@ export function VoiceBotProvider({ children }: Props) {
 
     // Reset session conversation tracking
     sessionConversationId.current = null;
-    dispatch({ type: "SET_CURRENT_CONVERSATION_ID", payload: null });
+    dispatch({ type: SET_CURRENT_CONVERSATION_ID, payload: null });
     lastSavedMessageCount.current = 0;
     isCurrentlySaving.current = false;
 
@@ -449,13 +407,11 @@ export function VoiceBotProvider({ children }: Props) {
       isWaitingForUserVoiceAfterSleep,
       displayOrder,
       addVoicebotMessage,
-      addBehindTheScenesEvent,
       startSpeaking,
       startListening,
       startThinking,
       startSleeping,
       toggleSleep,
-      setAttachParamsToCopyUrl,
       setConversationConfig,
       clearConversation,
       conversationSaving,
@@ -466,7 +422,6 @@ export function VoiceBotProvider({ children }: Props) {
       startListening,
       startSpeaking,
       toggleSleep,
-      setAttachParamsToCopyUrl,
       setConversationConfig,
       displayOrder,
       startThinking,
