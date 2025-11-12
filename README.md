@@ -21,7 +21,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    VITE_DAILY_PROXY_URL=<https endpoint returning room_url + token>
    VITE_SMALL_WEBRTC_URL=<Pipecat offer endpoint>
    ```
-   The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
+   The GitHub Pages workflow expects the same variables (store them as repository secrets). The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
 4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the Daily SDK; the default path uses Small WebRTC.
 
 ## Useful Scripts
