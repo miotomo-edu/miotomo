@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build
+        env:
+          VITE_DAILY_PROXY_URL: ${{ secrets.VITE_DAILY_PROXY_URL }}
+          VITE_SMALL_WEBRTC_URL: ${{ secrets.VITE_SMALL_WEBRTC_URL }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -8,7 +8,6 @@ import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport";
 import { DailyTransport } from "@pipecat-ai/daily-transport";
 
 import "./styles/globals.css";
-import { stsConfig } from "./lib/constants";
 
 const queryClient = new QueryClient();
 
@@ -50,12 +49,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <PipecatClientProvider client={client}>
-        <App
-          defaultStsConfig={{
-            ...stsConfig,
-          }}
-          transportType={transportType ?? "webrtc"}
-        />
+        <App transportType={transportType ?? "webrtc"} />
       </PipecatClientProvider>
     </QueryClientProvider>
   </React.StrictMode>,

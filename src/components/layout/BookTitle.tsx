@@ -13,19 +13,25 @@ const BookTitle = ({ book, chapter, onBack }: BookTitleProps) => (
     {/* Back button, top-aligned */}
     <button
       onClick={onBack}
-      className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center mr-8 mt-1"
+      className="w-10 h-10 flex items-center justify-center mr-8 mt-1 rounded-full transition-colors duration-200 ease-in-out hover:bg-gray-200 hover:text-blue-600"
       aria-label="Back"
       type="button"
       style={{ flexShrink: 0 }}
     >
       {/* Arrow icon */}
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <path
-          d="M13 16L7 10L13 4"
-          stroke="#000"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          d="M15.8327 10L4.16602 10.0003L9.99935 4.16699L4.16602 10.0003L9.99935 15.8337"
+          stroke="black"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         />
       </svg>
     </button>
