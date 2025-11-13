@@ -486,9 +486,7 @@ export const TalkWithBook = ({
       </div>
 
       <div className="flex-1 px-6 pt-4 overflow-hidden">
-        <div className="h-full w-full rounded-[32px] border border-black/5 bg-white/70 shadow-sm backdrop-blur-sm">
-          {renderedServerContent}
-        </div>
+        <div className="h-full w-full">{renderedServerContent}</div>
       </div>
 
       <div
