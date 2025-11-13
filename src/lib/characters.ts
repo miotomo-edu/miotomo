@@ -97,7 +97,7 @@ export const characterData: Character[] = [
     modality: "Word wizard",
     x: 40,
     prompt: "vocabulary",
-    modalities: "vocabulary, spelling",
+    modalities: "vocabulary",
     voice: "aura-2-ophelia-en",
   },
   // {
