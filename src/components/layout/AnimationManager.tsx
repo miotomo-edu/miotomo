@@ -18,6 +18,7 @@ interface Props {
     listening?: string;
   };
   characterName?: string;
+  onMicToggle?: (enabled: boolean) => void;
 }
 
 const AnimationManager: React.FC<Props> = ({
@@ -27,6 +28,7 @@ const AnimationManager: React.FC<Props> = ({
   isBotSpeaking = false,
   characterImages,
   characterName,
+  onMicToggle,
 }) => {
   const client = usePipecatClient();
 
@@ -59,6 +61,8 @@ const AnimationManager: React.FC<Props> = ({
     client?.sendClientMessage("control", {
       action: newState ? "resumeListening" : "pauseListening",
     });
+
+    onMicToggle?.(newState);
   };
 
   const handleOrbClick = () => {
