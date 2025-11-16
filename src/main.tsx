@@ -37,7 +37,8 @@ const client = new PipecatClient({
     onBotConnected: (participant) =>
       console.log(`Bot connected: ${JSON.stringify(participant)}`),
     onUserTranscript: (data) => {
-      if (data.final) console.log(`User: ${data.text}`);
+      // if (data.final)
+      console.log(`User: ${data.text}`);
     },
     onBotTranscript: (data) => {
       console.log(`Bot: ${data.text}`);

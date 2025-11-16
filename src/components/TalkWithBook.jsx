@@ -33,6 +33,8 @@ export const TalkWithBook = ({
 
   const startedHereRef = useRef(false);
   const startedChatRef = useRef(false);
+  const userMutedRef = useRef(false);
+  const micEnabledRef = useRef(false);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -127,9 +129,10 @@ export const TalkWithBook = ({
 
   // 🔹 Unified mic sync helper
   const syncMic = useCallback(
-    (enabled = true) => {
+    (enabled = true, options = {}) => {
+      const { force = false } = options;
       console.log(
-        `🎤 syncMic called with enabled=${enabled}, isConnected=${isConnected}`,
+        `🎤 syncMic called with enabled=${enabled}, isConnected=${isConnected}, force=${force}`,
       );
 
       // Don't try to send messages if not connected
@@ -138,13 +141,25 @@ export const TalkWithBook = ({
         return;
       }
 
+      if (!force && enabled && userMutedRef.current) {
+        console.log("⏸️ Mic paused by user - skipping auto resume");
+        return;
+      }
+
+      if (!force && micEnabledRef.current === enabled) {
+        console.log("ℹ️ Mic already in desired state - skipping sync");
+        return;
+      }
+
       try {
         enableMic(enabled);
+        micEnabledRef.current = enabled;
         if (enabled) {
           sendClientMessage("control", { action: "resumeListening" });
           startListening();
           console.log("✅ Mic enabled and listening resumed");
         } else {
+          sendClientMessage("control", { action: "pauseListening" });
           console.log("✅ Mic disabled");
         }
       } catch (e) {
@@ -152,6 +167,17 @@ export const TalkWithBook = ({
       }
     },
     [enableMic, sendClientMessage, startListening, isConnected],
+  );
+
+  const handleMicToggle = useCallback(
+    (nextEnabled) => {
+      userMutedRef.current = !nextEnabled;
+      micEnabledRef.current = nextEnabled;
+      if (nextEnabled) {
+        startListening();
+      }
+    },
+    [startListening],
   );
 
   // Reset refs when component mounts
@@ -178,6 +204,8 @@ export const TalkWithBook = ({
     } catch (e) {
       console.warn("Failed to disable mic:", e);
     }
+    micEnabledRef.current = false;
+    userMutedRef.current = false;
 
     startedHereRef.current = false;
     startedChatRef.current = false; // Reset chat started flag
@@ -214,6 +242,8 @@ export const TalkWithBook = ({
     const onDisconnected = () => {
       addLog("❌ Disconnected");
       enableMic(false);
+      micEnabledRef.current = false;
+      userMutedRef.current = false;
       startedChatRef.current = false;
       setIsBotThinking(false);
     };
@@ -469,6 +499,16 @@ export const TalkWithBook = ({
     };
   }, [characterAccent]);
 
+  const thinkingCharacterName =
+    currentCharacter?.name?.trim() && currentCharacter.name.trim().length > 0
+      ? currentCharacter.name.trim()
+      : "Tomo";
+  const showThinkingBadge =
+    isBotThinking &&
+    thinkingCharacterName.toLowerCase() !== "wordie" &&
+    thinkingCharacterName.length > 0;
+  const thinkingLabel = `${thinkingCharacterName} is thinking...`;
+
   return (
     <div
       className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass}`}
@@ -493,22 +533,18 @@ export const TalkWithBook = ({
         ref={logsRef}
         className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
       />
-      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-        <AnimationManager
-          agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
-          userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
-          isUserSpeaking={isMicActive}
-          isBotSpeaking={isBotSpeaking}
-          characterImages={currentCharacter?.images}
-          characterName={currentCharacter?.name}
-        />
-
-        {isBotThinking && (
-          <div className="flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 shadow-sm">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
-            Tomo is thinking...
-          </div>
-        )}
+      <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
+        <div className="flex justify-center">
+          <AnimationManager
+            agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
+            userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
+            isUserSpeaking={isMicActive}
+            isBotSpeaking={isBotSpeaking}
+            characterImages={currentCharacter?.images}
+            characterName={currentCharacter?.name}
+            onMicToggle={handleMicToggle}
+          />
+        </div>
 
         {showControlButton && (
           <>
@@ -545,6 +581,15 @@ export const TalkWithBook = ({
           </div>
         )}
       </div>
+
+      {showThinkingBadge && (
+        <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
+          <div className="flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 shadow-sm">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
+            {thinkingLabel}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
