@@ -5,12 +5,14 @@ interface CharacterImages {
   idle: string;
   sleeping?: string;
   listening?: string;
+  celebrating?: string;
 }
 
 interface Props {
   analyser?: AnalyserNode | null;
   isSleeping?: boolean;
   isListening?: boolean;
+  isCelebrating?: boolean;
   images: CharacterImages;
   characterName?: string;
 }
@@ -21,15 +23,19 @@ const CharacterAvatar: React.FC<Props> = ({
   analyser,
   isSleeping = false,
   isListening = false,
+  isCelebrating = false,
   images,
   characterName = "character",
 }) => {
   const baselineImage = images?.idle;
   const sleepingImage = images?.sleeping || baselineImage;
   const listeningImage = images?.listening || baselineImage;
+  const celebratingImage = images?.celebrating || baselineImage;
   const displayImage = isSleeping
     ? sleepingImage
-    : isListening
+    : isCelebrating
+      ? celebratingImage
+      : isListening
       ? listeningImage
       : baselineImage;
 

@@ -40,6 +40,7 @@ export const TalkWithBook = ({
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [serverEvent, setServerEvent] = useState(null);
+  const [isCelebrating, setIsCelebrating] = useState(false);
 
   const {
     addVoicebotMessage,
@@ -515,6 +516,31 @@ export const TalkWithBook = ({
     thinkingCharacterName.length > 0;
   const thinkingLabel = `${thinkingCharacterName} is thinking...`;
 
+  useEffect(() => {
+    const deriveEventType = (event) => {
+      if (!event) return null;
+      if (typeof event === "string") {
+        try {
+          const parsed = JSON.parse(event);
+          return (
+            parsed?.event_type || parsed?.eventType || parsed?.type || null
+          );
+        } catch (err) {
+          return null;
+        }
+      }
+      if (typeof event === "object") {
+        return event.event_type || event.eventType || event.type || null;
+      }
+      return null;
+    };
+
+    const eventType = deriveEventType(serverEvent);
+    if (eventType === "celebration_sent") {
+      setIsCelebrating(true);
+    }
+  }, [serverEvent]);
+
   return (
     <div
       className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass}`}
@@ -549,6 +575,7 @@ export const TalkWithBook = ({
             characterImages={currentCharacter?.images}
             characterName={currentCharacter?.name}
             onMicToggle={handleMicToggle}
+            isCelebrating={isCelebrating}
           />
         </div>
 

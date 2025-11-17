@@ -19,6 +19,7 @@ interface Props {
   };
   characterName?: string;
   onMicToggle?: (enabled: boolean) => void;
+  isCelebrating?: boolean;
 }
 
 const AnimationManager: React.FC<Props> = ({
@@ -29,6 +30,7 @@ const AnimationManager: React.FC<Props> = ({
   characterImages,
   characterName,
   onMicToggle,
+  isCelebrating = false,
 }) => {
   const client = usePipecatClient();
 
@@ -120,6 +122,7 @@ const AnimationManager: React.FC<Props> = ({
         >
           <CharacterAvatar
             analyser={isMicEnabled ? (userVoiceAnalyser ?? null) : null}
+            isCelebrating={isCelebrating}
             isSleeping={isSleepingDisplay}
             isListening={isListeningDisplay}
             images={
