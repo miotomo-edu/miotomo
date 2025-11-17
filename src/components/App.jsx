@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { PipecatClientAudio } from "@pipecat-ai/client-react";
 
 import Layout from "./layout/Layout";
@@ -13,15 +19,9 @@ import { TalkWithBook } from "./TalkWithBook";
 import ProgressSection from "./sections/ProgressSection";
 import BottomNavBar from "./common/BottomNavBar";
 import OnboardingFlow from "./sections/Onboarding/OnboardingFlow";
+import ChapterSelectorModal from "./common/ChapterSelectorModal";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
-import {
-  loadBookCompanionPrompt,
-  the_green_ray,
-  f1_growing_wings,
-  f1_surving_to_drive,
-} from "../lib/prompts";
-import { getBookSectionType } from "../utils/bookUtils";
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 
 // ⬇️ Reusable connection manager (from your new hook file)
@@ -30,13 +30,16 @@ import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
 const App = ({ transportType }) => {
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
-  const [prompt, setPrompt] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [books, setBooks] = useState([]);
   const mainRef = useRef(null);
   const [userName, setUserName] = useState("");
   const [currentCharacter, setCurrentCharacter] = useState(null);
+  const [isChapterModalOpen, setIsChapterModalOpen] = useState(false);
+  const [chapterModalBook, setChapterModalBook] = useState(null);
+  const [chapterModalChapter, setChapterModalChapter] = useState(1);
+  const chapterConfirmCallbackRef = useRef(null);
 
   // Used to trigger disconnect from BottomNavBar or when leaving interactive
   const disconnectRef = useRef(null);
@@ -53,45 +56,113 @@ const App = ({ transportType }) => {
   } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
 
   useEffect(() => {
-    if (currentCharacter?.prompt) {
-      loadBookCompanionPrompt(currentCharacter.prompt).then(setPrompt);
-    }
-  }, [currentCharacter]);
-
-  useEffect(() => {
     if (student?.name) setUserName(student.name);
   }, [student]);
 
-  const introduction =
-    selectedBook && currentCharacter
-      ? `You are ${currentCharacter.name}, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}. Focus on chapter ${selectedChapter}.`
-      : selectedBook
-        ? `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10, about the book "${selectedBook.title}" by ${selectedBook.author}.`
-        : `You are Tomo, a warm, curious, and encouraging AI companion who chats with ${userName}, a child aged 10 about a book.`;
+  const normalizeChapterValue = useMemo(() => {
+    return (book, rawChapter) => {
+      if (!book) return 1;
+      const progressValue =
+        typeof book.progress === "number" && book.progress > 0
+          ? book.progress
+          : 1;
+      const fallback =
+        book.chapters && book.chapters > 0
+          ? Math.min(progressValue, book.chapters)
+          : progressValue;
+      const numeric = Number(rawChapter);
+      if (!Number.isFinite(numeric)) {
+        return Math.max(1, fallback || 1);
+      }
+      const rounded = Math.max(1, Math.round(numeric));
+      if (book.chapters && book.chapters > 0) {
+        return Math.min(rounded, book.chapters);
+      }
+      return rounded;
+    };
+  }, []);
 
-  const customization = (() => {
-    switch (selectedBook?.title) {
-      case "The Green Ray":
-        return the_green_ray;
-      case "F1 Growing Wings":
-        return f1_growing_wings;
-      case "Surviving to Drive":
-        return f1_surving_to_drive;
-      default:
-        return "";
+  const closeChapterModal = useCallback(() => {
+    setIsChapterModalOpen(false);
+    setChapterModalBook(null);
+    chapterConfirmCallbackRef.current = null;
+  }, []);
+
+  const goToMapWithSelection = useCallback(
+    (book, chapterValue) => {
+      if (!book) return;
+      const resolvedChapter = normalizeChapterValue(book, chapterValue);
+      setSelectedBook(book);
+      setSelectedChapter(resolvedChapter);
+      setActiveComponent("map");
+    },
+    [normalizeChapterValue],
+  );
+
+  const handleChapterModalConfirm = useCallback(() => {
+    if (!chapterModalBook) return;
+    const confirmedChapter = normalizeChapterValue(
+      chapterModalBook,
+      chapterModalChapter,
+    );
+    const callback = chapterConfirmCallbackRef.current;
+    if (typeof callback === "function") {
+      try {
+        callback(confirmedChapter);
+      } catch (err) {
+        console.error("Chapter confirmation callback failed:", err);
+      }
     }
-  })();
+    goToMapWithSelection(chapterModalBook, confirmedChapter);
+    closeChapterModal();
+  }, [
+    chapterModalBook,
+    chapterModalChapter,
+    normalizeChapterValue,
+    goToMapWithSelection,
+    closeChapterModal,
+  ]);
 
-  const greeting = selectedBook
-    ? `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying ${getBookSectionType(
-        selectedBook.section_type,
-      )} ${selectedChapter} of "${selectedBook.title}"?`
-    : `Hello ${userName}! I'm ${currentCharacter?.name}! Are you enjoying your book?`;
+  const handleChapterModalCancel = useCallback(() => {
+    closeChapterModal();
+  }, [closeChapterModal]);
+
+  const handleChapterModalChange = useCallback((value) => {
+    const numeric = Number(value);
+    setChapterModalChapter(Number.isFinite(numeric) ? numeric : 1);
+  }, []);
+
+  const handleBookSelectForMap = useCallback(
+    (book, chapter, options = {}) => {
+      if (!book) return;
+      const initialChapter = normalizeChapterValue(book, chapter);
+      const { skipChapterModal = false, onChapterConfirmed } = options;
+
+      if (skipChapterModal) {
+        if (typeof onChapterConfirmed === "function") {
+          try {
+            onChapterConfirmed(initialChapter);
+          } catch (err) {
+            console.error("Chapter confirmation callback failed:", err);
+          }
+        }
+        goToMapWithSelection(book, initialChapter);
+        return;
+      }
+
+      chapterConfirmCallbackRef.current =
+        typeof onChapterConfirmed === "function"
+          ? onChapterConfirmed
+          : null;
+      setChapterModalBook(book);
+      setChapterModalChapter(initialChapter);
+      setIsChapterModalOpen(true);
+    },
+    [normalizeChapterValue, goToMapWithSelection],
+  );
 
   const updatedBotConfig = useMemo(
     () => ({
-      prompt: `${introduction}\n${customization}\n${prompt}`,
-      greeting,
       voice: currentCharacter?.voice ?? "default-voice",
       transportType, // 'daily' or 'webrtc' from main.tsx
       metadata: {
@@ -102,11 +173,8 @@ const App = ({ transportType }) => {
       },
     }),
     [
-      prompt,
-      selectedBook,
-      introduction,
-      greeting,
       currentCharacter,
+      selectedBook,
       selectedChapter,
       userName,
       transportType,
@@ -186,11 +254,7 @@ const App = ({ transportType }) => {
             onBookAndCharacterSelect={handleBookAndCharacterSelect}
             userName={userName}
             studentId={studentId}
-            onBookSelectForMap={(book, chapter) => {
-              setSelectedBook(book);
-              setSelectedChapter(chapter);
-              setActiveComponent("map");
-            }}
+            onBookSelectForMap={handleBookSelectForMap}
           />
         );
       case "library":
@@ -204,11 +268,7 @@ const App = ({ transportType }) => {
             onContinue={() => setActiveComponent("interactive")}
             userName={userName}
             studentId={studentId}
-            onBookSelectForMap={(book, chapter) => {
-              setSelectedBook(book);
-              setSelectedChapter(chapter);
-              setActiveComponent("map");
-            }}
+            onBookSelectForMap={handleBookSelectForMap}
           />
         );
       case "progress":
@@ -317,6 +377,15 @@ const App = ({ transportType }) => {
           onDisconnectRef={disconnectRef}
         />
       )}
+
+      <ChapterSelectorModal
+        isOpen={isChapterModalOpen}
+        book={chapterModalBook}
+        selectedChapter={chapterModalChapter}
+        onChapterChange={handleChapterModalChange}
+        onConfirm={handleChapterModalConfirm}
+        onCancel={handleChapterModalCancel}
+      />
 
       {activeComponent !== "landing" && activeComponent !== "onboarding" && (
         <BottomNavBar

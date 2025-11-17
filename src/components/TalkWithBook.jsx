@@ -419,7 +419,11 @@ export const TalkWithBook = ({
         try {
           syncMic(true);
           sendClientMessage("set-language", { language: "en-US" });
-          sendClientMessage("start-chat", { greeting: botConfig?.greeting });
+          sendClientMessage("start-chat", {
+            book_id: selectedBook.id,
+            chapter: chapter ?? "",
+            chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
+          });
           startedChatRef.current = true;
           addLog("start-chat sent (fallback)");
         } catch (e) {
@@ -433,9 +437,11 @@ export const TalkWithBook = ({
     isConnected,
     isConnecting,
     hasRequiredData,
-    botConfig?.greeting,
     syncMic,
     sendClientMessage,
+    selectedBook?.id,
+    chapter,
+    botConfig?.metadata?.book?.progress,
   ]);
 
   // --- Safety: Re-enable mic if connected but not active ---
