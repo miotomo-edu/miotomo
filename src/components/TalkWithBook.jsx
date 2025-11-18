@@ -480,9 +480,7 @@ export const TalkWithBook = ({
 
     if (!serverEvent) {
       return (
-        <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-gray-500">
-          Start chatting with Miotomo to see updates here.
-        </div>
+        <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-gray-500"></div>
       );
     }
 

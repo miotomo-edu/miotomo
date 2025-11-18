@@ -1,7 +1,11 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Miotomo is a Vite + React voice companion. Static assets stay in `public/`; builds land in `dist/`. Within `src/`, UI lives in `components/` (voice transports under `components/features/voice`), prompts plus Deepgram/Pipecat constants live in `lib/`, shared state in `context/`, reusable hooks in `hooks/`, Tailwind entry points in `styles/`, helpers in `utils/`, and media under `assets/img`. Keep new prompt experiments in `src/lib/` and document variants at the top of each file.
+Miotomo is a Vite + React voice companion. Static assets stay in `public/`; builds land in `dist/`. Within `src/`, UI lives in `components/` (voice transports under `components/features/voice`, shared widgets like `ChapterSelectorModal` under `components/common/`), prompts plus Deepgram/Pipecat constants live in `lib/`, shared state in `context/`, reusable hooks in `hooks/`, Tailwind entry points in `styles/`, helpers in `utils/`, and media under `assets/img`. Pipecat now owns the production prompt—keep experiments or handoff drafts in `src/lib/` and document variants at the top of each file.
+
+### Voice & Flow Notes
+- After a reader taps a book anywhere in the Library/Home experience, always open `ChapterSelectorModal` to confirm their current chapter before routing them to the modality map.
+- When Pipecat sends `celebration_sent`, the character avatar swaps to its thumbs-up art; only emit that event when the celebration should persist through the rest of the session.
 
 ## Build, Test, and Development Commands
 - `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport.

@@ -4,9 +4,10 @@ Miotomo is an AI reading companion for 6–12 year olds. Kids pick a book, tap a
 
 ## Highlights
 - **Voice pipeline** – `PipecatClientProvider` wraps the app in `src/main.tsx`, `TalkWithBook` + `usePipecatConnection` switch between Daily or Small WebRTC transports, and `VoiceBotContext` tracks transcripts, sleep state, and manual log messages.
-- **Character modalities** – `src/lib/characters.ts` defines avatars, accent colors, and per-modality prompts; the talk screen inherits the color and surfaces modality-specific panels like `VocabularyPanel`.
-- **Prompt system** – Markdown prompt variants live in `src/lib`, selected via `loadBookCompanionPrompt` before connecting.
+- **Character modalities** – `src/lib/characters.ts` defines avatars, accent colors, celebration art, and modality metadata; the talk screen inherits the color and surfaces modality-specific panels like `VocabularyPanel`.
+- **Prompt system** – Pipecat now owns the full prompt; the frontend simply passes book/chapter/character metadata. Keep any new prompt experiments in `src/lib` for reference or backend handoff.
 - **Supabase integration** – `useStudent`, `useConversations`, and `useProgress` hydrate dashboards and persist transcripts (see `src/hooks/integrations/supabase`).
+- **Chapter picker** – `ChapterSelectorModal` appears after a book is tapped so kids confirm which chapter they’re on before hopping into the modality map.
 
 ## Tech Stack
 React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS · @pipecat-ai client, transports, and React bindings (Deepgram-powered STT/TTS) · Supabase · React Query · TanStack Query for data fetching.
@@ -41,6 +42,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 - `src/components/sections` – Library, Map (modality picker), Progress, Rewards, Settings, etc.
 - `src/lib` – Prompt markdown files, constants, characters, and Pipecat config helpers.
 - `src/styles` – Tailwind entry + shared CSS (e.g., `.app-mobile-shell`, microphone animations).
+- `src/components/common/ChapterSelectorModal.tsx` – Shared chapter picker used by the Library/Home flows before routing kids to the modality map.
 
 ```
 src
@@ -53,10 +55,12 @@ src
 ```
 
 ## Voice + Prompt Flow
-1. `App` selects a book + character and feeds metadata into `TalkWithBook`.
+1. `App` asks the reader which chapter they’re on via `ChapterSelectorModal`, then stores the selection and routes them to the modality map before building the Pipecat metadata bundle.
+2. `App` selects a book + character and feeds metadata into `TalkWithBook`.
 2. `TalkWithBook` waits for `BotReady`, syncs the mic, sends `start-chat`, and renders the server-side event feed (`VocabularyPanel` etc.).
 3. `useConversation` (features/voice) merges bot and user utterances for display and analytics, while `VoiceBotContext` records latency and behind-the-scenes events.
-4. Prompts can be updated in `src/lib/*.md`; persist new variants there and document them in `AGENTS.md`.
+4. When Pipecat emits `celebration_sent`, `AnimationManager` swaps the character into its thumbs-up pose so the avatar keeps celebrating through the end of the session.
+5. Prompts can still be prototyped in `src/lib/*.md`, but the production bot prompt lives in Pipecat—document any backend updates in `AGENTS.md`.
 
 ## Data & Persistence
 - Supabase tables: `students`, `books`, `conversations`. `useConversations` auto-saves after message bursts; `useStudent` enriches the UI with streaks.
