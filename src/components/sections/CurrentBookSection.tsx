@@ -6,16 +6,39 @@ import { Book } from "../sections/LibrarySection";
 import { getBookSectionType } from "../../utils/bookUtils";
 // No longer importing BookCard as we're using a custom layout for each book
 
+const SESSION_SECONDS = 15 * 60;
+
+const ActiveBadge: React.FC<{ elapsedSeconds: number }> = ({
+  elapsedSeconds,
+}) => {
+  const remaining = Math.max(SESSION_SECONDS - Math.max(0, elapsedSeconds), 0);
+  const minutes = Math.floor(remaining / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = Math.floor(remaining % 60)
+    .toString()
+    .padStart(2, "0");
+
+  return (
+    <div className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+      <span className="h-2 w-2 rounded-full bg-green-500" />
+      Time left {minutes}:{seconds}
+    </div>
+  );
+};
+
 type CurrentBookSectionProps = {
   books: Book[]; // Remains an array of books
   chapter?: number;
   onContinue?: (book: Book, chapter: number) => void; // Passes the specific book being interacted with
+  activeConversations?: Record<string, number>;
 };
 
 const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
   books,
   chapter,
   onContinue,
+  activeConversations = {},
 }) => (
   <section className="py-6 mb-6 px-4">
     {/* This is the carousel container */}
@@ -58,8 +81,13 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                     <div className="text-xl font-bold">{book.title}</div>
                     <div className="text-gray-500">by {book.author}</div>
                   </div>
-                  <div className="text-sm font-bold capitalize">
-                    {getBookSectionType(book.section_type)} {effectiveChapter}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-bold capitalize">
+                      {getBookSectionType(book.section_type)} {effectiveChapter}
+                    </div>
+                    {typeof activeConversations[book.id] === "number" && (
+                      <ActiveBadge elapsedSeconds={activeConversations[book.id]} />
+                    )}
                   </div>
 
                   <button

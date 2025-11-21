@@ -51,7 +51,6 @@ const VocabularyPanel: React.FC<Props> = ({ event, isWaiting }) => {
   const isCorrect = extractField(event, "correct") as boolean | null;
   const eventType = extractField(event, "event_type") as string | null;
   const phase = extractField(event, "phase") as string | null;
-  const gameType = extractField(event, "game_type") as string | null;
   const [statuses, setStatuses] = useState<Array<"correct" | "incorrect" | null>>([]);
 
   useEffect(() => {
@@ -88,11 +87,7 @@ const VocabularyPanel: React.FC<Props> = ({ event, isWaiting }) => {
   const showWord = eventType !== "game_complete";
 
   if (isWaiting || (!word && showWord)) {
-    return (
-      <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-gray-500">
-        Waiting for vocabulary challenges…
-      </div>
-    );
+    return <div className="h-full w-full" />;
   }
 
   const total = totalWords ?? statuses.length;

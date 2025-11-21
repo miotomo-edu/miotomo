@@ -44,6 +44,16 @@ export type Database = {
           created_at: string | null;
           updated_at: string | null;
           messages: Json;
+          env: string | null;
+          modalities: string | null;
+          last_server_event: Json | null;
+          status: string | null;
+          elapsed_seconds: number;
+          day: string;
+          last_active_at: string;
+          stage_state: Json | null;
+          context_summary: Json | null;
+          session_count: number;
         };
         Insert: {
           id?: string;
@@ -52,6 +62,16 @@ export type Database = {
           created_at?: string | null;
           updated_at?: string | null;
           messages?: Json;
+          env?: string | null;
+          modalities?: string | null;
+          last_server_event?: Json | null;
+          status?: string | null;
+          elapsed_seconds?: number;
+          day?: string;
+          last_active_at?: string;
+          stage_state?: Json | null;
+          context_summary?: Json | null;
+          session_count?: number;
         };
         Update: {
           id?: string;
@@ -60,6 +80,16 @@ export type Database = {
           created_at?: string | null;
           updated_at?: string | null;
           messages?: Json;
+          env?: string | null;
+          modalities?: string | null;
+          last_server_event?: Json | null;
+          status?: string | null;
+          elapsed_seconds?: number;
+          day?: string;
+          last_active_at?: string;
+          stage_state?: Json | null;
+          context_summary?: Json | null;
+          session_count?: number;
         };
         Relationships: [
           {

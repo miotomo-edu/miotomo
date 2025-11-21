@@ -15,6 +15,15 @@ export interface ConversationData {
   created_at?: string;
   updated_at?: string;
   env: string;
+  modalities?: string | null;
+  last_server_event?: VoiceBotMessage | ConversationMessage | null;
+  status?: string | null;
+  elapsed_seconds?: number;
+  day?: string;
+  last_active_at?: string;
+  stage_state?: unknown;
+  context_summary?: unknown;
+  session_count?: number;
 }
 
 export interface UseConversationsReturn {
@@ -22,10 +31,13 @@ export interface UseConversationsReturn {
     studentId: string,
     bookId: string,
     messages: VoiceBotMessage[],
+    modalities?: string | null,
+    lastServerEvent?: unknown,
   ) => Promise<{ data: any; error: any; conversationId?: string }>;
   updateConversation: (
     conversationId: string,
     messages: VoiceBotMessage[],
+    lastServerEvent?: unknown,
   ) => Promise<{ data: any; error: any }>;
   getConversations: (
     studentId?: string,
@@ -46,7 +58,13 @@ export const useConversations = (): UseConversationsReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const createConversation = useCallback(
-    async (studentId: string, bookId: string, messages: VoiceBotMessage[]) => {
+    async (
+      studentId: string,
+      bookId: string,
+      messages: VoiceBotMessage[],
+      modalities: string | null = null,
+      lastServerEvent: unknown = null,
+    ) => {
       // Fail silently if required parameters are missing
       if (!studentId || !bookId) {
         console.warn("Missing required parameters for conversation creation");
@@ -80,6 +98,8 @@ export const useConversations = (): UseConversationsReturn => {
           book_id: bookId,
           messages: conversationMessages,
           env: window.location.hostname === "localhost" ? "dev" : "prod",
+          modalities: modalities ?? null,
+          last_server_event: lastServerEvent ?? null,
         };
 
         const tableName = "conversations";
@@ -114,7 +134,11 @@ export const useConversations = (): UseConversationsReturn => {
   );
 
   const updateConversation = useCallback(
-    async (conversationId: string, messages: VoiceBotMessage[]) => {
+    async (
+      conversationId: string,
+      messages: VoiceBotMessage[],
+      lastServerEvent: unknown = null,
+    ) => {
       // Fail silently if required parameters are missing
       if (!conversationId) {
         console.warn("Missing conversation ID for update");
@@ -145,6 +169,7 @@ export const useConversations = (): UseConversationsReturn => {
 
         const updateData: TablesUpdate<"conversations"> = {
           messages: conversationMessages,
+          last_server_event: lastServerEvent ?? undefined,
         };
 
         const tableName = "conversations";
@@ -189,11 +214,7 @@ export const useConversations = (): UseConversationsReturn => {
         let query = supabase
           .from(tableName)
           .select(
-            `
-            *,
-            students(name, avatar),
-            books(title, author, cover)
-          `,
+            "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
           )
           .order("created_at", { ascending: false });
 
@@ -242,11 +263,7 @@ export const useConversations = (): UseConversationsReturn => {
       const { data, error } = await supabase
         .from(tableName)
         .select(
-          `
-          *,
-          students(name, avatar),
-          books(title, author, cover)
-        `,
+          "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
         )
         .eq("id", conversationId)
         .single();
