@@ -8,6 +8,21 @@ import { getBookSectionType } from "../../utils/bookUtils";
 
 const SESSION_SECONDS = 15 * 60;
 
+const END_OF_DAY_MESSAGES = [
+  "Great job today! See you tomorrow!",
+  "Awesome work! Come back tomorrow!",
+  "All done for today! See you tomorrow!",
+  "You crushed it! Back tomorrow for more!",
+  "Nice work! See you tomorrow!",
+  "Mission complete! Come back tomorrow!",
+  "That's it for today! See you tomorrow!",
+  "You did great! Tomorrow we continue!",
+  "Time's up! Can't wait for tomorrow!",
+  "Well done! See you tomorrow!",
+  "Fantastic! Come back tomorrow!",
+  "All finished! See you tomorrow!",
+];
+
 const ActiveBadge: React.FC<{ elapsedSeconds: number }> = ({
   elapsedSeconds,
 }) => {
@@ -31,7 +46,10 @@ type CurrentBookSectionProps = {
   books: Book[]; // Remains an array of books
   chapter?: number;
   onContinue?: (book: Book, chapter: number) => void; // Passes the specific book being interacted with
-  activeConversations?: Record<string, number>;
+  activeConversations?: Record<
+    string,
+    { status?: string | null; elapsedSeconds?: number | null }
+  >;
 };
 
 const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
@@ -85,19 +103,37 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                     <div className="text-sm font-bold capitalize">
                       {getBookSectionType(book.section_type)} {effectiveChapter}
                     </div>
-                    {typeof activeConversations[book.id] === "number" && (
-                      <ActiveBadge elapsedSeconds={activeConversations[book.id]} />
-                    )}
+                    {typeof activeConversations[book.id]?.elapsedSeconds ===
+                      "number" &&
+                      activeConversations[book.id]?.status !== "ended" && (
+                        <ActiveBadge
+                          elapsedSeconds={
+                            activeConversations[book.id]?.elapsedSeconds || 0
+                          }
+                        />
+                      )}
                   </div>
 
-                  <button
-                    className="bg-black text-white font-bold py-2 px-4 rounded-lg w-full mt-2"
-                    onClick={() =>
-                      onContinue && onContinue(book, effectiveChapter)
-                    }
-                  >
-                    Continue talking
-                  </button>
+                  {activeConversations[book.id]?.status === "ended" ? (
+                    <div className="mt-2 rounded-lg bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
+                      {
+                        END_OF_DAY_MESSAGES[
+                          Math.floor(
+                            (book.id?.length || 0) % END_OF_DAY_MESSAGES.length,
+                          )
+                        ]
+                      }
+                    </div>
+                  ) : (
+                    <button
+                      className="bg-black text-white font-bold py-2 px-4 rounded-lg w-full mt-2"
+                      onClick={() =>
+                        onContinue && onContinue(book, effectiveChapter)
+                      }
+                    >
+                      Continue talking
+                    </button>
+                  )}
                   <ProgressBar
                     leftColor="#000" // Using the same left color as SplitColorButton for consistency
                     rightColor="#E0E0E0" // A light gray for the "unfilled" part of the bar

@@ -29,7 +29,10 @@ type LibrarySectionProps = {
       skipChapterModal?: boolean;
     },
   ) => void;
-  activeConversations?: Record<string, number>;
+  activeConversations?: Record<
+    string,
+    { status?: string | null; elapsedSeconds?: number | null }
+  >;
 };
 
 const LibrarySection: React.FC<LibrarySectionProps> = ({

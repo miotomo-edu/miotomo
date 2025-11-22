@@ -68,16 +68,17 @@ const App = ({ transportType }) => {
       const { data } = await getConversations(studentId);
       const activeMap = {};
       (data || []).forEach((conv) => {
-        if (
-          conv?.status &&
-          typeof conv.status === "string" &&
-          conv.status !== "ended" &&
-          conv.book_id
-        ) {
-          activeMap[conv.book_id] =
-            typeof conv.elapsed_seconds === "number"
-              ? conv.elapsed_seconds
-              : 0;
+        if (!conv?.book_id) return;
+        const normalizedStatus =
+          typeof conv.status === "string" ? conv.status : "";
+        if (!activeMap[conv.book_id]) {
+          activeMap[conv.book_id] = {
+            status: normalizedStatus,
+            elapsedSeconds:
+              typeof conv.elapsed_seconds === "number"
+                ? conv.elapsed_seconds
+                : 0,
+          };
         }
       });
       setActiveConversations(activeMap);
@@ -188,9 +189,7 @@ const App = ({ transportType }) => {
       }
 
       chapterConfirmCallbackRef.current =
-        typeof onChapterConfirmed === "function"
-          ? onChapterConfirmed
-          : null;
+        typeof onChapterConfirmed === "function" ? onChapterConfirmed : null;
       setChapterModalBook(book);
       setChapterModalChapter(initialChapter);
       setIsChapterModalOpen(true);
@@ -256,11 +255,7 @@ const App = ({ transportType }) => {
   useEffect(() => {
     if (!isInteractiveView) return;
 
-    const scrollTargets = [
-      mainRef.current,
-      window,
-      document.documentElement,
-    ];
+    const scrollTargets = [mainRef.current, window, document.documentElement];
 
     scrollTargets.forEach((target) => {
       if (!target) return;
@@ -315,7 +310,7 @@ const App = ({ transportType }) => {
       case "progress":
         return (
           <ProgressSection
-            conversationId={"7163b97f-bb82-4c30-aa72-ab204647becf"}
+            conversationId={"60efb1f6-0403-47e7-a787-ce4e5f8e8d05"}
           />
         );
       case "profile":
