@@ -42,6 +42,7 @@ const App = ({ transportType }) => {
   const [chapterModalChapter, setChapterModalChapter] = useState(1);
   const chapterConfirmCallbackRef = useRef(null);
   const [activeConversations, setActiveConversations] = useState({});
+  const [latestConversationId, setLatestConversationId] = useState(null);
 
   // Used to trigger disconnect from BottomNavBar or when leaving interactive
   const disconnectRef = useRef(null);
@@ -82,6 +83,7 @@ const App = ({ transportType }) => {
         }
       });
       setActiveConversations(activeMap);
+      setLatestConversationId(data?.[0]?.id ?? null);
     } catch (err) {
       console.warn("Failed to fetch active conversations:", err);
     }
@@ -310,7 +312,7 @@ const App = ({ transportType }) => {
       case "progress":
         return (
           <ProgressSection
-            conversationId={"60efb1f6-0403-47e7-a787-ce4e5f8e8d05"}
+            conversationId={latestConversationId || undefined}
           />
         );
       case "profile":

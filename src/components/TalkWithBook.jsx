@@ -16,6 +16,8 @@ import {
 import { isMobile } from "react-device-detect";
 
 import { usePipecatConnection } from "../hooks/usePipecatConnection";
+import { useConversations } from "../hooks/useConversations";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 export const TalkWithBook = ({
   botConfig,
@@ -36,6 +38,8 @@ export const TalkWithBook = ({
   const startedChatRef = useRef(false);
   const userMutedRef = useRef(false);
   const micEnabledRef = useRef(false);
+  const hadConversationRef = useRef(false);
+  const hasSubmittedSummaryRef = useRef(false);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -54,6 +58,8 @@ export const TalkWithBook = ({
   } = useVoiceBot();
 
   const { enableMic } = usePipecatClientMicControl();
+  const { getConversations } = useConversations();
+  const { wakeAnalytics, callAnalyzeConversation } = useAnalytics();
 
   // 🎤 Tracks
   const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
@@ -137,6 +143,11 @@ export const TalkWithBook = ({
   useEffect(() => {
     setLatestServerEvent(serverEvent ?? null);
   }, [serverEvent, setLatestServerEvent]);
+
+  useEffect(() => {
+    hasSubmittedSummaryRef.current = false;
+    hadConversationRef.current = false;
+  }, [selectedBook?.id, chapter]);
 
   const addLog = (msg) => {
     if (logsRef.current) {
@@ -287,6 +298,9 @@ export const TalkWithBook = ({
           return;
         }
 
+        // Wake up analytics service
+        wakeAnalytics();
+
         // CRITICAL: Enable mic when bot is ready
         syncMic(true);
 
@@ -297,6 +311,7 @@ export const TalkWithBook = ({
             chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
           });
           startedChatRef.current = true;
+          hadConversationRef.current = true;
           addLog("✅ start-chat sent");
         } catch (error) {
           console.error("Error sending start messages:", error);
@@ -441,6 +456,9 @@ export const TalkWithBook = ({
       // Wait a bit to ensure connection is fully ready
       const timer = setTimeout(() => {
         try {
+          // Wake up analytics service
+          wakeAnalytics();
+
           syncMic(true);
           sendClientMessage("set-language", { language: "en-US" });
           sendClientMessage("start-chat", {
@@ -449,6 +467,7 @@ export const TalkWithBook = ({
             chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
           });
           startedChatRef.current = true;
+          hadConversationRef.current = true;
           addLog("start-chat sent (fallback)");
         } catch (e) {
           console.error("fallback start-chat failed:", e);
@@ -626,6 +645,78 @@ export const TalkWithBook = ({
       setIsCelebrating(true);
     }
   }, [eventMeta.eventType]);
+
+  useEffect(() => {
+    if (
+      isConnected ||
+      hasSubmittedSummaryRef.current ||
+      !hadConversationRef.current ||
+      !studentId ||
+      !selectedBook?.id
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let retryTimeout;
+
+    const runAnalytics = async () => {
+      try {
+        const { data } = await getConversations(studentId, selectedBook.id);
+        const latestConversation = (data || [])[0];
+
+        if (!latestConversation?.id) {
+          if (!cancelled) {
+            retryTimeout = window.setTimeout(runAnalytics, 2000);
+          }
+          return;
+        }
+
+        const normalizedChapterStart =
+          typeof botConfig?.metadata?.book?.progress === "number"
+            ? botConfig.metadata.book.progress
+            : parseInt(
+                botConfig?.metadata?.book?.progress ?? `${chapter ?? 0}`,
+                10,
+              ) || 0;
+        const normalizedChapterEnd =
+          typeof chapter === "number"
+            ? chapter
+            : parseInt(chapter ?? "0", 10) || normalizedChapterStart;
+
+        await callAnalyzeConversation({
+          conversationId: latestConversation.id,
+          bookId: latestConversation.book_id,
+          chapterStart: normalizedChapterStart,
+          chapterEnd: normalizedChapterEnd,
+          saveResults: true,
+        });
+
+        hasSubmittedSummaryRef.current = true;
+      } catch (err) {
+        console.error("Failed to analyze conversation:", err);
+        if (!cancelled) {
+          retryTimeout = window.setTimeout(runAnalytics, 5000);
+        }
+      }
+    };
+
+    runAnalytics();
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+    };
+  }, [
+    isConnected,
+    studentId,
+    selectedBook?.id,
+    chapter,
+    getConversations,
+    botConfig?.metadata?.book?.progress,
+  ]);
 
   return (
     <div
