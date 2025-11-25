@@ -18,10 +18,15 @@ export interface ConversationData {
   session_count?: number;
 }
 
+type GetConversationsOptions = {
+  includeFallback?: boolean;
+};
+
 export interface UseConversationsReturn {
   getConversations: (
     studentId?: string,
     bookId?: string,
+    options?: GetConversationsOptions,
   ) => Promise<{ data: any; error: any }>;
   getConversationById: (
     conversationId: string,
@@ -38,7 +43,11 @@ export const useConversations = (): UseConversationsReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const getConversations = useCallback(
-    async (studentId?: string, bookId?: string) => {
+    async (
+      studentId?: string,
+      bookId?: string,
+      options: GetConversationsOptions = {},
+    ) => {
       setLoading(true);
       setError(null);
 
@@ -61,14 +70,37 @@ export const useConversations = (): UseConversationsReturn => {
         }
 
         const today = new Date().toISOString().slice(0, 10);
-        query = query.eq("day", today);
 
-        const { data, error } = await query;
+        const { data, error } = await query.eq("day", today);
 
         if (error) {
           console.error("Error fetching conversations:", error);
           setError(error.message);
           return { data: [], error }; // Return empty array instead of null
+        }
+
+        if (options.includeFallback && (!data || data.length === 0)) {
+          const fallbackQuery = supabase
+            .from(tableName)
+            .select(
+              "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
+            )
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (studentId) fallbackQuery.eq("student_id", studentId);
+          if (bookId) fallbackQuery.eq("book_id", bookId);
+
+          const { data: fallbackData, error: fallbackError } =
+            await fallbackQuery;
+
+          if (fallbackError) {
+            console.error("Error fetching fallback conversations:", fallbackError);
+            setError(fallbackError.message);
+            return { data: [], error: fallbackError };
+          }
+
+          return { data: fallbackData || [], error: null };
         }
 
         return { data: data || [], error: null };

@@ -83,7 +83,16 @@ const App = ({ transportType }) => {
         }
       });
       setActiveConversations(activeMap);
-      setLatestConversationId(data?.[0]?.id ?? null);
+      if (data && data.length > 0) {
+        setLatestConversationId(data?.[0]?.id ?? null);
+      } else {
+        const { data: fallbackData } = await getConversations(
+          studentId,
+          undefined,
+          { includeFallback: true },
+        );
+        setLatestConversationId(fallbackData?.[0]?.id ?? null);
+      }
     } catch (err) {
       console.warn("Failed to fetch active conversations:", err);
     }
