@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { PipecatClientAudio } from "@pipecat-ai/client-react";
+import BotAudio from "./audio/BotAudio";
 
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
@@ -320,9 +320,7 @@ const App = ({ transportType }) => {
         );
       case "progress":
         return (
-          <ProgressSection
-            conversationId={latestConversationId || undefined}
-          />
+          <ProgressSection conversationId={latestConversationId || undefined} />
         );
       case "profile":
         return <ProfileSection />;
@@ -356,7 +354,7 @@ const App = ({ transportType }) => {
               onDisconnectRequest={disconnectRef}
               connectionManagedExternally={shouldShowConnectionManager}
             />
-            <PipecatClientAudio volume={1.0} muted={false} />
+            <BotAudio volume={1} playbackRate={1.5} />
           </VoiceBotProvider>
         );
       default:
