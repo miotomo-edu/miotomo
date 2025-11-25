@@ -23,6 +23,7 @@ import ChapterSelectorModal from "./common/ChapterSelectorModal";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
+import { useConversations } from "../hooks/useConversations";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
@@ -40,6 +41,8 @@ const App = ({ transportType }) => {
   const [chapterModalBook, setChapterModalBook] = useState(null);
   const [chapterModalChapter, setChapterModalChapter] = useState(1);
   const chapterConfirmCallbackRef = useRef(null);
+  const [activeConversations, setActiveConversations] = useState({});
+  const [latestConversationId, setLatestConversationId] = useState(null);
 
   // Used to trigger disconnect from BottomNavBar or when leaving interactive
   const disconnectRef = useRef(null);
@@ -54,10 +57,56 @@ const App = ({ transportType }) => {
     isLoading: studentLoading,
     error: studentError,
   } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
+  const { getConversations } = useConversations();
 
   useEffect(() => {
     if (student?.name) setUserName(student.name);
   }, [student]);
+
+  const fetchActiveConversations = useCallback(async () => {
+    if (!studentId) return;
+    try {
+      const { data } = await getConversations(studentId);
+      const activeMap = {};
+      (data || []).forEach((conv) => {
+        if (!conv?.book_id) return;
+        const normalizedStatus =
+          typeof conv.status === "string" ? conv.status : "";
+        if (!activeMap[conv.book_id]) {
+          activeMap[conv.book_id] = {
+            status: normalizedStatus,
+            elapsedSeconds:
+              typeof conv.elapsed_seconds === "number"
+                ? conv.elapsed_seconds
+                : 0,
+          };
+        }
+      });
+      setActiveConversations(activeMap);
+      if (data && data.length > 0) {
+        setLatestConversationId(data?.[0]?.id ?? null);
+      } else {
+        const { data: fallbackData } = await getConversations(
+          studentId,
+          undefined,
+          { includeFallback: true },
+        );
+        setLatestConversationId(fallbackData?.[0]?.id ?? null);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch active conversations:", err);
+    }
+  }, [getConversations, studentId]);
+
+  useEffect(() => {
+    fetchActiveConversations();
+  }, [fetchActiveConversations]);
+
+  useEffect(() => {
+    if (activeComponent === "home" || activeComponent === "library") {
+      fetchActiveConversations();
+    }
+  }, [activeComponent, fetchActiveConversations]);
 
   const normalizeChapterValue = useMemo(() => {
     return (book, rawChapter) => {
@@ -151,9 +200,7 @@ const App = ({ transportType }) => {
       }
 
       chapterConfirmCallbackRef.current =
-        typeof onChapterConfirmed === "function"
-          ? onChapterConfirmed
-          : null;
+        typeof onChapterConfirmed === "function" ? onChapterConfirmed : null;
       setChapterModalBook(book);
       setChapterModalChapter(initialChapter);
       setIsChapterModalOpen(true);
@@ -169,6 +216,7 @@ const App = ({ transportType }) => {
         book: selectedBook,
         chapter: selectedChapter,
         studentName: userName,
+        studentId,
         character: currentCharacter,
       },
     }),
@@ -177,6 +225,7 @@ const App = ({ transportType }) => {
       selectedBook,
       selectedChapter,
       userName,
+      studentId,
       transportType,
     ],
   );
@@ -217,11 +266,7 @@ const App = ({ transportType }) => {
   useEffect(() => {
     if (!isInteractiveView) return;
 
-    const scrollTargets = [
-      mainRef.current,
-      window,
-      document.documentElement,
-    ];
+    const scrollTargets = [mainRef.current, window, document.documentElement];
 
     scrollTargets.forEach((target) => {
       if (!target) return;
@@ -254,6 +299,7 @@ const App = ({ transportType }) => {
             onBookAndCharacterSelect={handleBookAndCharacterSelect}
             userName={userName}
             studentId={studentId}
+            activeConversations={activeConversations}
             onBookSelectForMap={handleBookSelectForMap}
           />
         );
@@ -268,13 +314,14 @@ const App = ({ transportType }) => {
             onContinue={() => setActiveComponent("interactive")}
             userName={userName}
             studentId={studentId}
+            activeConversations={activeConversations}
             onBookSelectForMap={handleBookSelectForMap}
           />
         );
       case "progress":
         return (
           <ProgressSection
-            conversationId={"7163b97f-bb82-4c30-aa72-ab204647becf"}
+            conversationId={latestConversationId || undefined}
           />
         );
       case "profile":
@@ -372,6 +419,7 @@ const App = ({ transportType }) => {
           autoConnect
           botConfig={updatedBotConfig}
           userName={userName}
+          studentId={studentId}
           selectedBook={selectedBook}
           chapter={selectedChapter}
           onDisconnectRef={disconnectRef}

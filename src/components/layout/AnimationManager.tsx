@@ -49,6 +49,9 @@ const AnimationManager: React.FC<Props> = ({
   }, [isMicEnabled]);
 
   const toggleMic = () => {
+    if (isCelebrating) {
+      return;
+    }
     const newState = !isMicEnabled;
     if (process.env.NODE_ENV !== "production") {
       console.log("🎤 Mic toggleMic", newState);
@@ -103,7 +106,7 @@ const AnimationManager: React.FC<Props> = ({
     }
   }, [isMicEnabled]);
 
-  const isSleepingDisplay = !isMicEnabled && hasBeenAwake;
+  const isSleepingDisplay = !isMicEnabled && hasBeenAwake && !isCelebrating;
 
   const displayVolume = isSleepingDisplay ? 0 : activeVolume;
 
@@ -118,6 +121,7 @@ const AnimationManager: React.FC<Props> = ({
         <button
           onClick={handleOrbClick}
           className="relative inline-flex items-center justify-center"
+          disabled={isCelebrating}
           aria-label="Toggle microphone"
         >
           <CharacterAvatar

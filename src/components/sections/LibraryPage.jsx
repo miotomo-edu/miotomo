@@ -14,6 +14,7 @@ function LibraryPage({
   userName,
   studentId,
   onBookSelectForMap,
+  activeConversations = {},
 }) {
   const { data: student } = useStudent(studentId);
 
@@ -55,6 +56,7 @@ function LibraryPage({
           onContinue={(book, chapter) => {
             onBookSelectForMap(book, chapter);
           }}
+          activeConversations={activeConversations}
         />
       )}
       <LibrarySection
@@ -64,6 +66,7 @@ function LibraryPage({
         onContinue={onContinue}
         studentId={studentId}
         onBookSelectForMap={onBookSelectForMap}
+        activeConversations={activeConversations}
       />
     </div>
   );

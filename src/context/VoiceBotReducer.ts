@@ -15,6 +15,7 @@ export const ADD_MESSAGE = "add_message";
 export const CLEAR_MESSAGES = "clear_messages";
 export const SET_CONVERSATION_CONFIG = "set_conversation_config";
 export const SET_CURRENT_CONVERSATION_ID = "set_current_conversation_id";
+export const SET_LATEST_SERVER_EVENT = "set_latest_server_event";
 
 export type VoiceBotAction =
   | { type: typeof START_LISTENING }
@@ -25,7 +26,8 @@ export type VoiceBotAction =
   | { type: typeof ADD_MESSAGE; payload: ConversationMessage | LatencyMessage }
   | { type: typeof CLEAR_MESSAGES }
   | { type: typeof SET_CONVERSATION_CONFIG; payload: ConversationConfig }
-  | { type: typeof SET_CURRENT_CONVERSATION_ID; payload: string | null };
+  | { type: typeof SET_CURRENT_CONVERSATION_ID; payload: string | null }
+  | { type: typeof SET_LATEST_SERVER_EVENT; payload: unknown };
 
 export const voiceBotReducer = (
   state: VoiceBotState,
@@ -64,6 +66,11 @@ export const voiceBotReducer = (
       return {
         ...state,
         currentConversationId: action.payload,
+      };
+    case SET_LATEST_SERVER_EVENT:
+      return {
+        ...state,
+        latestServerEvent: action.payload ?? null,
       };
     default:
       return state;

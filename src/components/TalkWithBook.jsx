@@ -8,6 +8,7 @@ import { RTVIEvent } from "@pipecat-ai/client-js";
 import BookTitle from "./layout/BookTitle.jsx";
 import AnimationManager from "./layout/AnimationManager";
 import VocabularyPanel from "./features/modality/VocabularyPanel";
+import SpellingPanel from "./features/modality/SpellingPanel";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -15,6 +16,8 @@ import {
 import { isMobile } from "react-device-detect";
 
 import { usePipecatConnection } from "../hooks/usePipecatConnection";
+import { useConversations } from "../hooks/useConversations";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 export const TalkWithBook = ({
   botConfig,
@@ -35,6 +38,8 @@ export const TalkWithBook = ({
   const startedChatRef = useRef(false);
   const userMutedRef = useRef(false);
   const micEnabledRef = useRef(false);
+  const hadConversationRef = useRef(false);
+  const hasSubmittedSummaryRef = useRef(false);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -45,6 +50,7 @@ export const TalkWithBook = ({
   const {
     addVoicebotMessage,
     setConversationConfig,
+    setLatestServerEvent,
     startListening,
     startSpeaking,
     startThinking,
@@ -52,6 +58,8 @@ export const TalkWithBook = ({
   } = useVoiceBot();
 
   const { enableMic } = usePipecatClientMicControl();
+  const { getConversations } = useConversations();
+  const { wakeAnalytics, callAnalyzeConversation } = useAnalytics();
 
   // 🎤 Tracks
   const localAudioTrack = usePipecatClientMediaTrack("audio", "local");
@@ -111,15 +119,35 @@ export const TalkWithBook = ({
     usePipecatConnection();
 
   // Persist session metadata
+  const characterModalities = useMemo(() => {
+    if (currentCharacter?.modalities) {
+      return currentCharacter.modalities;
+    }
+    if (currentCharacter?.modality) {
+      return currentCharacter.modality;
+    }
+    return "";
+  }, [currentCharacter]);
+
   useEffect(() => {
     if (studentId && selectedBook?.id) {
       setConversationConfig({
         studentId,
         bookId: selectedBook.id,
         autoSave: true,
+        modalities: characterModalities || null,
       });
     }
-  }, [studentId, selectedBook?.id, setConversationConfig]);
+  }, [studentId, selectedBook?.id, setConversationConfig, characterModalities]);
+
+  useEffect(() => {
+    setLatestServerEvent(serverEvent ?? null);
+  }, [serverEvent, setLatestServerEvent]);
+
+  useEffect(() => {
+    hasSubmittedSummaryRef.current = false;
+    hadConversationRef.current = false;
+  }, [selectedBook?.id, chapter]);
 
   const addLog = (msg) => {
     if (logsRef.current) {
@@ -193,8 +221,14 @@ export const TalkWithBook = ({
   const connectHere = useCallback(async () => {
     console.log("connectHere");
     startedHereRef.current = true;
-    await connect({ botConfig, userName, selectedBook, chapter });
-  }, [connect, botConfig, userName, selectedBook, chapter]);
+    await connect({
+      botConfig,
+      userName,
+      studentId,
+      selectedBook,
+      chapter,
+    });
+  }, [connect, botConfig, userName, studentId, selectedBook, chapter]);
 
   const disconnectHere = useCallback(async () => {
     console.log("🔴 disconnectHere called");
@@ -264,6 +298,9 @@ export const TalkWithBook = ({
           return;
         }
 
+        // Wake up analytics service
+        wakeAnalytics();
+
         // CRITICAL: Enable mic when bot is ready
         syncMic(true);
 
@@ -274,6 +311,7 @@ export const TalkWithBook = ({
             chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
           });
           startedChatRef.current = true;
+          hadConversationRef.current = true;
           addLog("✅ start-chat sent");
         } catch (error) {
           console.error("Error sending start messages:", error);
@@ -418,6 +456,9 @@ export const TalkWithBook = ({
       // Wait a bit to ensure connection is fully ready
       const timer = setTimeout(() => {
         try {
+          // Wake up analytics service
+          wakeAnalytics();
+
           syncMic(true);
           sendClientMessage("set-language", { language: "en-US" });
           sendClientMessage("start-chat", {
@@ -426,6 +467,7 @@ export const TalkWithBook = ({
             chapter_old: String(botConfig?.metadata?.book?.progress) ?? "",
           });
           startedChatRef.current = true;
+          hadConversationRef.current = true;
           addLog("start-chat sent (fallback)");
         } catch (e) {
           console.error("fallback start-chat failed:", e);
@@ -473,15 +515,99 @@ export const TalkWithBook = ({
     return raw;
   }, [currentCharacter]);
 
+  const eventMeta = useMemo(() => {
+    if (!serverEvent) {
+      return { eventType: "", gameType: "" };
+    }
+
+    const normalizeKeys = (payload) => {
+      if (!payload || typeof payload !== "object") {
+        return { eventType: "", gameType: "" };
+      }
+
+      const rawEventType =
+        typeof payload.event_type === "string"
+          ? payload.event_type
+          : typeof payload.eventType === "string"
+            ? payload.eventType
+            : "";
+      const rawGameType =
+        typeof payload.game_type === "string"
+          ? payload.game_type
+          : typeof payload.gameType === "string"
+            ? payload.gameType
+            : "";
+
+      if (rawEventType || rawGameType) {
+        return { eventType: rawEventType, gameType: rawGameType };
+      }
+
+      if (payload.data) {
+        return normalizeKeys(payload.data);
+      }
+
+      return { eventType: "", gameType: "" };
+    };
+
+    let parsed = serverEvent;
+    if (typeof serverEvent === "string") {
+      try {
+        parsed = JSON.parse(serverEvent);
+      } catch {
+        return { eventType: "", gameType: "" };
+      }
+    }
+
+    if (!parsed || typeof parsed !== "object") {
+      return { eventType: "", gameType: "" };
+    }
+
+    const { eventType, gameType } = normalizeKeys(parsed);
+    return {
+      eventType: (eventType || "").toLowerCase(),
+      gameType: (gameType || "").toLowerCase(),
+    };
+  }, [serverEvent]);
+
+  const panelKey = useMemo(() => {
+    if (eventMeta.gameType) {
+      return eventMeta.gameType;
+    }
+    return modalityKey;
+  }, [eventMeta.gameType, modalityKey]);
+
   const renderedServerContent = useMemo(() => {
-    if (modalityKey.includes("vocab")) {
+    if (isCelebrating) {
+      return (
+        <div className="flex h-full w-full flex-col items-center justify-center px-6 py-5 text-center text-gray-800">
+          <span className="text-4xl font-extrabold tracking-wide">
+            Well done on your mission
+          </span>
+        </div>
+      );
+    }
+
+    if (panelKey.includes("vocab")) {
       return <VocabularyPanel event={serverEvent} isWaiting={!serverEvent} />;
     }
 
+    if (panelKey.includes("spell")) {
+      return <SpellingPanel event={serverEvent} isWaiting={!serverEvent} />;
+    }
+
     if (!serverEvent) {
-      return (
-        <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-gray-500"></div>
-      );
+      return <div className="h-full w-full" />;
+    }
+
+    const ALLOWED_EVENT_TYPES = new Set([
+      "celebration_sent",
+      "game_complete",
+      "question_starting",
+      "answer_received",
+    ]);
+
+    if (!ALLOWED_EVENT_TYPES.has(eventMeta.eventType)) {
+      return <div className="h-full w-full" />;
     }
 
     return (
@@ -493,7 +619,7 @@ export const TalkWithBook = ({
         </pre>
       </div>
     );
-  }, [modalityKey, serverEvent]);
+  }, [panelKey, serverEvent, eventMeta.eventType, isCelebrating]);
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
@@ -515,29 +641,82 @@ export const TalkWithBook = ({
   const thinkingLabel = `${thinkingCharacterName} is thinking...`;
 
   useEffect(() => {
-    const deriveEventType = (event) => {
-      if (!event) return null;
-      if (typeof event === "string") {
-        try {
-          const parsed = JSON.parse(event);
-          return (
-            parsed?.event_type || parsed?.eventType || parsed?.type || null
-          );
-        } catch (err) {
-          return null;
-        }
-      }
-      if (typeof event === "object") {
-        return event.event_type || event.eventType || event.type || null;
-      }
-      return null;
-    };
-
-    const eventType = deriveEventType(serverEvent);
-    if (eventType === "celebration_sent") {
+    if (eventMeta.eventType === "celebration_sent") {
       setIsCelebrating(true);
     }
-  }, [serverEvent]);
+  }, [eventMeta.eventType]);
+
+  useEffect(() => {
+    if (
+      isConnected ||
+      hasSubmittedSummaryRef.current ||
+      !hadConversationRef.current ||
+      !studentId ||
+      !selectedBook?.id
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let retryTimeout;
+
+    const runAnalytics = async () => {
+      try {
+        const { data } = await getConversations(studentId, selectedBook.id);
+        const latestConversation = (data || [])[0];
+
+        if (!latestConversation?.id) {
+          if (!cancelled) {
+            retryTimeout = window.setTimeout(runAnalytics, 2000);
+          }
+          return;
+        }
+
+        const normalizedChapterStart =
+          typeof botConfig?.metadata?.book?.progress === "number"
+            ? botConfig.metadata.book.progress
+            : parseInt(
+                botConfig?.metadata?.book?.progress ?? `${chapter ?? 0}`,
+                10,
+              ) || 0;
+        const normalizedChapterEnd =
+          typeof chapter === "number"
+            ? chapter
+            : parseInt(chapter ?? "0", 10) || normalizedChapterStart;
+
+        await callAnalyzeConversation({
+          conversationId: latestConversation.id,
+          bookId: latestConversation.book_id,
+          chapterStart: normalizedChapterStart,
+          chapterEnd: normalizedChapterEnd,
+          saveResults: true,
+        });
+
+        hasSubmittedSummaryRef.current = true;
+      } catch (err) {
+        console.error("Failed to analyze conversation:", err);
+        if (!cancelled) {
+          retryTimeout = window.setTimeout(runAnalytics, 5000);
+        }
+      }
+    };
+
+    runAnalytics();
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+    };
+  }, [
+    isConnected,
+    studentId,
+    selectedBook?.id,
+    chapter,
+    getConversations,
+    botConfig?.metadata?.book?.progress,
+  ]);
 
   return (
     <div
@@ -607,9 +786,17 @@ export const TalkWithBook = ({
         )}
 
         {status === VoiceBotStatus.SLEEPING && (
-          <div className="text-gray-400 text-sm">
-            I've stopped listening. {isMobile ? "Tap" : "Click"} to resume.
-          </div>
+          <div className="text-black-400 text-sm">Come back tomorrow!</div>
+        )}
+
+        {isCelebrating && !isConnected && (
+          <button
+            type="button"
+            onClick={() => onNavigate?.("progress")}
+            className="bg-black text-white font-bold py-2 px-4 rounded-lg w-full mt-2"
+          >
+            See your progress
+          </button>
         )}
       </div>
 

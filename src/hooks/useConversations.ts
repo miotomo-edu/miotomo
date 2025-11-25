@@ -1,35 +1,32 @@
 import { useState, useCallback } from "react";
 import { supabase } from "./integrations/supabase/client";
-import type { TablesInsert, TablesUpdate } from "./integrations/supabase/types";
-import type {
-  VoiceBotMessage,
-  ConversationMessage,
-} from "../context/VoiceBotContextProvider";
-import { isConversationMessage } from "../context/VoiceBotContextProvider";
 
 export interface ConversationData {
   id?: string;
   student_id: string;
   book_id: string;
-  messages: ConversationMessage[];
   created_at?: string;
   updated_at?: string;
   env: string;
+  modalities?: string | null;
+  status?: string | null;
+  elapsed_seconds?: number;
+  day?: string;
+  last_active_at?: string;
+  stage_state?: unknown;
+  context_summary?: unknown;
+  session_count?: number;
 }
 
+type GetConversationsOptions = {
+  includeFallback?: boolean;
+};
+
 export interface UseConversationsReturn {
-  createConversation: (
-    studentId: string,
-    bookId: string,
-    messages: VoiceBotMessage[],
-  ) => Promise<{ data: any; error: any; conversationId?: string }>;
-  updateConversation: (
-    conversationId: string,
-    messages: VoiceBotMessage[],
-  ) => Promise<{ data: any; error: any }>;
   getConversations: (
     studentId?: string,
     bookId?: string,
+    options?: GetConversationsOptions,
   ) => Promise<{ data: any; error: any }>;
   getConversationById: (
     conversationId: string,
@@ -45,141 +42,12 @@ export const useConversations = (): UseConversationsReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createConversation = useCallback(
-    async (studentId: string, bookId: string, messages: VoiceBotMessage[]) => {
-      // Fail silently if required parameters are missing
-      if (!studentId || !bookId) {
-        console.warn("Missing required parameters for conversation creation");
-        return { data: null, error: null, conversationId: null };
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Safely filter messages
-        const conversationMessages = Array.isArray(messages)
-          ? messages.filter((msg) => {
-              try {
-                return isConversationMessage(msg);
-              } catch (e) {
-                console.warn("Error filtering message:", e);
-                return false;
-              }
-            })
-          : [];
-
-        // Don't create empty conversations
-        if (conversationMessages.length === 0) {
-          console.log("No valid messages to save");
-          return { data: null, error: null, conversationId: null };
-        }
-
-        const conversationData: TablesInsert<"conversations"> = {
-          student_id: studentId,
-          book_id: bookId,
-          messages: conversationMessages,
-          env: window.location.hostname === "localhost" ? "dev" : "prod",
-        };
-
-        const tableName = "conversations";
-
-        const { data, error } = await supabase
-          .from(tableName)
-          .insert(conversationData)
-          .select();
-
-        if (error) {
-          console.error("Error creating conversation:", error);
-          setError(error.message);
-          // Return null but don't throw - let the app continue
-          return { data: null, error, conversationId: null };
-        }
-
-        const conversationId = data?.[0]?.id || null;
-        console.log("Conversation created successfully:", conversationId);
-        return { data, error: null, conversationId };
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Unknown error occurred";
-        console.error("Error creating conversation:", err);
-        setError(errorMessage);
-        // Return null but don't throw - let the app continue
-        return { data: null, error: err, conversationId: null };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
-
-  const updateConversation = useCallback(
-    async (conversationId: string, messages: VoiceBotMessage[]) => {
-      // Fail silently if required parameters are missing
-      if (!conversationId) {
-        console.warn("Missing conversation ID for update");
-        return { data: null, error: null };
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Safely filter messages
-        const conversationMessages = Array.isArray(messages)
-          ? messages.filter((msg) => {
-              try {
-                return isConversationMessage(msg);
-              } catch (e) {
-                console.warn("Error filtering message:", e);
-                return false;
-              }
-            })
-          : [];
-
-        // Don't update with empty conversations
-        if (conversationMessages.length === 0) {
-          console.log("No valid messages to update");
-          return { data: null, error: null };
-        }
-
-        const updateData: TablesUpdate<"conversations"> = {
-          messages: conversationMessages,
-        };
-
-        const tableName = "conversations";
-
-        const { data, error } = await supabase
-          .from(tableName)
-          .update(updateData)
-          .eq("id", conversationId)
-          .select();
-
-        if (error) {
-          console.error("Error updating conversation:", error);
-          setError(error.message);
-          // Return null but don't throw - let the app continue
-          return { data: null, error };
-        }
-
-        console.log("Conversation updated successfully");
-        return { data, error: null };
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Unknown error occurred";
-        console.error("Error updating conversation:", err);
-        setError(errorMessage);
-        // Return null but don't throw - let the app continue
-        return { data: null, error: err };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
-
   const getConversations = useCallback(
-    async (studentId?: string, bookId?: string) => {
+    async (
+      studentId?: string,
+      bookId?: string,
+      options: GetConversationsOptions = {},
+    ) => {
       setLoading(true);
       setError(null);
 
@@ -189,11 +57,7 @@ export const useConversations = (): UseConversationsReturn => {
         let query = supabase
           .from(tableName)
           .select(
-            `
-            *,
-            students(name, avatar),
-            books(title, author, cover)
-          `,
+            "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
           )
           .order("created_at", { ascending: false });
 
@@ -205,12 +69,38 @@ export const useConversations = (): UseConversationsReturn => {
           query = query.eq("book_id", bookId);
         }
 
-        const { data, error } = await query;
+        const today = new Date().toISOString().slice(0, 10);
+
+        const { data, error } = await query.eq("day", today);
 
         if (error) {
           console.error("Error fetching conversations:", error);
           setError(error.message);
           return { data: [], error }; // Return empty array instead of null
+        }
+
+        if (options.includeFallback && (!data || data.length === 0)) {
+          const fallbackQuery = supabase
+            .from(tableName)
+            .select(
+              "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
+            )
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (studentId) fallbackQuery.eq("student_id", studentId);
+          if (bookId) fallbackQuery.eq("book_id", bookId);
+
+          const { data: fallbackData, error: fallbackError } =
+            await fallbackQuery;
+
+          if (fallbackError) {
+            console.error("Error fetching fallback conversations:", fallbackError);
+            setError(fallbackError.message);
+            return { data: [], error: fallbackError };
+          }
+
+          return { data: fallbackData || [], error: null };
         }
 
         return { data: data || [], error: null };
@@ -242,11 +132,7 @@ export const useConversations = (): UseConversationsReturn => {
       const { data, error } = await supabase
         .from(tableName)
         .select(
-          `
-          *,
-          students(name, avatar),
-          books(title, author, cover)
-        `,
+          "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
         )
         .eq("id", conversationId)
         .single();
@@ -306,8 +192,6 @@ export const useConversations = (): UseConversationsReturn => {
   }, []);
 
   return {
-    createConversation,
-    updateConversation,
     getConversations,
     getConversationById,
     deleteConversation,

@@ -14,6 +14,7 @@ function HomePage({
   userName,
   studentId,
   onBookSelectForMap,
+  activeConversations = {},
 }) {
   const { data: student } = useStudent(studentId);
 
@@ -26,6 +27,7 @@ function HomePage({
             books={[selectedBook]}
             chapter={selectedChapter} // <-- pass chapter
             onContinue={(book, chapter) => onBookSelectForMap(book, chapter)}
+            activeConversations={activeConversations}
           />
           <ReminderSection />
         </>
@@ -37,6 +39,7 @@ function HomePage({
           onContinue={onContinue}
           studentId={studentId}
           onBookSelectForMap={onBookSelectForMap}
+          activeConversations={activeConversations}
         />
       )}
     </div>

@@ -16,12 +16,14 @@ import { RTVIEvent } from "@pipecat-ai/client-js";
 function buildSmallWebRTCUrl({
   base = "http://localhost:8000/api/offer",
   userName = "",
+  studentId = "",
   botConfig,
   selectedBook,
   chapter,
 }) {
   const params = new URLSearchParams({
-    student: userName || "",
+    student_id: String(studentId || ""),
+    student_name: userName || "",
     chapter_old: String(botConfig?.metadata?.book?.progress ?? ""),
     chapter: String(chapter ?? ""),
     book_id: String(selectedBook?.id ?? ""),
@@ -101,6 +103,7 @@ export function usePipecatConnection(options = {}) {
     async ({
       botConfig,
       userName,
+      studentId,
       selectedBook,
       chapter,
       dailyProxyUrl,
@@ -169,7 +172,11 @@ export function usePipecatConnection(options = {}) {
           const response = await fetch(`${resolvedDailyProxyUrl}/connect-pipecat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ config: botConfig }),
+            body: JSON.stringify({
+              config: botConfig,
+              student_id: studentId || "",
+              student_name: userName || "",
+            }),
           });
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
@@ -193,6 +200,7 @@ export function usePipecatConnection(options = {}) {
           const webrtcUrl = buildSmallWebRTCUrl({
             base: resolvedSmallWebRTCUrl,
             userName,
+            studentId,
             botConfig,
             selectedBook,
             chapter,
@@ -305,6 +313,7 @@ export function PipecatConnectionManager({
   autoConnect = false,
   botConfig,
   userName,
+  studentId,
   selectedBook,
   chapter,
   dailyProxyUrl,
@@ -365,6 +374,7 @@ export function PipecatConnectionManager({
     connect({
       botConfig,
       userName,
+      studentId,
       selectedBook,
       chapter,
       dailyProxyUrl,

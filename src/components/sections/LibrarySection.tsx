@@ -29,6 +29,10 @@ type LibrarySectionProps = {
       skipChapterModal?: boolean;
     },
   ) => void;
+  activeConversations?: Record<
+    string,
+    { status?: string | null; elapsedSeconds?: number | null }
+  >;
 };
 
 const LibrarySection: React.FC<LibrarySectionProps> = ({
@@ -38,6 +42,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
   onContinue,
   studentId,
   onBookSelectForMap,
+  activeConversations = {},
 }) => {
   const {
     data: fetchedBooks,
