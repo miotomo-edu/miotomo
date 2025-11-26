@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useProgress } from "../../hooks/useProgress";
+import { useAnalytics } from "../../hooks/useAnalytics";
 
 // ---------------- Types ----------------
 type SkillItem = {
@@ -51,13 +52,44 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
   const [view, setView] = useState<"today" | "week" | "month">("today");
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const { data, loading, error } = useProgress(conversationId);
+  const { data, loading, error, status } = useProgress(conversationId);
+  const { isAnalyzing } = useAnalytics();
 
-  if (loading) {
-    return <div className="p-6">Loading progress…</div>;
-  }
+  const conversationDayLabel = useMemo(() => {
+    const dayString = data?.metrics?.created_at || data?.utterances?.created_at;
+    if (!dayString) {
+      return "Today's";
+    }
+
+    const conversationDate = new Date(dayString);
+    const now = new Date();
+    conversationDate.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+
+    const diffMs = now.getTime() - conversationDate.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today's";
+    if (diffDays === 1) return "Yesterday's";
+
+    const formatter = new Intl.DateTimeFormat(undefined, { weekday: "long" });
+    const weekday = formatter.format(conversationDate);
+    return `Last ${weekday}'s`;
+  }, [data?.metrics?.created_at, data?.utterances?.created_at]);
+
   if (error) {
     return <div className="p-6 text-red-500">Error: {error.message}</div>;
+  }
+
+  const isProcessing =
+    loading ||
+    isAnalyzing ||
+    (status &&
+      ((status.metrics && status.metrics !== "done") ||
+        (status.utterances && status.utterances !== "done")));
+
+  if (isProcessing) {
+    return <div className="p-6">Processing conversation…</div>;
   }
   if (!data) {
     return <div className="p-6">No progress available</div>;
@@ -96,7 +128,9 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                   ⭐
                 </div>
                 <div>
-                  <div className="font-semibold">{today.superpower.title}</div>
+                  <div className="font-semibold">
+                    {conversationDayLabel} Superpower!
+                  </div>
                   <div className="text-gray-500 text-sm">
                     {today.superpower.subtitle}
                   </div>
@@ -275,7 +309,6 @@ function mapMetricsToProgress(metrics: any, utterances: any) {
 
   const today: TodayData = {
     superpower: {
-      title: "Today’s Superpower",
       subtitle: "Highlights from your answers",
       new: true,
       skills: []

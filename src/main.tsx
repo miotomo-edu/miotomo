@@ -6,6 +6,7 @@ import { PipecatClientProvider } from "@pipecat-ai/client-react";
 import { PipecatClient } from "@pipecat-ai/client-js";
 import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport";
 import { DailyTransport } from "@pipecat-ai/daily-transport";
+import { AnalyticsProvider } from "./hooks/useAnalytics";
 
 import "./styles/globals.css";
 
@@ -50,7 +51,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <PipecatClientProvider client={client}>
-        <App transportType={transportType ?? "webrtc"} />
+        <AnalyticsProvider>
+          <App transportType={transportType ?? "webrtc"} />
+        </AnalyticsProvider>
       </PipecatClientProvider>
     </QueryClientProvider>
   </React.StrictMode>,

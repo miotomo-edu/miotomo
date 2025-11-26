@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { PipecatClientAudio } from "@pipecat-ai/client-react";
+import BotAudio from "./audio/BotAudio";
 
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
@@ -24,6 +24,7 @@ import ChapterSelectorModal from "./common/ChapterSelectorModal";
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 import { useConversations } from "../hooks/useConversations";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
@@ -58,6 +59,7 @@ const App = ({ transportType }) => {
     error: studentError,
   } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
   const { getConversations } = useConversations();
+  const { isAnalyzing } = useAnalytics();
 
   useEffect(() => {
     if (student?.name) setUserName(student.name);
@@ -107,6 +109,12 @@ const App = ({ transportType }) => {
       fetchActiveConversations();
     }
   }, [activeComponent, fetchActiveConversations]);
+
+  useEffect(() => {
+    if (!isAnalyzing) {
+      fetchActiveConversations();
+    }
+  }, [isAnalyzing, fetchActiveConversations]);
 
   const normalizeChapterValue = useMemo(() => {
     return (book, rawChapter) => {
@@ -356,7 +364,7 @@ const App = ({ transportType }) => {
               onDisconnectRequest={disconnectRef}
               connectionManagedExternally={shouldShowConnectionManager}
             />
-            <PipecatClientAudio volume={1.0} muted={false} />
+            <BotAudio volume={1} playbackRate={1} />
           </VoiceBotProvider>
         );
       default:
