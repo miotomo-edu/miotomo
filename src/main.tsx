@@ -19,6 +19,7 @@ function getQueryParam(name: string): string | null {
 
 // Choose transport type based on URL param (?transport=daily or ?transport=small)
 const transportType = getQueryParam("transport");
+const regionParam = getQueryParam("region") || "";
 let transport;
 if (transportType === "daily") {
   transport = new DailyTransport();
@@ -44,6 +45,9 @@ const client = new PipecatClient({
     onBotTranscript: (data) => {
       console.log(`Bot: ${data.text}`);
     },
+    onBotOutput: (data) => {
+      console.log("BotOutput", data);
+    },
   },
 });
 
@@ -52,7 +56,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <PipecatClientProvider client={client}>
         <AnalyticsProvider>
-          <App transportType={transportType ?? "webrtc"} />
+          <App transportType={transportType ?? "webrtc"} region={regionParam} />
         </AnalyticsProvider>
       </PipecatClientProvider>
     </QueryClientProvider>

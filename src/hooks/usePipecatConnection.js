@@ -20,12 +20,14 @@ function buildSmallWebRTCUrl({
   botConfig,
   selectedBook,
   chapter,
+  region = "",
 }) {
   const params = new URLSearchParams({
     student_id: String(studentId || ""),
     student_name: userName || "",
     chapter_old: String(botConfig?.metadata?.book?.progress ?? ""),
     chapter: String(chapter ?? ""),
+    region: region || "",
     book_id: String(selectedBook?.id ?? ""),
     book: String(selectedBook?.title ?? ""),
     prompt: String(botConfig?.metadata?.character?.prompt ?? ""),
@@ -108,6 +110,7 @@ export function usePipecatConnection(options = {}) {
       chapter,
       dailyProxyUrl,
       smallWebRTCOfferUrlBase,
+      region = "",
     }) => {
       if (!client) throw new Error("Pipecat client missing");
 
@@ -154,6 +157,7 @@ export function usePipecatConnection(options = {}) {
         selectedBook: selectedBook?.id,
         chapter,
         userName,
+        region,
       });
 
       try {
@@ -169,15 +173,19 @@ export function usePipecatConnection(options = {}) {
               "Daily proxy URL missing. Set VITE_DAILY_PROXY_URL or pass dailyProxyUrl to usePipecatConnection connect().",
             );
           }
-          const response = await fetch(`${resolvedDailyProxyUrl}/connect-pipecat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              config: botConfig,
-              student_id: studentId || "",
-              student_name: userName || "",
-            }),
-          });
+          const response = await fetch(
+            `${resolvedDailyProxyUrl}/connect-pipecat`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                config: botConfig,
+                student_id: studentId || "",
+                student_name: userName || "",
+                region: region || "",
+              }),
+            },
+          );
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
             throw new Error(errData.error || `Daily HTTP ${response.status}`);
@@ -204,6 +212,7 @@ export function usePipecatConnection(options = {}) {
             botConfig,
             selectedBook,
             chapter,
+            region,
           });
           console.log("🔗 WebRTC URL:", webrtcUrl);
           await client.connect({ webrtcUrl });
@@ -319,6 +328,7 @@ export function PipecatConnectionManager({
   dailyProxyUrl,
   smallWebRTCOfferUrlBase,
   onDisconnectRef, // optional ref so parent can trigger disconnect()
+  region = "",
 }) {
   const { connect, disconnect, isConnected, isConnecting } =
     usePipecatConnection();
@@ -379,6 +389,7 @@ export function PipecatConnectionManager({
       chapter,
       dailyProxyUrl,
       smallWebRTCOfferUrlBase,
+      region,
     }).catch((err) => {
       if (!err?.message?.includes("already started")) {
         console.error("Auto-connect failed:", err);

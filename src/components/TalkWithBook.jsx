@@ -27,6 +27,7 @@ export const TalkWithBook = ({
   currentCharacter,
   userName = "",
   studentId = null,
+  region = "",
   showControlButton = false,
   onDisconnectRequest,
   connectionManagedExternally = false,
@@ -227,8 +228,9 @@ export const TalkWithBook = ({
       studentId,
       selectedBook,
       chapter,
+      region,
     });
-  }, [connect, botConfig, userName, studentId, selectedBook, chapter]);
+  }, [connect, botConfig, userName, studentId, selectedBook, chapter, region]);
 
   const disconnectHere = useCallback(async () => {
     console.log("🔴 disconnectHere called");
@@ -352,7 +354,8 @@ export const TalkWithBook = ({
         startListening();
       }
     };
-    const onBotTranscript = (data) => {
+    const onBotOutput = (data) => {
+      console.log("onBotOutput", data);
       addVoicebotMessage({ assistant: data.text });
     };
 
@@ -371,7 +374,7 @@ export const TalkWithBook = ({
     client.on(RTVIEvent.BotLlmStarted, onBotLlmStarted);
     client.on(RTVIEvent.BotLlmStopped, onBotLlmStopped);
     client.on(RTVIEvent.UserTranscript, onUserTranscript);
-    client.on(RTVIEvent.BotTranscript, onBotTranscript);
+    client.on(RTVIEvent.BotOutput, onBotOutput);
     client.on(RTVIEvent.ServerMessage, onServerMessage);
 
     return () => {
@@ -385,7 +388,7 @@ export const TalkWithBook = ({
       client.off(RTVIEvent.BotLlmStarted, onBotLlmStarted);
       client.off(RTVIEvent.BotLlmStopped, onBotLlmStopped);
       client.off(RTVIEvent.UserTranscript, onUserTranscript);
-      client.off(RTVIEvent.BotTranscript, onBotTranscript);
+      client.off(RTVIEvent.BotOutput, onBotOutput);
       client.off(RTVIEvent.ServerMessage, onServerMessage);
     };
   }, [

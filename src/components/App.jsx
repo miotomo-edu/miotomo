@@ -29,7 +29,7 @@ import { useAnalytics } from "../hooks/useAnalytics";
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
 
-const App = ({ transportType }) => {
+const App = ({ transportType, region = "" }) => {
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
   const [selectedBook, setSelectedBook] = useState(null);
@@ -216,27 +216,29 @@ const App = ({ transportType }) => {
     [normalizeChapterValue, goToMapWithSelection],
   );
 
-  const updatedBotConfig = useMemo(
-    () => ({
-      voice: currentCharacter?.voice ?? "default-voice",
-      transportType, // 'daily' or 'webrtc' from main.tsx
-      metadata: {
-        book: selectedBook,
-        chapter: selectedChapter,
-        studentName: userName,
-        studentId,
-        character: currentCharacter,
-      },
-    }),
-    [
-      currentCharacter,
-      selectedBook,
-      selectedChapter,
-      userName,
+const updatedBotConfig = useMemo(
+  () => ({
+    voice: currentCharacter?.voice ?? "default-voice",
+    transportType, // 'daily' or 'webrtc' from main.tsx
+    metadata: {
+      book: selectedBook,
+      chapter: selectedChapter,
+      studentName: userName,
       studentId,
-      transportType,
-    ],
-  );
+      region,
+      character: currentCharacter,
+    },
+  }),
+  [
+    currentCharacter,
+    selectedBook,
+    selectedChapter,
+    userName,
+    studentId,
+    region,
+    transportType,
+  ],
+);
 
   const handleBookAndCharacterSelect = (book, character) => {
     setSelectedBook(book);
@@ -328,9 +330,7 @@ const App = ({ transportType }) => {
         );
       case "progress":
         return (
-          <ProgressSection
-            conversationId={latestConversationId || undefined}
-          />
+          <ProgressSection conversationId={latestConversationId || undefined} />
         );
       case "profile":
         return <ProfileSection />;
@@ -360,6 +360,7 @@ const App = ({ transportType }) => {
               currentCharacter={currentCharacter}
               userName={userName}
               studentId={studentId}
+              region={region}
               showControlButton={false} // hide controls; autostart path
               onDisconnectRequest={disconnectRef}
               connectionManagedExternally={shouldShowConnectionManager}
@@ -430,6 +431,7 @@ const App = ({ transportType }) => {
           studentId={studentId}
           selectedBook={selectedBook}
           chapter={selectedChapter}
+          region={region}
           onDisconnectRef={disconnectRef}
         />
       )}
