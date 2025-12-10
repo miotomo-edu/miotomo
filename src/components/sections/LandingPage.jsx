@@ -27,7 +27,7 @@ const steps = [
   {
     id: 4,
     image: placeholder4,
-    title: "Ready to begin?",
+    title: "See your progress",
     text: "Parents and children can track strengths, vocabulary gains, and growth over days, weeks, and months.",
   },
 ];
@@ -50,7 +50,7 @@ function LandingPage({ onContinue }) {
   const { image, title, text } = steps[currentStep];
 
   return (
-    <div className="h-screen flex flex-col justify-between items-center text-center px-6">
+    <div className="h-screen flex flex-col justify-between items-center text-center px-6 bg-[#F2D47C]">
       {/* Top image area */}
       <div className="flex-grow flex justify-center items-center">
         <img
@@ -82,7 +82,7 @@ function LandingPage({ onContinue }) {
               className={`w-3 h-3 mx-1 rounded-full transition-all duration-300 ${
                 idx === currentStep
                   ? "bg-black w-6"
-                  : "bg-gray-300 hover:bg-gray-400"
+                  : "bg-white hover:bg-gray-400"
               }`}
             />
           ))}

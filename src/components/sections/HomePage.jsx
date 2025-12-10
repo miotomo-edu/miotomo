@@ -20,7 +20,7 @@ function HomePage({
 
   return (
     <div>
-      <WelcomeSection userName={userName} streak={student?.streak || 0} />
+      <WelcomeSection userName={userName} />
       {selectedBook ? (
         <>
           <CurrentBookSection

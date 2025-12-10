@@ -24,10 +24,18 @@ function LibraryPage({
     const withReadDate = books
       .filter((book) => Boolean(book.lastReadDate))
       .sort((a, b) => {
-        const aTime = a.lastReadDate ? Date.parse(a.lastReadDate) : Number.NEGATIVE_INFINITY;
-        const bTime = b.lastReadDate ? Date.parse(b.lastReadDate) : Number.NEGATIVE_INFINITY;
-        const safeATime = Number.isNaN(aTime) ? Number.NEGATIVE_INFINITY : aTime;
-        const safeBTime = Number.isNaN(bTime) ? Number.NEGATIVE_INFINITY : bTime;
+        const aTime = a.lastReadDate
+          ? Date.parse(a.lastReadDate)
+          : Number.NEGATIVE_INFINITY;
+        const bTime = b.lastReadDate
+          ? Date.parse(b.lastReadDate)
+          : Number.NEGATIVE_INFINITY;
+        const safeATime = Number.isNaN(aTime)
+          ? Number.NEGATIVE_INFINITY
+          : aTime;
+        const safeBTime = Number.isNaN(bTime)
+          ? Number.NEGATIVE_INFINITY
+          : bTime;
         return safeBTime - safeATime;
       });
 
@@ -48,7 +56,7 @@ function LibraryPage({
 
   return (
     <div>
-      <WelcomeSection userName={userName} streak={student?.streak || 0} />
+      <WelcomeSection userName={userName} />
       {featuredBook && (
         <CurrentBookSection
           books={[featuredBook]}
