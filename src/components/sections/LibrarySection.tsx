@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import BookGrid from "../features/BookGrid";
 import { useBooks } from "../../hooks/useBooks";
-import { Character } from "../../lib/characters";
 
 export type Book = {
   id: string;
@@ -18,38 +17,17 @@ export type Book = {
 type LibrarySectionProps = {
   books: Book[];
   setBooks: (books: Book[]) => void;
-  onBookAndCharacterSelect: (book: Book, character: Character) => void;
-  onContinue: () => void;
   studentId: string;
-  onBookSelectForMap: (
-    book: Book,
-    chapter: number,
-    options?: {
-      onChapterConfirmed?: (chapter: number) => void;
-      skipChapterModal?: boolean;
-    },
-  ) => void;
-  activeConversations?: Record<
-    string,
-    { status?: string | null; elapsedSeconds?: number | null }
-  >;
+  onOpenCircle: (book: Book, chapter: number) => void;
 };
 
 const LibrarySection: React.FC<LibrarySectionProps> = ({
   books,
   setBooks,
-  onBookAndCharacterSelect,
-  onContinue,
   studentId,
-  onBookSelectForMap,
-  activeConversations = {},
+  onOpenCircle,
 }) => {
-  const {
-    data: fetchedBooks,
-    isLoading,
-    error,
-    updateBookProgress,
-  } = useBooks(studentId);
+  const { data: fetchedBooks, isLoading, error } = useBooks(studentId);
 
   useEffect(() => {
     if (fetchedBooks && Array.isArray(fetchedBooks)) {
@@ -63,17 +41,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
     const selected = booksToUse.find((b) => b.id === bookId);
     if (selected) {
       const initialChapter = selected.progress || 1;
-      onBookSelectForMap(selected, initialChapter, {
-        onChapterConfirmed: (chapter) => {
-          if (studentId) {
-            updateBookProgress({
-              studentId,
-              bookId: selected.id,
-              progress: chapter,
-            });
-          }
-        },
-      });
+      onOpenCircle(selected, initialChapter);
     }
   };
 
@@ -82,7 +50,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
 
   return (
     <section className="py-6 px-4 pb-24">
-      <h2 className="text-xl font-semibold mb-4">My library</h2>
+      <h2 className="text-xl font-semibold mb-4">My circles</h2>
       <BookGrid books={fetchedBooks || books} onBookAction={handleBookAction} />
     </section>
   );

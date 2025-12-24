@@ -5,26 +5,25 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import BotAudio from "./audio/BotAudio";
 
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
 import HomePage from "./sections/HomePage";
 import LibraryPage from "./sections/LibraryPage";
-import ProfileSection from "./sections/ProfileSection";
 import RewardsSection from "./sections/RewardsSection";
 import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
+import CirclePage from "./sections/CirclePage";
 import { TalkWithBook } from "./TalkWithBook";
 import ProgressSection from "./sections/ProgressSection";
 import BottomNavBar from "./common/BottomNavBar";
 import OnboardingFlow from "./sections/Onboarding/OnboardingFlow";
-import ChapterSelectorModal from "./common/ChapterSelectorModal";
 
 import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
+import { characterData } from "../lib/characters";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
@@ -34,15 +33,13 @@ const App = ({ transportType, region = "" }) => {
   const prevActiveComponent = useRef(activeComponent);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(1);
-  const [books, setBooks] = useState([]);
   const mainRef = useRef(null);
+  const scrollPositionsRef = useRef({});
   const [userName, setUserName] = useState("");
   const [currentCharacter, setCurrentCharacter] = useState(null);
-  const [isChapterModalOpen, setIsChapterModalOpen] = useState(false);
-  const [chapterModalBook, setChapterModalBook] = useState(null);
-  const [chapterModalChapter, setChapterModalChapter] = useState(1);
-  const chapterConfirmCallbackRef = useRef(null);
-  const [activeConversations, setActiveConversations] = useState({});
+  const [circleReturnComponent, setCircleReturnComponent] =
+    useState("library");
+  const [shouldStartSession, setShouldStartSession] = useState(false);
   const [latestConversationId, setLatestConversationId] = useState(null);
 
   // Used to trigger disconnect from BottomNavBar or when leaving interactive
@@ -69,22 +66,6 @@ const App = ({ transportType, region = "" }) => {
     if (!studentId) return;
     try {
       const { data } = await getConversations(studentId);
-      const activeMap = {};
-      (data || []).forEach((conv) => {
-        if (!conv?.book_id) return;
-        const normalizedStatus =
-          typeof conv.status === "string" ? conv.status : "";
-        if (!activeMap[conv.book_id]) {
-          activeMap[conv.book_id] = {
-            status: normalizedStatus,
-            elapsedSeconds:
-              typeof conv.elapsed_seconds === "number"
-                ? conv.elapsed_seconds
-                : 0,
-          };
-        }
-      });
-      setActiveConversations(activeMap);
       if (data && data.length > 0) {
         setLatestConversationId(data?.[0]?.id ?? null);
       } else {
@@ -139,106 +120,65 @@ const App = ({ transportType, region = "" }) => {
     };
   }, []);
 
-  const closeChapterModal = useCallback(() => {
-    setIsChapterModalOpen(false);
-    setChapterModalBook(null);
-    chapterConfirmCallbackRef.current = null;
-  }, []);
+  const openCirclePage = useCallback(
+    (book, chapterValue) => {
+      if (!book) return;
+      const resolvedChapter = normalizeChapterValue(book, chapterValue);
+      const scrollTarget = mainRef.current;
+      if (scrollTarget instanceof HTMLElement) {
+        scrollPositionsRef.current[activeComponent] = scrollTarget.scrollTop;
+      }
+      setSelectedBook(book);
+      setSelectedChapter(resolvedChapter);
+      setCircleReturnComponent(activeComponent);
+      setActiveComponent("circle");
+    },
+    [normalizeChapterValue, activeComponent],
+  );
 
-  const goToMapWithSelection = useCallback(
+  const handlePlayEpisode = useCallback(
     (book, chapterValue) => {
       if (!book) return;
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
-      setActiveComponent("map");
-    },
-    [normalizeChapterValue],
-  );
-
-  const handleChapterModalConfirm = useCallback(() => {
-    if (!chapterModalBook) return;
-    const confirmedChapter = normalizeChapterValue(
-      chapterModalBook,
-      chapterModalChapter,
-    );
-    const callback = chapterConfirmCallbackRef.current;
-    if (typeof callback === "function") {
-      try {
-        callback(confirmedChapter);
-      } catch (err) {
-        console.error("Chapter confirmation callback failed:", err);
-      }
-    }
-    goToMapWithSelection(chapterModalBook, confirmedChapter);
-    closeChapterModal();
-  }, [
-    chapterModalBook,
-    chapterModalChapter,
-    normalizeChapterValue,
-    goToMapWithSelection,
-    closeChapterModal,
-  ]);
-
-  const handleChapterModalCancel = useCallback(() => {
-    closeChapterModal();
-  }, [closeChapterModal]);
-
-  const handleChapterModalChange = useCallback((value) => {
-    const numeric = Number(value);
-    setChapterModalChapter(Number.isFinite(numeric) ? numeric : 1);
-  }, []);
-
-  const handleBookSelectForMap = useCallback(
-    (book, chapter, options = {}) => {
-      if (!book) return;
-      const initialChapter = normalizeChapterValue(book, chapter);
-      const { skipChapterModal = false, onChapterConfirmed } = options;
-
-      if (skipChapterModal) {
-        if (typeof onChapterConfirmed === "function") {
-          try {
-            onChapterConfirmed(initialChapter);
-          } catch (err) {
-            console.error("Chapter confirmation callback failed:", err);
-          }
+      if (!currentCharacter) {
+        const defaultCharacter =
+          characterData.find((character) => !character.disabled) ??
+          characterData[0] ??
+          null;
+        if (defaultCharacter) {
+          setCurrentCharacter(defaultCharacter);
         }
-        goToMapWithSelection(book, initialChapter);
-        return;
       }
-
-      chapterConfirmCallbackRef.current =
-        typeof onChapterConfirmed === "function" ? onChapterConfirmed : null;
-      setChapterModalBook(book);
-      setChapterModalChapter(initialChapter);
-      setIsChapterModalOpen(true);
+      setActiveComponent("interactive");
     },
-    [normalizeChapterValue, goToMapWithSelection],
+    [normalizeChapterValue, currentCharacter],
   );
 
-const updatedBotConfig = useMemo(
-  () => ({
-    voice: currentCharacter?.voice ?? "default-voice",
-    transportType, // 'daily' or 'webrtc' from main.tsx
-    metadata: {
-      book: selectedBook,
-      chapter: selectedChapter,
-      studentName: userName,
+  const updatedBotConfig = useMemo(
+    () => ({
+      voice: currentCharacter?.voice ?? "default-voice",
+      transportType, // 'daily' or 'webrtc' from main.tsx
+      metadata: {
+        book: selectedBook,
+        chapter: selectedChapter,
+        studentName: userName,
+        studentId,
+        region,
+        character: currentCharacter,
+      },
+    }),
+    [
+      currentCharacter,
+      selectedBook,
+      selectedChapter,
+      userName,
       studentId,
       region,
-      character: currentCharacter,
-    },
-  }),
-  [
-    currentCharacter,
-    selectedBook,
-    selectedChapter,
-    userName,
-    studentId,
-    region,
-    transportType,
-  ],
-);
+      transportType,
+    ],
+  );
 
   const handleBookAndCharacterSelect = (book, character) => {
     setSelectedBook(book);
@@ -274,6 +214,16 @@ const updatedBotConfig = useMemo(
     isInteractiveView && selectedBook && currentCharacter;
 
   useEffect(() => {
+    if (!isInteractiveView) {
+      setShouldStartSession(false);
+    }
+  }, [isInteractiveView]);
+
+  useEffect(() => {
+    setShouldStartSession(false);
+  }, [selectedBook?.id, selectedChapter, currentCharacter?.name]);
+
+  useEffect(() => {
     if (!isInteractiveView) return;
 
     const scrollTargets = [mainRef.current, window, document.documentElement];
@@ -288,6 +238,15 @@ const updatedBotConfig = useMemo(
     });
   }, [isInteractiveView, mainRef]);
 
+  useEffect(() => {
+    if (activeComponent === "circle" || isInteractiveView) return;
+    const scrollTarget = mainRef.current;
+    const saved = scrollPositionsRef.current[activeComponent];
+    if (scrollTarget instanceof HTMLElement && typeof saved === "number") {
+      scrollTarget.scrollTo({ top: saved, left: 0, behavior: "auto" });
+    }
+  }, [activeComponent, isInteractiveView]);
+
   const renderComponent = () => {
     switch (activeComponent) {
       case "landing":
@@ -301,39 +260,43 @@ const updatedBotConfig = useMemo(
       case "home":
         return (
           <HomePage
-            books={books}
-            setBooks={(arr) => setBooks(Array.isArray(arr) ? arr : [])}
-            onContinue={() => setActiveComponent("interactive")}
-            selectedBook={selectedBook}
-            selectedChapter={selectedChapter}
-            onBookAndCharacterSelect={handleBookAndCharacterSelect}
             userName={userName}
             studentId={studentId}
-            activeConversations={activeConversations}
-            onBookSelectForMap={handleBookSelectForMap}
+            onOpenCircle={openCirclePage}
           />
         );
       case "library":
         return (
           <LibraryPage
-            books={books}
-            setBooks={(arr) => setBooks(Array.isArray(arr) ? arr : [])}
-            selectedBook={selectedBook}
-            selectedChapter={selectedChapter}
-            onBookAndCharacterSelect={handleBookAndCharacterSelect}
-            onContinue={() => setActiveComponent("interactive")}
             userName={userName}
             studentId={studentId}
-            activeConversations={activeConversations}
-            onBookSelectForMap={handleBookSelectForMap}
+            onOpenCircle={openCirclePage}
+          />
+        );
+      case "circle":
+        if (!selectedBook) {
+          return (
+            <LibraryPage
+              userName={userName}
+              studentId={studentId}
+              onOpenCircle={openCirclePage}
+            />
+          );
+        }
+        return (
+          <CirclePage
+            book={selectedBook}
+            studentId={studentId}
+            scrollContainerRef={mainRef}
+            onBack={() => setActiveComponent(circleReturnComponent || "library")}
+            onPlayEpisode={handlePlayEpisode}
+            onSelectCircle={openCirclePage}
           />
         );
       case "progress":
         return (
           <ProgressSection conversationId={latestConversationId || undefined} />
         );
-      case "profile":
-        return <ProfileSection />;
       case "rewards":
         return <RewardsSection />;
       case "settings":
@@ -354,7 +317,7 @@ const updatedBotConfig = useMemo(
           <VoiceBotProvider>
             <TalkWithBook
               botConfig={updatedBotConfig}
-              onNavigate={setActiveComponent}
+              onNavigate={handleNavigationClick}
               selectedBook={selectedBook}
               chapter={selectedChapter}
               currentCharacter={currentCharacter}
@@ -364,8 +327,8 @@ const updatedBotConfig = useMemo(
               showControlButton={false} // hide controls; autostart path
               onDisconnectRequest={disconnectRef}
               connectionManagedExternally={shouldShowConnectionManager}
+              onRequestSessionStart={() => setShouldStartSession(true)}
             />
-            <BotAudio volume={1} playbackRate={1} />
           </VoiceBotProvider>
         );
       default:
@@ -425,7 +388,7 @@ const updatedBotConfig = useMemo(
       {shouldShowConnectionManager && (
         <PipecatConnectionManager
           key={connectionKey}
-          autoConnect
+          autoConnect={shouldStartSession}
           botConfig={updatedBotConfig}
           userName={userName}
           studentId={studentId}
@@ -435,15 +398,6 @@ const updatedBotConfig = useMemo(
           onDisconnectRef={disconnectRef}
         />
       )}
-
-      <ChapterSelectorModal
-        isOpen={isChapterModalOpen}
-        book={chapterModalBook}
-        selectedChapter={chapterModalChapter}
-        onChapterChange={handleChapterModalChange}
-        onConfirm={handleChapterModalConfirm}
-        onCancel={handleChapterModalCancel}
-      />
 
       {activeComponent !== "landing" && activeComponent !== "onboarding" && (
         <BottomNavBar

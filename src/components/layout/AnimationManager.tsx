@@ -1,8 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  usePipecatClient,
-  usePipecatClientMicControl,
-} from "@pipecat-ai/client-react";
 import useAnalyserVolume from "../../hooks/useAnalyserVolume";
 import CharacterAvatar from "../features/voice/CharacterAvatar";
 import CharacterContainer from "../features/voice/CharacterContainer";
@@ -12,6 +8,7 @@ interface Props {
   userVoiceAnalyser?: AnalyserNode;
   isUserSpeaking?: boolean;
   isBotSpeaking?: boolean;
+  isMicEnabled?: boolean;
   characterImages?: {
     idle: string;
     sleeping?: string;
@@ -20,6 +17,8 @@ interface Props {
   characterName?: string;
   onMicToggle?: (enabled: boolean) => void;
   isCelebrating?: boolean;
+  forceAwake?: boolean;
+  isMicToggleDisabled?: boolean;
 }
 
 const AnimationManager: React.FC<Props> = ({
@@ -27,15 +26,14 @@ const AnimationManager: React.FC<Props> = ({
   userVoiceAnalyser,
   isUserSpeaking = false,
   isBotSpeaking = false,
+  isMicEnabled = false,
   characterImages,
   characterName,
   onMicToggle,
   isCelebrating = false,
+  forceAwake = false,
+  isMicToggleDisabled = false,
 }) => {
-  const client = usePipecatClient();
-
-  // Pipecat mic control hook
-  const { enableMic, isMicEnabled } = usePipecatClientMicControl();
   const [hasBeenAwake, setHasBeenAwake] = useState(false);
   const [isUserSpeakingTransient, setIsUserSpeakingTransient] = useState(false);
 
@@ -49,25 +47,14 @@ const AnimationManager: React.FC<Props> = ({
   }, [isMicEnabled]);
 
   const toggleMic = () => {
-    if (isCelebrating) {
+    if (isCelebrating || isMicToggleDisabled) {
       return;
     }
-    const newState = !isMicEnabled;
     if (process.env.NODE_ENV !== "production") {
-      console.log("🎤 Mic toggleMic", newState);
+      console.log("🎤 Mic toggleMic");
     }
 
-    void enableMic(newState);
-    if (newState) {
-      setHasBeenAwake(true);
-    }
-
-    // Also send explicit control to bot if required
-    client?.sendClientMessage("control", {
-      action: newState ? "resumeListening" : "pauseListening",
-    });
-
-    onMicToggle?.(newState);
+    onMicToggle?.(!isMicEnabled);
   };
 
   const handleOrbClick = () => {
@@ -106,7 +93,8 @@ const AnimationManager: React.FC<Props> = ({
     }
   }, [isMicEnabled]);
 
-  const isSleepingDisplay = !isMicEnabled && hasBeenAwake && !isCelebrating;
+  const isSleepingDisplay =
+    !forceAwake && !isMicEnabled && hasBeenAwake && !isCelebrating;
 
   const displayVolume = isSleepingDisplay ? 0 : activeVolume;
 
@@ -121,7 +109,7 @@ const AnimationManager: React.FC<Props> = ({
         <button
           onClick={handleOrbClick}
           className="relative inline-flex items-center justify-center"
-          disabled={isCelebrating}
+          disabled={isCelebrating || isMicToggleDisabled}
           aria-label="Toggle microphone"
         >
           <CharacterAvatar
