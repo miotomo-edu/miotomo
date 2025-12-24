@@ -355,7 +355,7 @@ export const TalkWithBook = ({
       }
     };
     const onBotOutput = (data) => {
-      console.log("onBotOutput", data);
+      if (!data?.text) return;
       addVoicebotMessage({ assistant: data.text });
     };
 

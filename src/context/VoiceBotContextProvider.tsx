@@ -159,7 +159,6 @@ export function VoiceBotProvider({ children }: Props) {
   }, [state.sleepTimer]);
 
   const addVoicebotMessage = (newMessage: VoiceBotMessage) => {
-    console.log("addVoicebotMessage", newMessage);
     dispatch({ type: ADD_MESSAGE, payload: newMessage });
   };
 

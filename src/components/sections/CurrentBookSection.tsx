@@ -50,6 +50,7 @@ type CurrentBookSectionProps = {
     string,
     { status?: string | null; elapsedSeconds?: number | null }
   >;
+  dailyElapsedSeconds?: number;
 };
 
 const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
@@ -57,8 +58,13 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
   chapter,
   onContinue,
   activeConversations = {},
+  dailyElapsedSeconds = 0,
 }) => {
   const endMessageCache = useRef<Record<string, string>>({});
+  const normalizedDailyElapsed =
+    typeof dailyElapsedSeconds === "number" && Number.isFinite(dailyElapsedSeconds)
+      ? Math.max(dailyElapsedSeconds, 0)
+      : 0;
 
   const getEndOfDayMessage = (bookId: string) => {
     if (!endMessageCache.current[bookId]) {
@@ -122,9 +128,7 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                         "number" &&
                         activeConversations[book.id]?.status !== "ended" && (
                           <ActiveBadge
-                            elapsedSeconds={
-                              activeConversations[book.id]?.elapsedSeconds || 0
-                            }
+                            elapsedSeconds={normalizedDailyElapsed}
                           />
                         )}
                     </div>

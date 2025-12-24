@@ -43,6 +43,7 @@ const App = ({ transportType, region = "" }) => {
   const [chapterModalChapter, setChapterModalChapter] = useState(1);
   const chapterConfirmCallbackRef = useRef(null);
   const [activeConversations, setActiveConversations] = useState({});
+  const [dailyElapsedSeconds, setDailyElapsedSeconds] = useState(0);
   const [latestConversationId, setLatestConversationId] = useState(null);
 
   // Used to trigger disconnect from BottomNavBar or when leaving interactive
@@ -70,6 +71,7 @@ const App = ({ transportType, region = "" }) => {
     try {
       const { data } = await getConversations(studentId);
       const activeMap = {};
+      let totalElapsed = 0;
       (data || []).forEach((conv) => {
         if (!conv?.book_id) return;
         const normalizedStatus =
@@ -83,8 +85,12 @@ const App = ({ transportType, region = "" }) => {
                 : 0,
           };
         }
+        if (typeof conv?.elapsed_seconds === "number") {
+          totalElapsed += conv.elapsed_seconds;
+        }
       });
       setActiveConversations(activeMap);
+      setDailyElapsedSeconds(totalElapsed);
       if (data && data.length > 0) {
         setLatestConversationId(data?.[0]?.id ?? null);
       } else {
@@ -94,9 +100,11 @@ const App = ({ transportType, region = "" }) => {
           { includeFallback: true },
         );
         setLatestConversationId(fallbackData?.[0]?.id ?? null);
+        setDailyElapsedSeconds(0);
       }
     } catch (err) {
       console.warn("Failed to fetch active conversations:", err);
+      setDailyElapsedSeconds(0);
     }
   }, [getConversations, studentId]);
 
@@ -310,6 +318,7 @@ const updatedBotConfig = useMemo(
             userName={userName}
             studentId={studentId}
             activeConversations={activeConversations}
+            dailyElapsedSeconds={dailyElapsedSeconds}
             onBookSelectForMap={handleBookSelectForMap}
           />
         );
@@ -325,6 +334,7 @@ const updatedBotConfig = useMemo(
             userName={userName}
             studentId={studentId}
             activeConversations={activeConversations}
+            dailyElapsedSeconds={dailyElapsedSeconds}
             onBookSelectForMap={handleBookSelectForMap}
           />
         );

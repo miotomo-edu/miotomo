@@ -24,6 +24,7 @@ type SpellingPayload = {
   phase?: string;
   game_type?: string;
   data?: SpellingPayload;
+  letters?: string[];
 };
 
 const extractField = (
@@ -48,6 +49,22 @@ const extractField = (
   return null;
 };
 
+const extractLetters = (event: unknown): string[] | null => {
+  if (!event || typeof event !== "object") return null;
+  const typed = event as SpellingPayload;
+  if (Array.isArray(typed.letters)) {
+    return typed.letters.map((letter) =>
+      typeof letter === "string" ? letter : "",
+    );
+  }
+
+  if (typed.data) {
+    return extractLetters(typed.data);
+  }
+
+  return null;
+};
+
 const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
   const word = extractField(event, "word") as string | null;
   const totalWords = extractField(event, "total_words") as number | null;
@@ -56,12 +73,14 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
   const eventType = extractField(event, "event_type") as string | null;
   const phase = extractField(event, "phase") as string | null;
   const gameType = extractField(event, "game_type") as string | null;
+  const detectedLettersPayload = extractLetters(event);
   const [statuses, setStatuses] = useState<
     Array<"correct" | "incorrect" | null>
   >([]);
   const [currentRound, setCurrentRound] = useState<number | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [displayWord, setDisplayWord] = useState("");
+  const [detectedLetters, setDetectedLetters] = useState<string[]>([]);
 
   useEffect(() => {
     if (eventType === "game_start" || eventType === "game_reset") {
@@ -69,6 +88,7 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
       setCurrentRound(null);
       setIsRevealed(false);
       setDisplayWord("");
+      setDetectedLetters([]);
       return;
     }
     if (!totalWords || totalWords <= 0) {
@@ -89,6 +109,9 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
     if (eventType === "question_starting") {
       if (typeof word === "string" && word.trim().length > 0) {
         setDisplayWord(word.trim());
+        setDetectedLetters(
+          Array.from({ length: word.trim().length }, () => ""),
+        );
       }
       setIsRevealed(false);
     }
@@ -97,6 +120,7 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
   useEffect(() => {
     if (typeof word === "string" && word.trim().length > 0) {
       setDisplayWord(word.trim());
+      setDetectedLetters(Array.from({ length: word.trim().length }, () => ""));
     }
   }, [word]);
 
@@ -130,6 +154,29 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
       setIsRevealed(true);
     }
   }, [eventType]);
+
+  useEffect(() => {
+    if (gameType !== "spelling") return;
+    if (eventType !== "spelling_letter_detected") return;
+    if (!detectedLettersPayload || !detectedLettersPayload.length) return;
+    setDetectedLetters((prev) => {
+      if (!prev.length) return prev;
+      let changed = false;
+      const next = prev.map((existing, index) => {
+        if (index >= detectedLettersPayload.length) return existing ?? "";
+        const normalized =
+          detectedLettersPayload[index]?.toUpperCase?.() ??
+          detectedLettersPayload[index] ??
+          "";
+        if (normalized !== existing) {
+          changed = true;
+          return normalized;
+        }
+        return existing ?? "";
+      });
+      return changed ? next : prev;
+    });
+  }, [eventType, gameType, detectedLettersPayload]);
 
   const letters = useMemo(() => displayWord.split(""), [displayWord]);
   const showWordSquares = letters.length > 0;
@@ -180,7 +227,7 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
               maxWidth: `${Math.max(100 / letters.length, 12)}%`,
             }}
           >
-            {shouldRevealLetters ? letter : ""}
+            {shouldRevealLetters ? letter : detectedLetters[index] ?? ""}
           </div>
         ))}
       </div>

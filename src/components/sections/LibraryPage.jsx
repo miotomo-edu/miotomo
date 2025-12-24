@@ -15,6 +15,7 @@ function LibraryPage({
   studentId,
   onBookSelectForMap,
   activeConversations = {},
+  dailyElapsedSeconds = 0,
 }) {
   const { data: student } = useStudent(studentId);
 
@@ -65,6 +66,7 @@ function LibraryPage({
             onBookSelectForMap(book, chapter);
           }}
           activeConversations={activeConversations}
+          dailyElapsedSeconds={dailyElapsedSeconds}
         />
       )}
       <LibrarySection

@@ -15,6 +15,7 @@ function HomePage({
   studentId,
   onBookSelectForMap,
   activeConversations = {},
+  dailyElapsedSeconds = 0,
 }) {
   const { data: student } = useStudent(studentId);
 
@@ -28,6 +29,7 @@ function HomePage({
             chapter={selectedChapter} // <-- pass chapter
             onContinue={(book, chapter) => onBookSelectForMap(book, chapter)}
             activeConversations={activeConversations}
+            dailyElapsedSeconds={dailyElapsedSeconds}
           />
           <ReminderSection />
         </>

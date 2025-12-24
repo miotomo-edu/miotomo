@@ -45,9 +45,6 @@ const client = new PipecatClient({
     onBotTranscript: (data) => {
       console.log(`Bot: ${data.text}`);
     },
-    onBotOutput: (data) => {
-      console.log("BotOutput", data);
-    },
   },
 });
 
