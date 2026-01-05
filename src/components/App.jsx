@@ -11,7 +11,6 @@ import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
 import HomePage from "./sections/HomePage";
 import LibraryPage from "./sections/LibraryPage";
-import ProfileSection from "./sections/ProfileSection";
 import RewardsSection from "./sections/RewardsSection";
 import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
@@ -224,29 +223,29 @@ const App = ({ transportType, region = "" }) => {
     [normalizeChapterValue, goToMapWithSelection],
   );
 
-const updatedBotConfig = useMemo(
-  () => ({
-    voice: currentCharacter?.voice ?? "default-voice",
-    transportType, // 'daily' or 'webrtc' from main.tsx
-    metadata: {
-      book: selectedBook,
-      chapter: selectedChapter,
-      studentName: userName,
+  const updatedBotConfig = useMemo(
+    () => ({
+      voice: currentCharacter?.voice ?? "default-voice",
+      transportType, // 'daily' or 'webrtc' from main.tsx
+      metadata: {
+        book: selectedBook,
+        chapter: selectedChapter,
+        studentName: userName,
+        studentId,
+        region,
+        character: currentCharacter,
+      },
+    }),
+    [
+      currentCharacter,
+      selectedBook,
+      selectedChapter,
+      userName,
       studentId,
       region,
-      character: currentCharacter,
-    },
-  }),
-  [
-    currentCharacter,
-    selectedBook,
-    selectedChapter,
-    userName,
-    studentId,
-    region,
-    transportType,
-  ],
-);
+      transportType,
+    ],
+  );
 
   const handleBookAndCharacterSelect = (book, character) => {
     setSelectedBook(book);
@@ -342,8 +341,6 @@ const updatedBotConfig = useMemo(
         return (
           <ProgressSection conversationId={latestConversationId || undefined} />
         );
-      case "profile":
-        return <ProfileSection />;
       case "rewards":
         return <RewardsSection />;
       case "settings":
