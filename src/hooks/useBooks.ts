@@ -9,55 +9,24 @@ export function useBooks(studentId: string) {
   const booksQuery = useQuery({
     queryKey: ["books", studentId],
     queryFn: async (): Promise<LocalBook[]> => {
-      // Wildcard: load all books if studentId is "all" or empty
-      if (studentId === "vasu2015") {
-        const { data, error } = await supabase.from("books").select("*");
-        if (error) throw error;
-        return (data ?? []).map((book) => ({
-          id: book.id,
-          title: book.title,
-          author: book.author,
-          thumbnailUrl: book.cover || "",
-          status: "new", // Default status
-          progress: 0, // Default progress
-          chapters: 1,
-          section_type: "chapters",
-          lastReadDate: null,
-        }));
-      }
-
-      // Otherwise, load only books for the student
+      // Library view shows all books, independent of student assignments.
       const { data, error } = await supabase
-        .from("student_books")
-        .select(
-          `
-          status,
-          progress,
-          last_read_date,
-          book:books (
-            id,
-            title,
-            author,
-            cover,
-            chapters,
-            section_type
-          )
-        `,
-        )
-        .eq("student_id", studentId);
+        .from("books")
+        .select("id, title, author, cover, chapters, section_type")
+        .eq("type", "circle");
 
       if (error) throw error;
 
-      return (data ?? []).map((item) => ({
-        id: item.book.id,
-        title: item.book.title,
-        author: item.book.author,
-        thumbnailUrl: item.book.cover || "",
-        status: item.status as "new" | "started" | "read",
-        progress: item.progress ?? 0,
-        chapters: item.book.chapters ?? 1,
-        section_type: item.book.section_type,
-        lastReadDate: item.last_read_date,
+      return (data ?? []).map((book) => ({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        thumbnailUrl: book.cover || "",
+        status: "new",
+        progress: 0,
+        chapters: book.chapters ?? 1,
+        section_type: book.section_type,
+        lastReadDate: null,
       }));
     },
     enabled: studentId !== undefined, // Only run if studentId is defined

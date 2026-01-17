@@ -45,20 +45,26 @@ const ActiveBadge: React.FC<{ elapsedSeconds: number }> = ({
 type CurrentBookSectionProps = {
   books: Book[]; // Remains an array of books
   chapter?: number;
-  onContinue?: (book: Book, chapter: number) => void; // Passes the specific book being interacted with
+  onOpenCircle?: (book: Book, chapter: number) => void;
   activeConversations?: Record<
     string,
     { status?: string | null; elapsedSeconds?: number | null }
   >;
+  dailyElapsedSeconds?: number;
 };
 
 const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
   books,
   chapter,
-  onContinue,
+  onOpenCircle,
   activeConversations = {},
+  dailyElapsedSeconds = 0,
 }) => {
   const endMessageCache = useRef<Record<string, string>>({});
+  const normalizedDailyElapsed =
+    typeof dailyElapsedSeconds === "number" && Number.isFinite(dailyElapsedSeconds)
+      ? Math.max(dailyElapsedSeconds, 0)
+      : 0;
 
   const getEndOfDayMessage = (bookId: string) => {
     if (!endMessageCache.current[bookId]) {
@@ -122,9 +128,7 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                         "number" &&
                         activeConversations[book.id]?.status !== "ended" && (
                           <ActiveBadge
-                            elapsedSeconds={
-                              activeConversations[book.id]?.elapsedSeconds || 0
-                            }
+                            elapsedSeconds={normalizedDailyElapsed}
                           />
                         )}
                     </div>
@@ -137,7 +141,7 @@ const CurrentBookSection: React.FC<CurrentBookSectionProps> = ({
                       <button
                         className="bg-black text-white font-bold py-2 px-4 rounded-lg w-full mt-2"
                         onClick={() =>
-                          onContinue && onContinue(book, effectiveChapter)
+                          onOpenCircle && onOpenCircle(book, effectiveChapter)
                         }
                       >
                         Continue talking

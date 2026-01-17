@@ -1,6 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { ReactNode, useMemo, useState } from "react";
 import { useProgress } from "../../hooks/useProgress";
 import { useAnalytics } from "../../hooks/useAnalytics";
+import teacherIcon from "../../assets/img/progress/teacher.svg";
+import rankingIcon from "../../assets/img/progress/ranking.svg";
+import bookSquareIcon from "../../assets/img/progress/book-square.svg";
+import connectionIcon from "../../assets/img/progress/connection.svg";
 
 // ---------------- Types ----------------
 type SkillItem = {
@@ -46,10 +50,37 @@ type WeekData = {
 };
 
 // ---------------- Component ----------------
+interface CardSectionProps {
+  title: string;
+  icon?: ReactNode;
+  children: ReactNode;
+  contentClassName?: string;
+}
+
+const CardSection: React.FC<CardSectionProps> = ({
+  title,
+  icon,
+  children,
+  contentClassName = "rounded-xl bg-[#F8CBC4] p-4",
+}) => (
+  <div className="space-y-2">
+    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-black">
+      <span className="flex items-center">
+        {icon ?? <img src={teacherIcon} alt="" className="h-8 w-8" />}
+      </span>
+      <span>{title}</span>
+    </div>
+    <div className={contentClassName}>{children}</div>
+  </div>
+);
+
+const iconMap = [bookSquareIcon, connectionIcon];
+const weekLetters = ["M", "T", "W", "T", "F", "S", "S"];
+
 const ProgressSection: React.FC<{ conversationId: string }> = ({
   conversationId,
 }) => {
-  const [view, setView] = useState<"today" | "week" | "month">("today");
+  const [view, setView] = useState<"week" | "month" | "year">("week");
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const { data, loading, error, status } = useProgress(conversationId);
@@ -77,6 +108,9 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
     return `Last ${weekday}'s`;
   }, [data?.metrics?.created_at, data?.utterances?.created_at]);
 
+  const uppercaseLabel =
+    conversationDayLabel?.toUpperCase?.() ?? conversationDayLabel;
+
   if (error) {
     return <div className="p-6 text-red-500">Error: {error.message}</div>;
   }
@@ -99,202 +133,253 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
 
   // -------- Render --------
   return (
-    <section className="py-6 px-4 pb-24">
+    <section className="py-6 px-4 pb-24 bg-[#EAB7AF]">
+      <h1 className="mb-6 text-3xl font-extrabold text-gray-900">Progress</h1>
       {/* Pills */}
-      <div className="flex gap-2 mb-6">
-        {["today", "week", "month"].map((v) => (
+      <div className="mb-4 flex items-center justify-between text-sm font-bold uppercase text-gray-900">
+        <div className="flex gap-4">
           <button
-            key={v}
-            onClick={() => setView(v as any)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-              view === v
-                ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
-                : "bg-gray-200 text-gray-700"
+            onClick={() => setView("week")}
+            className={`pb-1 transition ${
+              view === "week"
+                ? "border-b-2 border-gray-900"
+                : "border-b-2 border-transparent"
             }`}
           >
-            {v[0].toUpperCase() + v.slice(1)}
+            THIS WEEK
           </button>
-        ))}
-      </div>
-
-      {/* TODAY VIEW */}
-      {view === "today" && today && (
-        <div className="space-y-6">
-          {/* Superpower */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-400">
-                  ⭐
-                </div>
-                <div>
-                  <div className="font-semibold">
-                    {conversationDayLabel} Superpower!
-                  </div>
-                  <div className="text-gray-500 text-sm">
-                    {today.superpower.subtitle}
-                  </div>
-                </div>
-              </div>
-              {today.superpower.new && (
-                <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                  New!
-                </span>
-              )}
-            </div>
-            <div className="space-y-3">
-              {today.superpower.skills.map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between bg-gray-50 rounded-lg p-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{s.emoji}</span>
-                    <span className="text-sm">{s.text}</span>
-                  </div>
-                  {s.score && (
-                    <span className="text-green-600 text-sm font-bold">
-                      {s.score}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-green-400">
-                🧠
-              </div>
-              <div>
-                <div className="font-semibold">Learning Growth</div>
-                <div className="text-gray-500 text-sm">Today’s progress</div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {today.progress.map((p, i) => (
-                <div key={i}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">{p.label}</span>
-                    <span className="text-green-600 font-semibold text-sm">
-                      {p.value}%
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
-                    <div
-                      className="h-2 bg-gradient-to-r from-green-500 to-emerald-400"
-                      style={{ width: `${p.value}%` }}
-                    />
-                  </div>
-                  {p.trend && (
-                    <div className="text-xs text-green-600 flex items-center gap-1">
-                      📈 {p.trend}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* New Skills */}
-          {today.newSkills.length > 0 && (
-            <div className="bg-white rounded-xl shadow p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-400">
-                  📚
-                </div>
-                <div>
-                  <div className="font-semibold">New Skills Unlocked</div>
-                  <div className="text-gray-500 text-sm">
-                    Words mastered today
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {today.newSkills.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 bg-gray-50 rounded-lg p-2"
-                  >
-                    <span>{s.emoji}</span>
-                    <span className="text-sm">
-                      <strong>{s.word}</strong> – {s.meaning}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
-      )}
-
-      {/* WEEK VIEW */}
-      {view === "week" && week && (
-        <div className="space-y-6">
-          {/* Streak */}
-          <div className="bg-gradient-to-r from-red-500 to-orange-400 text-white rounded-xl shadow p-4 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🔥</span>
-              <span className="text-2xl font-bold">{week.streak}</span>
-              <span className="font-semibold">Day Streak!</span>
-            </div>
-            <span className="text-sm">Amazing work this week! 🌟</span>
-          </div>
-
-          {/* Categories */}
-          {week.categories.map((cat, i) => {
-            const isOpen = expanded === cat.name;
+        <div className="flex gap-4">
+          {["month", "year"].map((v) => {
+            const isActive = view === v;
             return (
-              <div
-                key={i}
-                className={`bg-white rounded-xl shadow border-2 ${
-                  isOpen ? "border-gray-300" : "border-transparent"
+              <button
+                key={v}
+                onClick={() => setView(v as any)}
+                className={`pb-1 transition ${
+                  isActive
+                    ? "border-b-2 border-gray-900"
+                    : "border-b-2 border-transparent"
                 }`}
               >
-                <div
-                  className="flex justify-between items-center p-4 cursor-pointer"
-                  onClick={() =>
-                    setExpanded(isOpen ? null : (cat.name as string))
-                  }
+                {v.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {view === "week" && (
+        <>
+          <div className="mb-4 flex gap-3 font-bold">
+            {weekLetters.map((letter, index) => {
+              const todayIndex = new Date().getDay();
+              const mappedIndex = (index + 1) % 7;
+              const isToday = mappedIndex === todayIndex;
+              return (
+                <span
+                  key={`${letter}-${index}`}
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
+                    isToday
+                      ? "bg-[#F18C7C] text-white border border-white"
+                      : "bg-white/20 text-gray-900"
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{cat.icon}</span>
-                    <span className="font-semibold">{cat.name}</span>
-                  </div>
-                  <span className="text-gray-400">{isOpen ? "▲" : "▼"}</span>
-                </div>
-                {isOpen && (
-                  <div className="p-4 space-y-3">
-                    {cat.subskills.map((s, j) => (
+                  {letter}
+                </span>
+              );
+            })}
+          </div>
+          <div className="space-y-6">
+            {today && (
+              <>
+                <CardSection
+                  title={`${uppercaseLabel} SUPERPOWER`}
+                  icon={<img src={rankingIcon} alt="" className="h-8 w-8" />}
+                  contentClassName="space-y-3 bg-transparent p-0"
+                >
+                  <div className="space-y-3">
+                    {today.superpower.skills.map((s, i) => (
                       <div
-                        key={j}
-                        className="flex justify-between items-center bg-gray-50 rounded-lg p-2"
+                        key={i}
+                        className="flex items-center justify-between rounded-2xl bg-white/20 px-4 py-3"
                       >
-                        <div className="flex items-center gap-2">
-                          <span>{s.icon}</span>
-                          <span className="text-sm">{s.title}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-2 bg-gradient-to-r from-blue-500 to-sky-400"
-                              style={{ width: `${s.progress}%` }}
+                        <div className="flex items-center gap-5">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F18C7C]">
+                            <img
+                              src={iconMap[i] ?? teacherIcon}
+                              alt=""
+                              className="h-6 w-6"
                             />
-                          </div>
-                          <span className="text-xs">{s.progress}%</span>
-                          <span className="text-sm">
-                            {"⭐".repeat(s.stars)}
+                          </span>
+                          <span className="text-sm text-gray-800">
+                            {s.text}
                           </span>
                         </div>
+                        {s.score && (
+                          <span className="text-green-700 text-sm font-bold">
+                            {s.score}
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
+                </CardSection>
+
+                <CardSection title="LEARNING GROWTH">
+                  <div className="space-y-4">
+                    {today.progress.map((p, i) => (
+                      <div key={i}>
+                        <div className="mb-1 flex justify-between">
+                          <span className="text-sm text-gray-700">
+                            {p.label}
+                          </span>
+                          <span className="text-green-600 text-sm font-semibold">
+                            {p.value}%
+                          </span>
+                        </div>
+                        <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-white/30">
+                          <div
+                            className="h-2 rounded-full bg-[#F18C7C]"
+                            style={{ width: `${p.value}%` }}
+                          />
+                        </div>
+                        {p.trend && (
+                          <div className="text-xs text-green-700">{p.trend}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardSection>
+
+                {today.newSkills.length > 0 && (
+                  <CardSection title="NEW SKILLS UNLOCKED">
+                    <div className="space-y-3">
+                      {today.newSkills.map((s, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 rounded-lg bg-white/60 p-2"
+                        >
+                          <span>{s.emoji}</span>
+                          <span className="text-sm">
+                            <strong>{s.word}</strong> – {s.meaning}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardSection>
                 )}
-              </div>
-            );
-          })}
+
+                <CardSection title="AREA OF GROWTH">
+                  <ol className="space-y-3 text-sm text-gray-800">
+                    {[
+                      "Give longer answers to a question",
+                      "Use new learnt words in sentences",
+                      "Think more about characters journey",
+                    ].map((text, index) => (
+                      <li key={text} className="flex items-start gap-3">
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/40 font-semibold text-gray-700">
+                          {index + 1}
+                        </span>
+                        <span>{text}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </CardSection>
+              </>
+            )}
+
+            {week && (
+              <>
+                <CardSection title="WEEKLY STREAK">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold">{week.streak}</span>
+                      <span className="font-semibold">Day Streak!</span>
+                    </div>
+                    <span className="text-sm text-gray-700">
+                      Amazing work this week! 🌟
+                    </span>
+                  </div>
+                </CardSection>
+
+                {week.categories.map((cat, i) => {
+                  const isOpen = expanded === cat.name;
+                  return (
+                    <CardSection key={i} title={cat.name.toUpperCase()}>
+                      <div
+                        className={`rounded-xl border-2 ${
+                          isOpen ? "border-gray-300" : "border-transparent"
+                        }`}
+                      >
+                        <div
+                          className="flex cursor-pointer items-center justify-between p-4"
+                          onClick={() =>
+                            setExpanded(isOpen ? null : (cat.name as string))
+                          }
+                        >
+                          <span className="text-sm font-semibold text-gray-700">
+                            {isOpen ? "Hide progress" : "View progress"}
+                          </span>
+                          <span className="text-gray-700">
+                            {isOpen ? "▲" : "▼"}
+                          </span>
+                        </div>
+                        {isOpen && (
+                          <div className="space-y-3 p-4">
+                            {cat.subskills.map((s, j) => (
+                              <div
+                                key={j}
+                                className="flex items-center justify-between rounded-lg bg-white/60 p-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span>{s.icon}</span>
+                                  <span className="text-sm">{s.title}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-20 overflow-hidden rounded-full bg-white/60">
+                                    <div
+                                      className="h-2 bg-gradient-to-r from-blue-500 to-sky-400"
+                                      style={{ width: `${s.progress}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs">
+                                    {s.progress}%
+                                  </span>
+                                  <span className="text-sm">
+                                    {"⭐".repeat(s.stars)}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </CardSection>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </>
+      )}
+      {view === "month" && (
+        <div className="space-y-6">
+          <CardSection title="MONTHLY SUMMARY">
+            <p className="text-sm text-gray-800">
+              Monthly insights will appear here soon.
+            </p>
+          </CardSection>
+        </div>
+      )}
+
+      {view === "year" && (
+        <div className="space-y-6">
+          <CardSection title="YEARLY SUMMARY">
+            <p className="text-sm text-gray-800">
+              Yearly insights will appear here soon.
+            </p>
+          </CardSection>
         </div>
       )}
     </section>
@@ -317,14 +402,12 @@ function mapMetricsToProgress(metrics: any, utterances: any) {
             ? {
                 emoji: "📖",
                 text: "Asked deep questions about character motivations",
-                score: "Excellent",
               }
             : [],
           metrics.critical_thinking?.score > 0
             ? {
                 emoji: "🔗",
                 text: "Connected story to real-life experiences",
-                score: "Excellent",
               }
             : [],
         )

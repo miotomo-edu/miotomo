@@ -7,7 +7,8 @@ Miotomo is an AI reading companion for 6–12 year olds. Kids pick a book, tap a
 - **Character modalities** – `src/lib/characters.ts` defines avatars, accent colors, celebration art, and modality metadata; the talk screen inherits the color and surfaces modality-specific panels like `VocabularyPanel`.
 - **Prompt system** – Pipecat now owns the full prompt; the frontend simply passes book/chapter/character metadata. Keep any new prompt experiments in `src/lib` for reference or backend handoff.
 - **Supabase integration** – `useStudent`, `useConversations`, and `useProgress` hydrate dashboards and persist transcripts (see `src/hooks/integrations/supabase`).
-- **Chapter picker** – `ChapterSelectorModal` appears after a book is tapped so kids confirm which chapter they’re on before hopping into the modality map.
+- **Circle page** – Tapping a book opens the circle page with episode titles and Play buttons; Play jumps straight into the chat with the chosen episode.
+- **Browse experience** – Home/Library render a Netflix-style stack of rows driven by `circles_catalog`, `books`, and `dot_progress`.
 
 ## Tech Stack
 React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS · @pipecat-ai client, transports, and React bindings (Deepgram-powered STT/TTS) · Supabase · React Query · TanStack Query for data fetching.
@@ -40,9 +41,10 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 - `src/context/VoiceBotContextProvider.tsx` – Stores transcripts, latency metrics, sleep/thinking/speaking state, and auto-save behavior.
 - `src/hooks` – Reusable data hooks; notable ones are `usePipecatConnection` (connect/disconnect wrapper), `useConversations` (Supabase persistence), and `useStudent` (progress + streaks).
 - `src/components/sections` – Library, Map (modality picker), Progress, Rewards, Settings, etc.
+- `src/components/sections/BrowsePage.tsx` – Netflix-style browse rows (featured, continue, new, theme/mood/length/domain) driven by `useBrowseCircles`.
 - `src/lib` – Prompt markdown files, constants, characters, and Pipecat config helpers.
 - `src/styles` – Tailwind entry + shared CSS (e.g., `.app-mobile-shell`, microphone animations).
-- `src/components/common/ChapterSelectorModal.tsx` – Shared chapter picker used by the Library/Home flows before routing kids to the modality map.
+- `src/components/sections/CirclePage.tsx` – Circle detail page with cover/title and episode list; Play routes directly into the chat.
 
 ```
 src
@@ -55,15 +57,16 @@ src
 ```
 
 ## Voice + Prompt Flow
-1. `App` asks the reader which chapter they’re on via `ChapterSelectorModal`, then stores the selection and routes them to the modality map before building the Pipecat metadata bundle.
+1. `App` opens the circle page after a book tap; readers pick an episode and Play to jump into the chat with the selected chapter metadata.
 2. `App` selects a book + character and feeds metadata into `TalkWithBook`.
-2. `TalkWithBook` waits for `BotReady`, syncs the mic, sends `start-chat`, and renders the server-side event feed (`VocabularyPanel` etc.).
-3. `useConversation` (features/voice) merges bot and user utterances for display and analytics, while `VoiceBotContext` records latency and behind-the-scenes events.
-4. When Pipecat emits `celebration_sent`, `AnimationManager` swaps the character into its thumbs-up pose so the avatar keeps celebrating through the end of the session.
-5. Prompts can still be prototyped in `src/lib/*.md`, but the production bot prompt lives in Pipecat—document any backend updates in `AGENTS.md`.
+2. `TalkWithBook` plays the circle intro audio locally, waits for `BotReady`, syncs the mic, sends `start-chat`, and renders the server-side event feed (`VocabularyPanel` etc.).
+3. Avatar clicks pause/resume chat and send RTVI `pauseListening`/`resumeListening` control messages; intro controls stay disabled during active chat.
+4. `useConversation` (features/voice) merges bot and user utterances for display and analytics, while `VoiceBotContext` records latency and behind-the-scenes events.
+5. When Pipecat emits `celebration_sent`, `AnimationManager` swaps the character into its thumbs-up pose so the avatar keeps celebrating through the end of the session.
+6. Prompts can still be prototyped in `src/lib/*.md`, but the production bot prompt lives in Pipecat—document any backend updates in `AGENTS.md`.
 
 ## Data & Persistence
-- Supabase tables: `students`, `books`, `conversations`. `useConversations` auto-saves after message bursts; `useStudent` enriches the UI with streaks.
+- Supabase tables: `students`, `books`, `conversations`, `dot_progress`. `dot_progress` tracks per-dot listening/talking status and elapsed seconds for the circle list UI.
 - Update `src/hooks/integrations/supabase/types.ts` via your preferred generator when schema changes.
 
 ## Testing & QA

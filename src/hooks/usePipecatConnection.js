@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePipecatClient } from "@pipecat-ai/client-react";
-import { RTVIEvent } from "@pipecat-ai/client-js";
+import { RTVIEvent, RTVIMessage } from "@pipecat-ai/client-js";
 
 /**
  * Build the Small WebRTC offer URL from your current app state.
@@ -64,6 +64,35 @@ export function usePipecatConnection(options = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const connectingRef = useRef(false); // Track in-progress connection attempts
   const disconnectingRef = useRef(false); // Track in-progress disconnection
+  const clientReadySentRef = useRef(false);
+  const pendingMessagesRef = useRef([]);
+
+  const sendClientReady = useCallback(() => {
+    if (!client) return;
+    if (clientReadySentRef.current) return;
+    try {
+      const message = RTVIMessage.clientReady();
+      client.transport.sendMessage(message);
+      clientReadySentRef.current = true;
+    } catch (err) {
+      console.warn("Failed to send client-ready:", err);
+    }
+  }, [client]);
+
+  const flushPendingMessages = useCallback(() => {
+    if (!client || client.state !== "ready") return;
+    if (pendingMessagesRef.current.length === 0) return;
+    const pending = [...pendingMessagesRef.current];
+    pendingMessagesRef.current = [];
+    pending.forEach(({ type, data }) => {
+      try {
+        client.sendClientMessage(type, data);
+        console.log(`📤 Sent message: ${type}`, data);
+      } catch (err) {
+        console.error("sendClientMessage failed:", err);
+      }
+    });
+  }, [client]);
 
   // Basic connection state listeners (keep other event bindings in your pages)
   useEffect(() => {
@@ -74,6 +103,11 @@ export function usePipecatConnection(options = {}) {
       setIsConnected(true);
       setIsConnecting(false);
       connectingRef.current = false;
+      if (client.state !== "ready") {
+        sendClientReady();
+      } else {
+        flushPendingMessages();
+      }
     };
 
     const onDisconnected = () => {
@@ -82,6 +116,8 @@ export function usePipecatConnection(options = {}) {
       setIsConnecting(false);
       connectingRef.current = false;
       disconnectingRef.current = false;
+      clientReadySentRef.current = false;
+      pendingMessagesRef.current = [];
     };
 
     const onConnecting = () => {
@@ -90,16 +126,27 @@ export function usePipecatConnection(options = {}) {
       connectingRef.current = true;
     };
 
+    const onTransportStateChanged = (state) => {
+      if (state === "connected") {
+        sendClientReady();
+      }
+      if (state === "ready") {
+        flushPendingMessages();
+      }
+    };
+
     client.on(RTVIEvent.Connected, onConnected);
     client.on(RTVIEvent.Disconnected, onDisconnected);
     client.on(RTVIEvent.Connecting, onConnecting);
+    client.on(RTVIEvent.TransportStateChanged, onTransportStateChanged);
 
     return () => {
       client.off(RTVIEvent.Connected, onConnected);
       client.off(RTVIEvent.Disconnected, onDisconnected);
       client.off(RTVIEvent.Connecting, onConnecting);
+      client.off(RTVIEvent.TransportStateChanged, onTransportStateChanged);
     };
-  }, [client]);
+  }, [client, sendClientReady, flushPendingMessages]);
 
   const connect = useCallback(
     async ({
@@ -215,7 +262,10 @@ export function usePipecatConnection(options = {}) {
             region,
           });
           console.log("🔗 WebRTC URL:", webrtcUrl);
-          await client.connect({ webrtcUrl });
+          await client.connect({
+            webrtcRequestParams: { endpoint: webrtcUrl },
+          });
+
           console.log("✅ WebRTC connection initiated");
         }
       } catch (err) {
@@ -286,12 +336,12 @@ export function usePipecatConnection(options = {}) {
         return;
       }
 
-      // Check if client is in ready state
       const clientState = client.state;
       if (clientState !== "ready") {
-        console.warn(
-          `⚠️ Cannot send message - client state is '${clientState}', not 'ready'`,
-        );
+        pendingMessagesRef.current.push({ type, data });
+        if (clientState === "connected") {
+          sendClientReady();
+        }
         return;
       }
 
@@ -302,7 +352,7 @@ export function usePipecatConnection(options = {}) {
         console.error("sendClientMessage failed:", err);
       }
     },
-    [client],
+    [client, sendClientReady],
   );
 
   return {
