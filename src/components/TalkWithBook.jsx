@@ -10,6 +10,8 @@ import AnimationManager from "./layout/AnimationManager";
 import VocabularyPanel from "./features/modality/VocabularyPanel";
 import SpellingPanel from "./features/modality/SpellingPanel";
 import BotAudio from "./audio/BotAudio";
+import listenBackground from "../assets/img/discussion/listen.png";
+import talkBackground from "../assets/img/discussion/talk.png";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -92,6 +94,8 @@ export const TalkWithBook = ({
   const [introRemainingSeconds, setIntroRemainingSeconds] = useState(null);
   const [introCurrentSeconds, setIntroCurrentSeconds] = useState(null);
   const [introDurationSeconds, setIntroDurationSeconds] = useState(null);
+  const [listeningStatus, setListeningStatus] = useState(null);
+  const [talkingStatus, setTalkingStatus] = useState(null);
 
   const {
     addVoicebotMessage,
@@ -231,12 +235,7 @@ export const TalkWithBook = ({
   const isIntroInteractive =
     sessionPhase === "intro_playing" || sessionPhase === "intro_paused";
   const isIntroActive = isIntroInteractive || sessionPhase === "intro_loading";
-  const showIntroPlayer =
-    (isIntroActive ||
-      sessionPhase === "intro_done" ||
-      sessionPhase === "chat_active" ||
-      sessionPhase === "chat_paused") &&
-    (introDurationSeconds !== null || introRemainingSeconds !== null);
+  const showIntroPlayer = true;
   const showIntroControls =
     isIntroInteractive ||
     sessionPhase === "intro_done" ||
@@ -270,6 +269,18 @@ export const TalkWithBook = ({
     [studentId, selectedBook?.id, getEpisodeNumber, upsertDotProgress],
   );
 
+  const setListeningStatusSafe = useCallback((status) => {
+    if (typeof status === "string") {
+      setListeningStatus(status);
+    }
+  }, []);
+
+  const setTalkingStatusSafe = useCallback((status) => {
+    if (typeof status === "string") {
+      setTalkingStatus(status);
+    }
+  }, []);
+
   const updateListeningProgress = useCallback(
     (status, positionOverride) => {
       const audio = introAudioRef.current;
@@ -290,12 +301,13 @@ export const TalkWithBook = ({
         return;
       }
       lastListeningStatusRef.current = status;
+      setListeningStatusSafe(status);
       updateDotProgressSafe({
         listeningStatus: status,
         elapsedListeningSeconds: nextElapsed,
       });
     },
-    [updateDotProgressSafe],
+    [updateDotProgressSafe, setListeningStatusSafe],
   );
 
   const maybeSyncListeningElapsed = useCallback(
@@ -384,13 +396,14 @@ export const TalkWithBook = ({
       }
       if (nextStatus && lastTalkingStatusRef.current !== nextStatus) {
         lastTalkingStatusRef.current = nextStatus;
+        setTalkingStatusSafe(nextStatus);
       }
       updateDotProgressSafe({
         talkingStatus: nextStatus,
         elapsedTalkingSeconds: talkingElapsedRef.current,
       });
     },
-    [updateDotProgressSafe],
+    [updateDotProgressSafe, setTalkingStatusSafe],
   );
 
   const markTalkingStatus = useCallback(
@@ -402,12 +415,13 @@ export const TalkWithBook = ({
         return;
       }
       lastTalkingStatusRef.current = nextStatus;
+      setTalkingStatusSafe(nextStatus);
       updateDotProgressSafe({
         talkingStatus: nextStatus,
         elapsedTalkingSeconds: talkingElapsedRef.current,
       });
     },
-    [updateDotProgressSafe],
+    [updateDotProgressSafe, setTalkingStatusSafe],
   );
 
   // 🔹 Unified mic sync helper
@@ -1378,6 +1392,7 @@ export const TalkWithBook = ({
         }
         if (typeof data.listening_status === "string") {
           lastListeningStatusRef.current = data.listening_status;
+          setListeningStatusSafe(data.listening_status);
           if (data.listening_status === "completed") {
             listeningCompletedRef.current = true;
             if (introStateRef.current.metadataReceived) {
@@ -1403,6 +1418,7 @@ export const TalkWithBook = ({
         }
         if (typeof data.talking_status === "string") {
           lastTalkingStatusRef.current = data.talking_status;
+          setTalkingStatusSafe(data.talking_status);
         }
       }
       if (introStateRef.current.metadataReceived) {
@@ -1773,7 +1789,7 @@ export const TalkWithBook = ({
   const renderedServerContent = useMemo(() => {
     if (isCelebrating) {
       return (
-        <div className="flex h-full w-full flex-col items-center justify-center px-6 py-5 text-center text-gray-800">
+        <div className="flex h-full w-full flex-col items-center justify-center px-6 py-5 text-center text-white">
           <span className="text-4xl font-extrabold tracking-wide">
             Well done on your mission
           </span>
@@ -1806,7 +1822,7 @@ export const TalkWithBook = ({
 
     return (
       <div className="h-full w-full overflow-auto px-6 py-5">
-        <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-gray-700">
+        <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-white/80">
           {typeof serverEvent === "string"
             ? serverEvent
             : JSON.stringify(serverEvent, null, 2)}
@@ -1817,12 +1833,55 @@ export const TalkWithBook = ({
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
-  const talkBackgroundStyle = useMemo(() => {
-    if (!characterAccent) return undefined;
-    return {
-      backgroundColor: characterAccent,
+  const isListenMode =
+    sessionPhase === "intro_loading" ||
+    sessionPhase === "intro_playing" ||
+    sessionPhase === "intro_paused";
+  const backgroundImage = isListenMode ? listenBackground : talkBackground;
+  const [backgroundHeight, setBackgroundHeight] = useState(null);
+  const backgroundRef = useRef(null);
+
+  useEffect(() => {
+    let isActive = true;
+    const img = new Image();
+
+    const updateHeight = () => {
+      if (!backgroundRef.current || !img.naturalWidth) {
+        return;
+      }
+      const width = backgroundRef.current.clientWidth;
+      const containerHeight = backgroundRef.current.clientHeight;
+      const ratio = img.naturalHeight / img.naturalWidth;
+      const height = Math.min(containerHeight, width * ratio);
+
+      if (isActive) {
+        setBackgroundHeight(height);
+      }
     };
-  }, [characterAccent]);
+
+    img.onload = updateHeight;
+    img.src = backgroundImage;
+
+    if (img.complete) {
+      updateHeight();
+    }
+
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      isActive = false;
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, [backgroundImage]);
+
+  const talkBackgroundStyle = useMemo(() => {
+    return {
+      backgroundColor: "#000",
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundRepeat: "no-repeat",
+      backgroundSize: "100% auto",
+      backgroundPosition: "top center",
+    };
+  }, [backgroundImage]);
 
   const thinkingCharacterName =
     currentCharacter?.name?.trim() && currentCharacter.name.trim().length > 0
@@ -1934,6 +1993,21 @@ export const TalkWithBook = ({
           Math.max(0, (introSliderValue / introDurationValue) * 100),
         )
       : 0;
+  const resolvedListeningStatus = (
+    listeningStatus ?? lastListeningStatusRef.current ?? ""
+  ).toLowerCase();
+  const resolvedTalkingStatus = (
+    talkingStatus ?? lastTalkingStatusRef.current ?? "not_started"
+  ).toLowerCase();
+  const shouldShowMic =
+    resolvedListeningStatus === "completed" &&
+    resolvedTalkingStatus !== "completed";
+  const gradientHeight = backgroundHeight
+    ? Math.max(0, backgroundHeight * 0.2)
+    : null;
+  const gradientTop = backgroundHeight
+    ? Math.max(0, backgroundHeight - gradientHeight)
+    : null;
   const isBotAudioMuted =
     sessionPhase === "intro_loading" ||
     sessionPhase === "intro_playing" ||
@@ -1942,9 +2016,17 @@ export const TalkWithBook = ({
 
   return (
     <div
-      className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass}`}
+      className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass} bg-black text-white`}
       style={talkBackgroundStyle}
+      ref={backgroundRef}
     >
+      <div
+        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
+        style={{
+          top: gradientTop ? `${gradientTop}px` : "44vh",
+          height: gradientHeight ? `${gradientHeight}px` : "11vh",
+        }}
+      />
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
@@ -1953,10 +2035,11 @@ export const TalkWithBook = ({
             disconnectHere();
             onNavigate?.("circle");
           }}
+          isDark
         />
       </div>
 
-      <div className="flex-1 px-6 pt-4 overflow-hidden">
+      <div className="flex-1 px-6 pt-4 overflow-hidden text-white">
         <div className="h-full w-full">{renderedServerContent}</div>
       </div>
 
@@ -1967,28 +2050,31 @@ export const TalkWithBook = ({
 
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
       <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
-        <div className="flex justify-center">
-          <AnimationManager
-            agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
-            userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
-            isUserSpeaking={isMicActive}
-            isBotSpeaking={isBotSpeaking}
-            isMicEnabled={isMicEnabledUi}
-            characterImages={currentCharacter?.images}
-            characterName={currentCharacter?.name}
-            onMicToggle={handleMicToggle}
-            isCelebrating={isCelebrating}
-            forceAwake={isIntroActive}
-            isMicToggleDisabled={isIntroActive}
-          />
-        </div>
+        {shouldShowMic && (
+          <div className="flex justify-center">
+            <AnimationManager
+              agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
+              userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
+              isUserSpeaking={isMicActive}
+              isBotSpeaking={isBotSpeaking}
+              isMicEnabled={isMicEnabledUi}
+              characterImages={currentCharacter?.images}
+              characterName={currentCharacter?.name}
+              onMicToggle={handleMicToggle}
+              isCelebrating={isCelebrating}
+              forceAwake={isIntroActive}
+              isMicToggleDisabled={isIntroActive}
+              useMicOrb
+            />
+          </div>
+        )}
         {showIntroPlayer && (
           <div
             className={`flex w-full max-w-md flex-col gap-2 transition-opacity ${
               audioControlsDisabled ? "opacity-40" : "opacity-100"
             }`}
           >
-            <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
+            <div className="flex items-center justify-between text-sm font-semibold text-white">
               <span>{introPlayedLabel}</span>
               <span>{introRemainingNegativeLabel}</span>
             </div>
@@ -1998,7 +2084,7 @@ export const TalkWithBook = ({
                   type="button"
                   onClick={toggleIntroPlayback}
                   aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
-                  className="p-1 text-black disabled:opacity-40"
+                  className="p-1 text-white disabled:opacity-40"
                   disabled={audioControlsDisabled}
                 >
                   {isIntroPlaying ? (
@@ -2037,16 +2123,16 @@ export const TalkWithBook = ({
                 }
                 aria-label="Intro playback position"
                 style={{
-                  background: `linear-gradient(to right, #000 ${introProgressPercent}%, rgba(255, 255, 255, 0.6) ${introProgressPercent}%)`,
+                  background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
                 }}
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-full [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-black"
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-full [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
               />
               {showIntroControls && (
                 <button
                   type="button"
                   onClick={() => interruptIntroPlayback()}
                   aria-label="Stop intro"
-                  className="p-1 text-black disabled:opacity-40"
+                  className="p-1 text-white disabled:opacity-40"
                   disabled={disableStop || audioControlsDisabled}
                 >
                   <svg
@@ -2096,7 +2182,7 @@ export const TalkWithBook = ({
           <button
             type="button"
             onClick={() => onNavigate?.("progress")}
-            className="bg-black text-white font-bold py-2 px-4 rounded-lg w-full mt-2"
+            className="bg-white text-black font-bold py-2 px-4 rounded-lg w-full mt-2"
           >
             See your progress
           </button>

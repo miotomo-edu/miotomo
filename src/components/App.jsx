@@ -337,7 +337,12 @@ const App = ({ transportType, region = "" }) => {
   };
 
   // 👉 IMPORTANT: Key the connection manager on book:chapter:character so it remounts
-  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${currentCharacter?.name || "none"}`;
+  const characterKey =
+    currentCharacter?.prompt ||
+    currentCharacter?.modalities ||
+    currentCharacter?.name ||
+    "none";
+  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${characterKey}`;
 
   const appShellStyle = characterAccent
     ? {

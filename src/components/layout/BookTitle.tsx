@@ -6,14 +6,23 @@ type BookTitleProps = {
   book: Book;
   chapter: number;
   onBack?: () => void;
+  isDark?: boolean;
 };
 
-const BookTitle = ({ book, chapter, onBack }: BookTitleProps) => (
-  <div className="w-full px-6 py-4 flex items-start">
+const BookTitle = ({ book, chapter, onBack, isDark = false }: BookTitleProps) => (
+  <div
+    className={`w-full px-6 py-4 flex items-start ${
+      isDark ? "text-white" : "text-black"
+    }`}
+  >
     {/* Back button, top-aligned */}
     <button
       onClick={onBack}
-      className="w-10 h-10 flex items-center justify-center mr-8 mt-1 rounded-full transition-colors duration-200 ease-in-out hover:bg-gray-200 hover:text-blue-600"
+      className={`w-10 h-10 flex items-center justify-center mr-8 mt-1 rounded-full transition-colors duration-200 ease-in-out ${
+        isDark
+          ? "bg-white/10 hover:bg-white/20"
+          : "hover:bg-gray-200 hover:text-blue-600"
+      }`}
       aria-label="Back"
       type="button"
       style={{ flexShrink: 0 }}
@@ -28,7 +37,7 @@ const BookTitle = ({ book, chapter, onBack }: BookTitleProps) => (
       >
         <path
           d="M15.8327 10L4.16602 10.0003L9.99935 4.16699L4.16602 10.0003L9.99935 15.8337"
-          stroke="black"
+          stroke={isDark ? "white" : "black"}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -44,8 +53,14 @@ const BookTitle = ({ book, chapter, onBack }: BookTitleProps) => (
       />
     )}
     <div>
-      <h1 className="text-black text-2xl font-bold">{book.title}</h1>
-      <div className="text-base font-medium mt-1 capitalize">
+      <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-black"}`}>
+        {book.title}
+      </h1>
+      <div
+        className={`text-base font-medium mt-1 capitalize ${
+          isDark ? "text-white/70" : "text-gray-700"
+        }`}
+      >
         {getBookSectionType(book.section_type)} {chapter}
       </div>
     </div>

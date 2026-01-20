@@ -104,7 +104,7 @@ const VocabularyPanel: React.FC<Props> = ({ event, isWaiting }) => {
               const status = statuses[index];
               if (status === "correct") return "bg-green-500 border-green-500";
               if (status === "incorrect") return "bg-red-500 border-red-500";
-              return "bg-white border-gray-300";
+              return "bg-white/10 border-white/40";
             })();
 
             const currentGlow = isCurrent ? "shadow-[0_0_12px_rgba(99,102,241,0.7)]" : "";
@@ -121,11 +121,13 @@ const VocabularyPanel: React.FC<Props> = ({ event, isWaiting }) => {
 
       {showWord && word && (
         <>
-          <span className="text-4xl font-extrabold uppercase tracking-wide text-gray-900">
+          <span className="text-4xl font-extrabold uppercase tracking-wide text-white">
             {word}
           </span>
           {definition && (
-            <span className="text-base font-medium text-gray-700">{definition}</span>
+            <span className="text-base font-medium text-white/70">
+              {definition}
+            </span>
           )}
         </>
       )}
