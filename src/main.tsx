@@ -38,16 +38,18 @@ const client = new PipecatClient({
     onConnected: () => console.log("Pipecat connected"),
     onBotConnected: (participant) =>
       console.log(`Bot connected: ${JSON.stringify(participant)}`),
+    onBotReady: () => console.log("Bot ready to chat!"),
     onUserTranscript: (data) => {
-      // if (data.final)
-      console.log(`User: ${data.text}`);
+      if (data.final) console.log("User said:", data.text);
     },
-    // onBotTranscript: (data) => {
-    //   console.log(`Bot: ${data.text}`);
-    // },
     onBotOutput: (data) => {
-      console.log(`Bot Output: ${data.text}`);
+      if (data.aggregated_by === "sentence") {
+        console.log("Bot said (sentence):", data.text);
+      }
+      // console.log(`Bot Output: ${data.text}, ${data.aggregated_by}`);
     },
+    onDisconnected: () => console.log("Disconnected"),
+    onBotDisconnected: () => console.log("Bot disconnected"),
   },
 });
 

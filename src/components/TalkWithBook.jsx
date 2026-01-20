@@ -276,7 +276,7 @@ export const TalkWithBook = ({
       const position =
         typeof positionOverride === "number"
           ? positionOverride
-          : audio?.currentTime ?? 0;
+          : (audio?.currentTime ?? 0);
       const nextElapsed = Math.max(
         listeningElapsedRef.current,
         Math.floor(position),
@@ -523,7 +523,13 @@ export const TalkWithBook = ({
 
     await disconnect();
     isDisconnectingRef.current = false;
-  }, [disconnect, enableMic, stopIntroAudio, setPhase, updateListeningProgress]);
+  }, [
+    disconnect,
+    enableMic,
+    stopIntroAudio,
+    setPhase,
+    updateListeningProgress,
+  ]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {
@@ -552,7 +558,7 @@ export const TalkWithBook = ({
       const position =
         typeof positionOverride === "number"
           ? positionOverride
-          : audio?.currentTime ?? 0;
+          : (audio?.currentTime ?? 0);
       const audioUrl =
         introAudioUrlRef.current ||
         meta.audio_url ||
@@ -648,7 +654,7 @@ export const TalkWithBook = ({
       const currentTime =
         typeof positionOverride === "number"
           ? positionOverride
-          : audio?.currentTime ?? 0;
+          : (audio?.currentTime ?? 0);
       const remaining = duration - currentTime;
       if (remaining <= 30) {
         requestOfferStart(currentTime);
@@ -728,7 +734,7 @@ export const TalkWithBook = ({
       const position =
         typeof positionOverride === "number"
           ? positionOverride
-          : audio?.currentTime ?? 0;
+          : (audio?.currentTime ?? 0);
       const durationValue =
         typeof introDurationRef.current === "number"
           ? introDurationRef.current
@@ -836,7 +842,7 @@ export const TalkWithBook = ({
       const position =
         typeof positionOverride === "number"
           ? positionOverride
-          : introAudioRef.current?.currentTime ?? 0;
+          : (introAudioRef.current?.currentTime ?? 0);
       if (position < duration) return false;
       stopIntroAudio();
       completeIntroPlayback();
@@ -958,28 +964,31 @@ export const TalkWithBook = ({
     ],
   );
 
-  const handleIntroStatus = useCallback((statusPayload) => {
-    if (!statusPayload || typeof statusPayload !== "object") return;
-    introStateRef.current.statusReceived = true;
-    if (
-      statusPayload.status === "playing" ||
-      statusPayload.status === "started"
-    ) {
-      syncMic(false, { force: true });
-    }
-    if (
-      statusPayload.conversation_ready === false ||
-      statusPayload.conversation_ready === "false"
-    ) {
-      setConversationReady(false);
-    }
-    if (
-      statusPayload.conversation_ready === true ||
-      statusPayload.conversation_ready === "true"
-    ) {
-      setConversationReady(true);
-    }
-  }, [syncMic]);
+  const handleIntroStatus = useCallback(
+    (statusPayload) => {
+      if (!statusPayload || typeof statusPayload !== "object") return;
+      introStateRef.current.statusReceived = true;
+      if (
+        statusPayload.status === "playing" ||
+        statusPayload.status === "started"
+      ) {
+        syncMic(false, { force: true });
+      }
+      if (
+        statusPayload.conversation_ready === false ||
+        statusPayload.conversation_ready === "false"
+      ) {
+        setConversationReady(false);
+      }
+      if (
+        statusPayload.conversation_ready === true ||
+        statusPayload.conversation_ready === "true"
+      ) {
+        setConversationReady(true);
+      }
+    },
+    [syncMic],
+  );
 
   const handleIntroSeek = useCallback((event) => {
     const audio = introAudioRef.current;
@@ -1019,10 +1028,8 @@ export const TalkWithBook = ({
         meta.audio;
       if (!audioUrl) return;
       const currentSrc = (audio.src || "").trim();
-      const isMissingSrc =
-        !currentSrc || currentSrc === window.location.href;
-      const isDifferentSrc =
-        !isMissingSrc && !currentSrc.includes(audioUrl);
+      const isMissingSrc = !currentSrc || currentSrc === window.location.href;
+      const isDifferentSrc = !isMissingSrc && !currentSrc.includes(audioUrl);
       if (isMissingSrc || isDifferentSrc) {
         audio.src = audioUrl;
         audio.load();
@@ -1132,9 +1139,7 @@ export const TalkWithBook = ({
           prev === remaining ? prev : remaining,
         );
         const current = Math.min(duration, Math.max(0, position));
-        setIntroCurrentSeconds((prev) =>
-          prev === current ? prev : current,
-        );
+        setIntroCurrentSeconds((prev) => (prev === current ? prev : current));
       }
       if (isActiveIntro) {
         introHandlersRef.current.maybeRequestOfferStart?.(position);
@@ -1216,11 +1221,7 @@ export const TalkWithBook = ({
   }, [isConnected, sendIntroStarted]);
 
   useEffect(() => {
-    if (
-      sessionPhase === "intro_done" &&
-      conversationReady &&
-      isBotReady
-    ) {
+    if (sessionPhase === "intro_done" && conversationReady && isBotReady) {
       maybeStartChat();
     }
   }, [sessionPhase, conversationReady, isBotReady, maybeStartChat]);
@@ -1242,7 +1243,13 @@ export const TalkWithBook = ({
       }
     }, 1200);
     return () => clearTimeout(timeoutId);
-  }, [sessionPhase, conversationReady, isBotReady, isConnected, maybeStartChat]);
+  }, [
+    sessionPhase,
+    conversationReady,
+    isBotReady,
+    isConnected,
+    maybeStartChat,
+  ]);
 
   useEffect(() => {
     if (!isConnected) return;
@@ -1255,12 +1262,7 @@ export const TalkWithBook = ({
       position_s: position,
     });
     maybeStartChat();
-  }, [
-    getIntroMeta,
-    isConnected,
-    sendIntroControl,
-    maybeStartChat,
-  ]);
+  }, [getIntroMeta, isConnected, sendIntroControl, maybeStartChat]);
 
   useEffect(() => {
     if (!isConnected) return;
@@ -1273,12 +1275,7 @@ export const TalkWithBook = ({
       duration: duration,
     });
     maybeStartChat();
-  }, [
-    getIntroMeta,
-    isConnected,
-    sendIntroControl,
-    maybeStartChat,
-  ]);
+  }, [getIntroMeta, isConnected, sendIntroControl, maybeStartChat]);
 
   useEffect(() => {
     hasSubmittedSummaryRef.current = false;
@@ -1309,7 +1306,7 @@ export const TalkWithBook = ({
       if (introStateRef.current.metadataReceived) return;
       try {
         const { data, error } = await supabase
-          .from("circles_audio")
+          .from("circles_dots")
           .select("audio, duration, circle_id")
           .eq("circle_id", selectedBook.id)
           .eq("episode", episode)
@@ -1573,10 +1570,7 @@ export const TalkWithBook = ({
     };
     const onBotLlmStopped = () => {
       setIsBotThinking(false);
-      if (
-        !isBotSpeaking &&
-        sessionPhaseRef.current === "chat_active"
-      ) {
+      if (!isBotSpeaking && sessionPhaseRef.current === "chat_active") {
         startListening();
       }
     };
@@ -1846,7 +1840,6 @@ export const TalkWithBook = ({
     }
   }, [eventMeta.eventType]);
 
-
   useEffect(() => {
     if (
       isConnected ||
@@ -1936,7 +1929,10 @@ export const TalkWithBook = ({
   const introRemainingNegativeLabel = `-${introRemainingLabel}`;
   const introProgressPercent =
     introDurationValue > 0
-      ? Math.min(100, Math.max(0, (introSliderValue / introDurationValue) * 100))
+      ? Math.min(
+          100,
+          Math.max(0, (introSliderValue / introDurationValue) * 100),
+        )
       : 0;
   const isBotAudioMuted =
     sessionPhase === "intro_loading" ||
@@ -2001,9 +1997,7 @@ export const TalkWithBook = ({
                 <button
                   type="button"
                   onClick={toggleIntroPlayback}
-                  aria-label={
-                    isIntroPlaying ? "Pause intro" : "Play intro"
-                  }
+                  aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
                   className="p-1 text-black disabled:opacity-40"
                   disabled={audioControlsDisabled}
                 >
