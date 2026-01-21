@@ -46,7 +46,18 @@ const App = ({ transportType, region = "" }) => {
 
   const [studentId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get("studentId") || "";
+    const fromSearch = params.get("studentId");
+    if (fromSearch) return fromSearch;
+    const rawHash = window.location.hash || "";
+    const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
+    const hashQuery = hash.includes("?")
+      ? hash.split("?")[1]
+      : hash.includes("=")
+        ? hash
+        : "";
+    if (!hashQuery) return "";
+    const hashParams = new URLSearchParams(hashQuery);
+    return hashParams.get("studentId") || "";
   });
 
   const {

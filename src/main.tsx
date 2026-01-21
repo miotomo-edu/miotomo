@@ -14,7 +14,18 @@ const queryClient = new QueryClient();
 
 function getQueryParam(name: string): string | null {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(name);
+  const fromSearch = urlParams.get(name);
+  if (fromSearch) return fromSearch;
+  const rawHash = window.location.hash || "";
+  const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
+  const hashQuery = hash.includes("?")
+    ? hash.split("?")[1]
+    : hash.includes("=")
+      ? hash
+      : "";
+  if (!hashQuery) return null;
+  const hashParams = new URLSearchParams(hashQuery);
+  return hashParams.get(name);
 }
 
 // Choose transport type based on URL param (?transport=daily or ?transport=small)
