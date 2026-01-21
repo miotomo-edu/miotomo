@@ -96,6 +96,7 @@ export const TalkWithBook = ({
   const [introDurationSeconds, setIntroDurationSeconds] = useState(null);
   const [listeningStatus, setListeningStatus] = useState(null);
   const [talkingStatus, setTalkingStatus] = useState(null);
+  const [sessionEndingReason, setSessionEndingReason] = useState(null);
 
   const {
     addVoicebotMessage,
@@ -480,6 +481,7 @@ export const TalkWithBook = ({
     startedHereRef.current = true;
     isDisconnectingRef.current = false;
     introAutoplayBlockedRef.current = false;
+    setSessionEndingReason(null);
     await connect({
       botConfig,
       userName,
@@ -734,6 +736,17 @@ export const TalkWithBook = ({
     }
     if (payload.data) {
       return extractIntroStatus(payload.data);
+    }
+    return null;
+  }, []);
+
+  const extractSessionEnding = useCallback((payload) => {
+    if (!payload || typeof payload !== "object") return null;
+    if (payload.type === "session-ending") {
+      return payload;
+    }
+    if (payload.data) {
+      return extractSessionEnding(payload.data);
     }
     return null;
   }, []);
@@ -1617,6 +1630,17 @@ export const TalkWithBook = ({
         handleIntroStatus(introStatus);
         return;
       }
+      const sessionEnding = extractSessionEnding(parsed);
+      if (sessionEnding) {
+        const reason =
+          typeof sessionEnding.reason === "string"
+            ? sessionEnding.reason
+            : "unknown";
+        addLog(`🛑 Session ending: ${reason}`);
+        setSessionEndingReason(reason);
+        disconnectHere();
+        return;
+      }
       setServerEvent(msg);
     };
 
@@ -1657,8 +1681,10 @@ export const TalkWithBook = ({
     parseServerPayload,
     extractIntroMetadata,
     extractIntroStatus,
+    extractSessionEnding,
     handleIntroMetadata,
     handleIntroStatus,
+    disconnectHere,
     resetIntroState,
     stopIntroAudio,
     isBotSpeaking,
@@ -1787,6 +1813,17 @@ export const TalkWithBook = ({
   }, [eventMeta.gameType, modalityKey]);
 
   const renderedServerContent = useMemo(() => {
+    if (sessionEndingReason) {
+      return (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-6 py-5 text-center text-white">
+          <span className="text-2xl font-semibold">Session ended</span>
+          <span className="text-sm text-white/70">
+            {sessionEndingReason}
+          </span>
+        </div>
+      );
+    }
+
     if (isCelebrating) {
       return (
         <div className="flex h-full w-full flex-col items-center justify-center px-6 py-5 text-center text-white">
@@ -1829,7 +1866,7 @@ export const TalkWithBook = ({
         </pre>
       </div>
     );
-  }, [panelKey, serverEvent, eventMeta.eventType, isCelebrating]);
+  }, [panelKey, serverEvent, eventMeta.eventType, isCelebrating, sessionEndingReason]);
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
@@ -2001,7 +2038,8 @@ export const TalkWithBook = ({
   ).toLowerCase();
   const shouldShowMic =
     resolvedListeningStatus === "completed" &&
-    resolvedTalkingStatus !== "completed";
+    resolvedTalkingStatus !== "completed" &&
+    !sessionEndingReason;
   const gradientHeight = backgroundHeight
     ? Math.max(0, backgroundHeight * 0.2)
     : null;
