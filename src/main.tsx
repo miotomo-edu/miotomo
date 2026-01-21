@@ -25,11 +25,19 @@ function getQueryParam(name: string): string | null {
   const pathParts = pathSource
     .split("/")
     .filter((part) => part.length > 0);
-  const pathIndex = pathParts.findIndex(
-    (part) => part.toLowerCase() === name.toLowerCase(),
-  );
-  if (pathIndex !== -1 && pathParts[pathIndex + 1]) {
-    return decodeURIComponent(pathParts[pathIndex + 1]);
+  const normalized = name.toLowerCase();
+  for (let i = 0; i < pathParts.length; i += 1) {
+    const part = pathParts[i];
+    const lower = part.toLowerCase();
+    if (lower === normalized && pathParts[i + 1]) {
+      return decodeURIComponent(pathParts[i + 1]);
+    }
+    if (part.includes("=")) {
+      const [key, value] = part.split("=");
+      if (key?.toLowerCase() === normalized && value) {
+        return decodeURIComponent(value);
+      }
+    }
   }
 
   const rawHash = window.location.hash || "";

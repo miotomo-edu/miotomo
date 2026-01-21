@@ -55,11 +55,18 @@ const App = ({ transportType, region = "" }) => {
         ? overridePath
         : window.location.pathname;
     const pathParts = pathSource.split("/").filter((part) => part.length > 0);
-    const pathIndex = pathParts.findIndex(
-      (part) => part.toLowerCase() === "studentid",
-    );
-    if (pathIndex !== -1 && pathParts[pathIndex + 1]) {
-      return decodeURIComponent(pathParts[pathIndex + 1]);
+    for (let i = 0; i < pathParts.length; i += 1) {
+      const part = pathParts[i];
+      const lower = part.toLowerCase();
+      if (lower === "studentid" && pathParts[i + 1]) {
+        return decodeURIComponent(pathParts[i + 1]);
+      }
+      if (part.includes("=")) {
+        const [key, value] = part.split("=");
+        if (key?.toLowerCase() === "studentid" && value) {
+          return decodeURIComponent(value);
+        }
+      }
     }
 
     const rawHash = window.location.hash || "";
