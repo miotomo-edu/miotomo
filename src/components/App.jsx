@@ -48,6 +48,17 @@ const App = ({ transportType, region = "" }) => {
     const params = new URLSearchParams(window.location.search);
     const fromSearch = params.get("studentId");
     if (fromSearch) return fromSearch;
+
+    const pathParts = window.location.pathname
+      .split("/")
+      .filter((part) => part.length > 0);
+    const pathIndex = pathParts.findIndex(
+      (part) => part.toLowerCase() === "studentid",
+    );
+    if (pathIndex !== -1 && pathParts[pathIndex + 1]) {
+      return decodeURIComponent(pathParts[pathIndex + 1]);
+    }
+
     const rawHash = window.location.hash || "";
     const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
     const hashQuery = hash.includes("?")

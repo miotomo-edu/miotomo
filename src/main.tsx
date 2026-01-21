@@ -16,6 +16,17 @@ function getQueryParam(name: string): string | null {
   const urlParams = new URLSearchParams(window.location.search);
   const fromSearch = urlParams.get(name);
   if (fromSearch) return fromSearch;
+
+  const pathParts = window.location.pathname
+    .split("/")
+    .filter((part) => part.length > 0);
+  const pathIndex = pathParts.findIndex(
+    (part) => part.toLowerCase() === name.toLowerCase(),
+  );
+  if (pathIndex !== -1 && pathParts[pathIndex + 1]) {
+    return decodeURIComponent(pathParts[pathIndex + 1]);
+  }
+
   const rawHash = window.location.hash || "";
   const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
   const hashQuery = hash.includes("?")
