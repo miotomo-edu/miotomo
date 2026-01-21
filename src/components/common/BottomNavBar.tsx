@@ -1,9 +1,11 @@
 import React from "react";
 import { HomeIcon } from "./icons/HomeIcon";
 import { LibraryIcon } from "./icons/LibraryIcon";
-import { RewardIcon } from "./icons/RewardIcon";
-import { InsightsIcon } from "./icons/InsightsIcon";
+import { ParentsIcon } from "./icons/ParentsIcon";
+import tomoIcon from "../../assets/img/tomo.svg";
+import { CirclesIcon } from "./icons/CirclesIcon";
 import { SettingsIcon } from "./icons/SettingsIcon";
+import { TomoIcon } from "./icons/TomoIcon4";
 
 interface BottomNavBarProps {
   items?: { label: string; componentName: string; icon?: React.ReactNode }[];
@@ -14,10 +16,15 @@ interface BottomNavBarProps {
 }
 
 const defaultNavItems = [
-  { label: "LIBRARY", componentName: "library", icon: <LibraryIcon /> },
+  { label: "CIRCLES", componentName: "library", icon: <CirclesIcon /> },
   // { label: "Home", componentName: "home", icon: <HomeIcon /> },
-  { label: "PROGRESS", componentName: "progress", icon: <InsightsIcon /> },
-  { label: "REWARDS", componentName: "rewards", icon: <RewardIcon /> },
+  { label: "TOMO", componentName: "progress", icon: <TomoIcon /> },
+  // {
+  //   label: "TOMO",
+  //   componentName: "progress",
+  //   icon: <img src={tomoIcon} alt="" className="w-6 h-6 object-contain" />,
+  // },
+  { label: "PARENTS", componentName: "rewards", icon: <ParentsIcon /> },
   // { label: "SETTINGS", componentName: "settings", icon: <SettingsIcon /> },
 ];
 
@@ -35,13 +42,13 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
   };
 
   const baseStyle: React.CSSProperties = {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#000000",
     ...style,
   };
 
   return (
     <nav
-      className={`bottom-navbar-fixed border-t border-black flex justify-around items-center h-16 z-10 ${className}`}
+      className={`bottom-navbar-fixed flex justify-around items-center h-16 z-10 ${className}`}
       style={baseStyle}
     >
       {items.map((item, index) => {
@@ -65,7 +72,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className="mb-1 flex items-center justify-center"
               style={{
-                color: isActive ? "#000" : "#000",
+                color: isActive ? "#fff" : "#fff",
               }}
             >
               {icon}
@@ -73,7 +80,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className="text-xs"
               style={{
-                color: isActive ? "#000" : "#000",
+                color: isActive ? "#fff" : "#fff",
                 fontWeight: isActive ? 800 : 400,
               }}
             >

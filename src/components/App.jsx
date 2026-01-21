@@ -37,8 +37,7 @@ const App = ({ transportType, region = "" }) => {
   const scrollPositionsRef = useRef({});
   const [userName, setUserName] = useState("");
   const [currentCharacter, setCurrentCharacter] = useState(null);
-  const [circleReturnComponent, setCircleReturnComponent] =
-    useState("library");
+  const [circleReturnComponent, setCircleReturnComponent] = useState("library");
   const [shouldStartSession, setShouldStartSession] = useState(false);
   const [latestConversationId, setLatestConversationId] = useState(null);
 
@@ -288,7 +287,9 @@ const App = ({ transportType, region = "" }) => {
             book={selectedBook}
             studentId={studentId}
             scrollContainerRef={mainRef}
-            onBack={() => setActiveComponent(circleReturnComponent || "library")}
+            onBack={() =>
+              setActiveComponent(circleReturnComponent || "library")
+            }
             onPlayEpisode={handlePlayEpisode}
             onSelectCircle={openCirclePage}
           />
@@ -409,11 +410,6 @@ const App = ({ transportType, region = "" }) => {
           onItemClick={handleNavigationClick}
           activeComponentName={activeComponent}
           className={isInteractiveView ? "backdrop-blur-sm" : ""}
-          style={
-            isInteractiveView
-              ? { backgroundColor: "rgba(255,255,255,0.6)" }
-              : undefined
-          }
         />
       )}
     </div>
