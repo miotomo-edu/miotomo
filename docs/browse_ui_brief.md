@@ -21,7 +21,7 @@ Out of scope:
   - `popularity_score`, `quality_score`
   - `theme_tags`, `domain_tags`, `mood_tags`
   - `age_min`, `age_max`, `complexity`, `length_category`
-- `circles_audio`: per-episode info
+- `circles_dots`: per-episode info
   - `circle_id`, `episode`, `duration`, `title`, `audio`
 - `dot_progress`: user progress for Continue row
   - `student_id`, `book_id`, `episode`, `listening_status`, `talking_status`, `last_active_at`
@@ -76,7 +76,7 @@ Each circle card should include:
 - `books.cover`
 - Optional: `circles_catalog.mood_tags` (one primary)
 - Optional: age range from `circles_catalog.age_min/age_max`
-- Optional: length via `circles_catalog.length_category` or total duration sum from `circles_audio.duration`
+- Optional: length via `circles_catalog.length_category` or total duration sum from `circles_dots.duration`
 
 ## Navigation
 - Row -> circle detail: click a card to open the existing single-circle view (do not change that view).

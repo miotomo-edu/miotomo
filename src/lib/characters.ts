@@ -62,6 +62,22 @@ export const characterData: Character[] = [
     modalities: "storytelling",
   },
   {
+    name: "Tomo",
+    icon: miotomoAvatar,
+    images: {
+      idle: miotomoAvatar,
+      sleeping: miotomoSleepingAvatar,
+      listening: miotomoListeningAvatar,
+      celebrating: miotomoCelebratingAvatar,
+    },
+    bg: "",
+    customBg: "#F2D47C",
+    modality: "Teaching",
+    x: 30,
+    prompt: "teaching",
+    modalities: "teaching",
+  },
+  {
     name: "Gramma",
     icon: sparkoAvatar,
     images: {

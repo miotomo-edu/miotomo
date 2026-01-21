@@ -51,6 +51,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const [durationsByEpisode, setDurationsByEpisode] = useState<
     Record<number, number>
   >({});
+  const [levelsByEpisode, setLevelsByEpisode] = useState<
+    Record<number, number>
+  >({});
   const [typeNamesByEpisode, setTypeNamesByEpisode] = useState<
     Record<number, string>
   >({});
@@ -93,12 +96,13 @@ const CirclePage: React.FC<CirclePageProps> = ({
       setLoadError(null);
       setTitlesByEpisode({});
       setDurationsByEpisode({});
+      setLevelsByEpisode({});
       setTypeNamesByEpisode({});
       setDotStatusByEpisode({});
       try {
         const { data, error } = await supabase
-          .from("circles_audio")
-          .select("episode, title, duration, type, created_at")
+          .from("circles_dots")
+          .select("episode, title, duration, type, level, created_at")
           .eq("circle_id", book.id)
           .order("created_at", { ascending: false });
 
@@ -116,6 +120,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             title: string | null;
             duration: number | string | null;
             type: number | string | null;
+            level: number | string | null;
           }
         >();
         (data ?? []).forEach((row) => {
@@ -126,11 +131,13 @@ const CirclePage: React.FC<CirclePageProps> = ({
             title: row.title ?? null,
             duration: row.duration ?? null,
             type: row.type ?? null,
+            level: row.level ?? null,
           });
         });
 
         const titleMap: Record<number, string> = {};
         const durationMap: Record<number, number> = {};
+        const levelMap: Record<number, number> = {};
         const typeIds = new Set();
 
         episodeEntries.forEach((row, episodeNumber) => {
@@ -144,6 +151,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
           const durationValue = Number(row.duration);
           if (Number.isFinite(durationValue) && durationValue > 0) {
             durationMap[episodeNumber] = durationValue;
+          }
+          const levelValue = Number(row.level);
+          if (Number.isFinite(levelValue)) {
+            levelMap[episodeNumber] = levelValue;
           }
           const typeId = Number(row.type);
           if (Number.isFinite(typeId) && typeId > 0) {
@@ -183,6 +194,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
 
         setTitlesByEpisode(titleMap);
         setDurationsByEpisode(durationMap);
+        setLevelsByEpisode(levelMap);
         setTypeNamesByEpisode(typeByEpisode);
       } catch (err) {
         if (isCancelled) return;
@@ -262,8 +274,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
 
     const updateScale = () => {
       rafId = null;
-      const scrollTop =
-        target === window ? window.scrollY : target.scrollTop;
+      const scrollTop = target === window ? window.scrollY : target.scrollTop;
       const progress = Math.min(scrollTop / 360, 1);
       const nextScale = 1 + progress * 0.25;
       const nextOffset = scrollTop * 0.2;
@@ -390,7 +401,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         badge: getBadgeForBook(circle.id),
         completedDots:
           getBadgeForBook(circle.id) === "REPLAY"
-            ? circle.chapters ?? 0
+            ? (circle.chapters ?? 0)
             : undefined,
         highlightCompleted: getBadgeForBook(circle.id) === "REPLAY",
       }));
@@ -421,9 +432,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
         return { circle, score };
       });
     const zeroOverlap = scored.filter((entry) => entry.score === 0);
-    const candidates = zeroOverlap.length > 0
-      ? zeroOverlap
-      : scored.filter((entry) => entry.score === 1);
+    const candidates =
+      zeroOverlap.length > 0
+        ? zeroOverlap
+        : scored.filter((entry) => entry.score === 1);
     return candidates
       .sort((a, b) => {
         if (a.score !== b.score) return a.score - b.score;
@@ -437,7 +449,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         badge: getBadgeForBook(circle.id),
         completedDots:
           getBadgeForBook(circle.id) === "REPLAY"
-            ? circle.chapters ?? 0
+            ? (circle.chapters ?? 0)
             : undefined,
         highlightCompleted: getBadgeForBook(circle.id) === "REPLAY",
       }));
@@ -467,7 +479,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
       }
     });
 
-    const byBook = new Map<string, typeof activeRows[0]>();
+    const byBook = new Map<string, (typeof activeRows)[0]>();
     activeRows.forEach((row) => {
       if (!row.book_id) return;
       const existing = byBook.get(row.book_id);
@@ -535,6 +547,31 @@ const CirclePage: React.FC<CirclePageProps> = ({
     }
     return "Not started";
   };
+
+  const getComplexityStyle = useCallback((level: number | null) => {
+    if (level === 1) {
+      return {
+        line: "bg-green-500",
+        border: "border-green-500",
+      };
+    }
+    if (level === 2) {
+      return {
+        line: "bg-yellow-500",
+        border: "border-yellow-500",
+      };
+    }
+    if (level === 3) {
+      return {
+        line: "bg-red-500",
+        border: "border-red-500",
+      };
+    }
+    return {
+      line: "bg-black/40",
+      border: "border-black/40",
+    };
+  }, []);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
@@ -635,21 +672,33 @@ const CirclePage: React.FC<CirclePageProps> = ({
               (progressStatus?.talking_status &&
                 progressStatus.talking_status !== "not_started");
             const playLabel = hasStarted ? "Resume" : "Play";
+            const levelValue = Number(levelsByEpisode[episode.episode]);
+            const complexityStyle = getComplexityStyle(
+              Number.isFinite(levelValue) ? levelValue : null,
+            );
             return (
               <React.Fragment key={episode.episode}>
-                <div className="flex w-full min-h-[88px] items-start justify-between px-1 py-4">
+                <div className="flex w-full min-h-[88px] items-start justify-between px-1 py-0">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black text-sm font-semibold text-black mt-1 aspect-square">
-                      {episode.episode}
+                    <div className="relative flex w-8 shrink-0 flex-col items-center self-stretch">
+                      <span
+                        className={`flex-1 w-[2px] ${complexityStyle.line} ${index === 0 ? "opacity-0" : "opacity-100"}`}
+                      />
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${complexityStyle.border} bg-white text-sm font-semibold text-black aspect-square`}
+                      >
+                        {episode.episode}
+                      </div>
+                      <span
+                        className={`flex-1 w-[2px] ${complexityStyle.line} ${index === episodes.length - 1 ? "opacity-0" : "opacity-100"}`}
+                      />
                     </div>
-                    <div>
+                    <div className="py-4">
                       <div className="text-base font-semibold text-black">
                         {title}
                       </div>
                       {typeName && (
-                        <div className="text-sm text-gray-500">
-                          {typeName}
-                        </div>
+                        <div className="text-sm text-gray-500">{typeName}</div>
                       )}
                       {Number.isFinite(durationValue) && durationValue > 0 && (
                         <div className="text-sm text-gray-600">
@@ -701,9 +750,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   completedDots={item.completedDots}
                   highlightCompleted={item.highlightCompleted}
                   pausedDotIndex={item.pausedDotIndex}
-                  onSelect={() =>
-                    onSelectCircle?.(item.book, item.chapter)
-                  }
+                  onSelect={() => onSelectCircle?.(item.book, item.chapter)}
                 />
               ))}
             </div>
@@ -723,9 +770,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   totalDots={item.totalDots}
                   completedDots={item.completedDots}
                   highlightCompleted={item.highlightCompleted}
-                  onSelect={() =>
-                    onSelectCircle?.(item.book, item.chapter)
-                  }
+                  onSelect={() => onSelectCircle?.(item.book, item.chapter)}
                 />
               ))}
             </div>
@@ -745,9 +790,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   totalDots={item.totalDots}
                   completedDots={item.completedDots}
                   highlightCompleted={item.highlightCompleted}
-                  onSelect={() =>
-                    onSelectCircle?.(item.book, item.chapter)
-                  }
+                  onSelect={() => onSelectCircle?.(item.book, item.chapter)}
                 />
               ))}
             </div>

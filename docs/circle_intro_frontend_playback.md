@@ -21,7 +21,7 @@ Relevant code paths:
 - `core/pipeline.py` binds `CircleIntroState` and inserts the gate processor.
 
 ## Frontend Responsibilities (High-Level)
-- Fetch intro audio URL/duration from Supabase (`circles_audio`) using `circle_id` before opening the session.
+- Fetch intro audio URL/duration from Supabase (`circles_dots`) using `circle_id` before opening the session.
 - Play the intro audio locally using the browser audio element or Web Audio.
 - Delay the backend session until 30s before the end of the audio (to save session cost).
 - Allow interruption via UI controls (pause/play or dev interrupt); emit introInterrupted when explicitly requested.
@@ -30,7 +30,7 @@ Relevant code paths:
 - If `dot_progress.listening_status` is `completed`, skip intro playback and render the completed intro UI while opening the session immediately.
 
 ## Frontend Checklist (Share with Frontend Agent)
-- Fetch `circles_audio` by `circle_id` (latest row) to get `audio_url` and `duration` before starting the session.
+- Fetch `circles_dots` by `circle_id` (latest row) to get `audio_url` and `duration` before starting the session.
 - Send RTVI `control` messages with `data.action` set to `introStarted`, `introInterrupted`, or `introCompleted` and include `circle_id` plus `position_s`.
 - Start the session when `remaining_time <= 30s` (call `/api/offer`), then send `introStarted` with the current `position_s`.
 - If `duration` is less than 30 seconds, start the session immediately (no delayed offer).

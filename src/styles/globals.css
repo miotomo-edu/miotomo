@@ -250,11 +250,12 @@ h2 {
 
 @media (min-width: 768px) {
   body {
-    background: #000;
+    background: #836e6e;
   }
   .app-mobile-shell {
-    width: 430px;
-    height: 930px;
+    width: min(402px, 100vw, calc(100vh * 402 / 874));
+    height: auto;
+    aspect-ratio: 402 / 874;
     min-height: unset;
     max-height: 100vh;
     margin: 0 auto;

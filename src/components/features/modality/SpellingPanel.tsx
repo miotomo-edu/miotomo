@@ -200,7 +200,7 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
               const status = statuses[index];
               if (status === "correct") return "bg-green-500 border-green-500";
               if (status === "incorrect") return "bg-red-500 border-red-500";
-              return "bg-white border-gray-300";
+              return "bg-white/10 border-white/40";
             })();
 
             const currentGlow = isCurrent
@@ -221,7 +221,7 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
         {letters.map((letter, index) => (
           <div
             key={`${letter}-${index}`}
-            className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-xl border-2 border-gray-800 bg-white text-xl font-bold uppercase tracking-wide shadow-sm"
+            className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-xl border-2 border-white/50 bg-white/10 text-xl font-bold uppercase tracking-wide text-white"
             style={{
               flexBasis: `${Math.max(100 / letters.length, 12)}%`,
               maxWidth: `${Math.max(100 / letters.length, 12)}%`,
