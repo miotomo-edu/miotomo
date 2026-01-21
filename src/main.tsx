@@ -17,7 +17,12 @@ function getQueryParam(name: string): string | null {
   const fromSearch = urlParams.get(name);
   if (fromSearch) return fromSearch;
 
-  const pathParts = window.location.pathname
+  const overridePath = urlParams.get("p");
+  const pathSource =
+    typeof overridePath === "string" && overridePath.length > 0
+      ? overridePath
+      : window.location.pathname;
+  const pathParts = pathSource
     .split("/")
     .filter((part) => part.length > 0);
   const pathIndex = pathParts.findIndex(

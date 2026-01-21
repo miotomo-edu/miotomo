@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Miotomo</title>
+    <script>
+      (function () {
+        var isGithubPages = location.hostname.endsWith("github.io");
+        var parts = location.pathname.split("/").filter(Boolean);
+        var base = isGithubPages && parts.length ? "/" + parts[0] : "";
+        var remaining = isGithubPages ? parts.slice(1).join("/") : parts.join("/");
+        var search = location.search ? "&" + location.search.slice(1) : "";
+        var hash = location.hash ? "&h=" + encodeURIComponent(location.hash.slice(1)) : "";
+        var redirect =
+          location.origin +
+          base +
+          "/?p=" +
+          encodeURIComponent(remaining) +
+          search +
+          hash;
+        location.replace(redirect);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
