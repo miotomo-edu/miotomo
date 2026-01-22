@@ -40,7 +40,11 @@ function CreateAccount({ onNext, onFinish }) {
     };
   }, []);
 
-  const gradientHeight = imageHeight ? Math.max(0, imageHeight * 0.2) : null;
+  const gradientRatio =
+    typeof window !== "undefined" && window.innerHeight <= 700 ? 0.4 : 0.2;
+  const gradientHeight = imageHeight
+    ? Math.max(0, imageHeight * gradientRatio)
+    : null;
   const gradientTop = imageHeight
     ? Math.max(0, imageHeight - gradientHeight)
     : null;
@@ -69,7 +73,12 @@ function CreateAccount({ onNext, onFinish }) {
       />
       {/* Bottom content */}
       <div className="relative z-10 w-full max-w-sm pt-[50vh] text-left">
-        <h1 className="text-2xl font-bold mb-6">Create child account</h1>
+        <h1
+          className="text-2xl font-bold mb-6"
+          style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}
+        >
+          Create child account
+        </h1>
 
         <div className="space-y-4">
           {/* Email */}

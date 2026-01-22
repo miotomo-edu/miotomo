@@ -57,7 +57,11 @@ function LandingPage({ onContinue }) {
   };
 
   const { image, title, text } = steps[currentStep];
-  const gradientHeight = imageHeight ? Math.max(0, imageHeight * 0.2) : null;
+  const gradientRatio =
+    typeof window !== "undefined" && window.innerHeight <= 700 ? 0.4 : 0.2;
+  const gradientHeight = imageHeight
+    ? Math.max(0, imageHeight * gradientRatio)
+    : null;
   const gradientTop = imageHeight
     ? Math.max(0, imageHeight - gradientHeight)
     : null;
@@ -115,7 +119,12 @@ function LandingPage({ onContinue }) {
       {/* Fixed bottom content */}
       <div className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px]">
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
-        <p className="text-2xl font-bold text-white/80 max-w-sm mb-8">{text}</p>
+        <p
+          className="text-2xl font-bold text-white/80 max-w-sm mb-8"
+          style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}
+        >
+          {text}
+        </p>
 
         <button
           onClick={handleNext}
