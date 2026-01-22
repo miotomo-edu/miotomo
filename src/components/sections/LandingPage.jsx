@@ -41,6 +41,7 @@ const steps = [
 
 function LandingPage({ onContinue }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const touchStartRef = useRef({ x: 0, y: 0 });
   const [imageHeight, setImageHeight] = useState(null);
   const containerRef = useRef(null);
 
@@ -54,6 +55,36 @@ function LandingPage({ onContinue }) {
 
   const handleDotClick = (index) => {
     setCurrentStep(index);
+  };
+
+  const handlePrev = () => {
+    if (currentStep === 0) {
+      setCurrentStep(steps.length - 1);
+      return;
+    }
+    setCurrentStep((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleTouchStart = (event) => {
+    if (!event.touches?.length) return;
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (event) => {
+    if (!event.changedTouches?.length) return;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const threshold = 50;
+    if (Math.abs(deltaX) < threshold || Math.abs(deltaX) < Math.abs(deltaY)) {
+      return;
+    }
+    if (deltaX < 0) {
+      handleNext();
+    } else {
+      handlePrev();
+    }
   };
 
   const { image, title, text } = steps[currentStep];
@@ -108,6 +139,8 @@ function LandingPage({ onContinue }) {
         backgroundSize: "100% auto",
         backgroundPosition: "top center",
       }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <div
         className="absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
