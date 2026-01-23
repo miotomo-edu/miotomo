@@ -41,28 +41,54 @@ const steps = [
 
 function LandingPage({ onContinue }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [prevStep, setPrevStep] = useState(null);
+  const [transitionPhase, setTransitionPhase] = useState("idle");
+  const [transitionDirection, setTransitionDirection] = useState("left");
+  const [transitionKey, setTransitionKey] = useState(0);
   const touchStartRef = useRef({ x: 0, y: 0 });
   const [imageHeight, setImageHeight] = useState(null);
   const containerRef = useRef(null);
+  const preloadRef = useRef(false);
+  const transitionTimerRef = useRef(null);
+
+  const startTransition = (nextStep) => {
+    if (nextStep === currentStep) return;
+    if (transitionTimerRef.current) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+    const direction = nextStep > currentStep ? "left" : "right";
+    setPrevStep(currentStep);
+    setTransitionDirection(direction);
+    setTransitionPhase("start");
+    setTransitionKey((value) => value + 1);
+    setCurrentStep(nextStep);
+    window.setTimeout(() => {
+      setTransitionPhase("animate");
+    }, 20);
+    transitionTimerRef.current = window.setTimeout(() => {
+      setPrevStep(null);
+      setTransitionPhase("idle");
+    }, 360);
+  };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
+      startTransition(currentStep + 1);
     } else {
       onContinue("onboarding");
     }
   };
 
   const handleDotClick = (index) => {
-    setCurrentStep(index);
+    startTransition(index);
   };
 
   const handlePrev = () => {
     if (currentStep === 0) {
-      setCurrentStep(steps.length - 1);
+      startTransition(steps.length - 1);
       return;
     }
-    setCurrentStep((prev) => Math.max(0, prev - 1));
+    startTransition(Math.max(0, currentStep - 1));
   };
 
   const handleTouchStart = (event) => {
@@ -129,19 +155,60 @@ function LandingPage({ onContinue }) {
     };
   }, [image]);
 
+  useEffect(() => {
+    if (preloadRef.current) return;
+    preloadRef.current = true;
+    steps.forEach((step) => {
+      const img = new Image();
+      img.src = step.image;
+    });
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className="relative h-screen flex flex-col justify-between items-start text-left px-6 bg-black text-white"
-      style={{
-        backgroundImage: `url(${image})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "100% auto",
-        backgroundPosition: "top center",
-      }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {prevStep !== null && (
+        <div
+          key={`prev-${transitionKey}`}
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${steps[prevStep].image})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "100% auto",
+            backgroundPosition: "top center",
+            transform:
+              transitionPhase === "animate"
+                ? transitionDirection === "left"
+                  ? "translateX(-100%)"
+                  : "translateX(100%)"
+                : "translateX(0)",
+            transition:
+              transitionPhase === "idle" ? "none" : "transform 320ms ease",
+          }}
+        />
+      )}
+      <div
+        key={`current-${transitionKey}`}
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${image})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "100% auto",
+          backgroundPosition: "top center",
+          transform:
+            transitionPhase === "start"
+              ? transitionDirection === "left"
+                ? "translateX(100%)"
+                : "translateX(-100%)"
+              : "translateX(0)",
+          transition:
+            transitionPhase === "idle" ? "none" : "transform 320ms ease",
+        }}
+      />
       <div
         className="absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
         style={{
@@ -150,7 +217,10 @@ function LandingPage({ onContinue }) {
         }}
       />
       {/* Fixed bottom content */}
-      <div className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px]">
+      <div
+        key={`content-${transitionKey}`}
+        className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px]"
+      >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
         <p
           className="text-2xl font-bold text-white/80 max-w-sm mb-8"
