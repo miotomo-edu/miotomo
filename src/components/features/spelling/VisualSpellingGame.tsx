@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "../../../hooks/integrations/supabase/client";
 
 type LetterStatus = "correct" | "present" | "absent" | "empty";
 
@@ -7,22 +8,10 @@ type Attempt = {
   statuses: LetterStatus[];
 };
 
-const WORDS = [
-  "MOON",
-  "STAR",
-  "COMET",
-  "ORBIT",
-  "SPACE",
-  "PLANET",
-  "ROCKET",
-  "GALAXY",
-  "ASTEROID",
-  "TELESCOPE",
-];
-
-const MAX_ATTEMPTS = 5;
-
-const pickWord = () => WORDS[Math.floor(Math.random() * WORDS.length)];
+const TEST_CIRCLE_ID = "ff7f12ca-78e4-4987-9d2c-63a68694a1b1";
+const TEST_DOT = 1;
+const WORD_INTERVAL_SECONDS = 10;
+const MAX_ATTEMPTS = 6;
 
 const evaluateGuess = (guess: string, target: string): LetterStatus[] => {
   const normalizedGuess = guess.toUpperCase();
@@ -76,14 +65,131 @@ const getUnderlineClass = (status: LetterStatus, filled: boolean) => {
 };
 
 const VisualSpellingGame: React.FC = () => {
-  const [targetWord, setTargetWord] = useState(pickWord);
+  const [words, setWords] = useState<string[]>([]);
+  const [audioUrl, setAudioUrl] = useState<string>("");
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [targetWord, setTargetWord] = useState("");
   const [currentGuess, setCurrentGuess] = useState("");
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [message, setMessage] = useState("");
+  const [isSolved, setIsSolved] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [audioReady, setAudioReady] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingSeekRef = useRef<number | null>(null);
+  const playbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isComplete =
-    attempts.some((attempt) => attempt.guess === targetWord) ||
-    attempts.length >= MAX_ATTEMPTS;
+  const isRoundComplete = isSolved || attempts.length >= MAX_ATTEMPTS;
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchSpellingData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+      const { data, error } = await supabase
+        .from("dots_spelling")
+        .select("words,audio")
+        .eq("circle_id", TEST_CIRCLE_ID)
+        .eq("dot", TEST_DOT)
+        .maybeSingle();
+
+      if (!isActive) return;
+
+      if (error) {
+        console.error("Failed to load spelling data:", error);
+        setLoadError("Unable to load spelling data.");
+        setIsLoading(false);
+        return;
+      }
+
+      const wordList = Array.isArray(data?.words)
+        ? data.words.filter((word) => typeof word === "string" && word.length)
+        : [];
+      const audio = typeof data?.audio === "string" ? data.audio : "";
+
+      setWords(wordList);
+      setAudioUrl(audio);
+      setCurrentWordIndex(0);
+      setTargetWord(wordList[0]?.toUpperCase() ?? "");
+      setIsLoading(false);
+    };
+
+    fetchSpellingData();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!audioUrl) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setAudioReady(false);
+      return;
+    }
+
+    const audio = new Audio(audioUrl);
+    audio.preload = "auto";
+
+    const handleLoaded = () => {
+      setAudioReady(true);
+    };
+
+    const handleError = () => {
+      console.warn("Failed to load spelling audio.");
+      setAudioReady(false);
+    };
+
+    audio.addEventListener("loadedmetadata", handleLoaded);
+    audio.addEventListener("canplaythrough", handleLoaded);
+    audio.addEventListener("error", handleError);
+
+    audioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audio.removeEventListener("loadedmetadata", handleLoaded);
+      audio.removeEventListener("canplaythrough", handleLoaded);
+      audio.removeEventListener("error", handleError);
+      setAudioReady(false);
+    };
+  }, [audioUrl]);
+
+  const playWordAtIndex = (index: number) => {
+    if (!audioRef.current || !audioUrl) {
+      return;
+    }
+    if (!audioReady) {
+      pendingSeekRef.current = index;
+      return;
+    }
+
+    const seekTime = index * WORD_INTERVAL_SECONDS;
+    try {
+      audioRef.current.pause();
+      audioRef.current.currentTime = seekTime;
+      audioRef.current.play();
+      if (playbackTimeoutRef.current) {
+        clearTimeout(playbackTimeoutRef.current);
+      }
+      playbackTimeoutRef.current = setTimeout(() => {
+        audioRef.current?.pause();
+      }, WORD_INTERVAL_SECONDS * 1000);
+    } catch (error) {
+      console.warn("Failed to play spelling audio:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!audioReady || pendingSeekRef.current === null) return;
+    const index = pendingSeekRef.current;
+    pendingSeekRef.current = null;
+    playWordAtIndex(index);
+  }, [audioReady]);
 
   const gridRows = useMemo(() => {
     const rows: Attempt[] = [...attempts];
@@ -123,20 +229,20 @@ const VisualSpellingGame: React.FC = () => {
   }, [attempts]);
 
   const handleLetter = (letter: string) => {
-    if (isComplete) return;
+    if (isRoundComplete) return;
     if (currentGuess.length >= targetWord.length) return;
     setMessage("");
     setCurrentGuess((prev) => `${prev}${letter}`);
   };
 
   const handleDelete = () => {
-    if (isComplete) return;
+    if (isRoundComplete) return;
     setMessage("");
     setCurrentGuess((prev) => prev.slice(0, -1));
   };
 
   const handleSubmit = () => {
-    if (isComplete) return;
+    if (isRoundComplete) return;
     if (currentGuess.length < targetWord.length) {
       setMessage("Fill all letters before submitting.");
       return;
@@ -149,30 +255,98 @@ const VisualSpellingGame: React.FC = () => {
 
     if (guess === targetWord) {
       setMessage("Great job! You spelled it right!");
+      setIsSolved(true);
+      if (playbackTimeoutRef.current) {
+        clearTimeout(playbackTimeoutRef.current);
+        playbackTimeoutRef.current = null;
+      }
+      audioRef.current?.pause();
     } else if (nextAttempts.length >= MAX_ATTEMPTS) {
       setMessage(`Nice try! The spelling is ${targetWord}.`);
+      setIsSolved(true);
+      if (playbackTimeoutRef.current) {
+        clearTimeout(playbackTimeoutRef.current);
+        playbackTimeoutRef.current = null;
+      }
+      audioRef.current?.pause();
     } else {
       setMessage("");
     }
   };
 
-  const handleReset = () => {
-    setTargetWord(pickWord());
+  const handleReset = (nextIndex: number) => {
+    setCurrentWordIndex(nextIndex);
+    setTargetWord(words[nextIndex]?.toUpperCase() ?? "");
     setCurrentGuess("");
     setAttempts([]);
     setMessage("");
+    setIsSolved(false);
+    if (audioUrl) {
+      playWordAtIndex(nextIndex);
+    }
   };
 
   const canSubmit = currentGuess.length === targetWord.length;
-  const submitLabel = isComplete ? "Next" : "Submit";
-  const submitHandler = isComplete ? handleReset : handleSubmit;
+  const submitLabel = isRoundComplete ? "Next" : "Submit";
+  const submitHandler = isRoundComplete
+    ? () => {
+        if (!words.length) return;
+        const nextIndex = (currentWordIndex + 1) % words.length;
+        handleReset(nextIndex);
+      }
+    : handleSubmit;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-black text-white">
+        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+          Loading spelling...
+        </span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
+        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+          {loadError}
+        </span>
+      </div>
+    );
+  }
+
+  if (!targetWord) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
+        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+          No spelling words available.
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full w-full flex-col items-center gap-4 bg-black px-6 py-6 text-white">
-      <div className="text-center">
-        <p className="mt-2 text-4xl font-extrabold tracking-[0.4em]">
+      <div className="flex w-full max-w-md items-center justify-center gap-4">
+        <p className="text-4xl font-extrabold tracking-[0.4em]">
           {targetWord}
         </p>
+        <button
+          type="button"
+          onClick={() => playWordAtIndex(currentWordIndex)}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white"
+          aria-label="Play word"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M8 5.5L18.5 12L8 18.5V5.5Z" />
+          </svg>
+        </button>
       </div>
 
       <div className="w-full max-w-md flex-1 space-y-2">
@@ -181,7 +355,8 @@ const VisualSpellingGame: React.FC = () => {
             {row.guess.split("").map((letter, index) => {
               const status = row.statuses[index];
               const filled = letter.trim().length > 0;
-              const isActiveRow = rowIndex === attempts.length && !isComplete;
+              const isActiveRow =
+                rowIndex === attempts.length && !isRoundComplete;
               const isActiveSlot =
                 isActiveRow && currentGuess.length === index;
               return (
@@ -237,20 +412,20 @@ const VisualSpellingGame: React.FC = () => {
             type="button"
             onClick={submitHandler}
             className={`min-h-[2.75rem] rounded-md text-sm font-semibold uppercase tracking-wide ${
-              isComplete
+              isRoundComplete
                 ? "bg-white text-black"
                 : canSubmit
                   ? "bg-white text-black"
                   : "bg-white/40 text-black/60"
             }`}
-            disabled={!isComplete && !canSubmit}
+            disabled={!isRoundComplete && !canSubmit}
           >
             {submitLabel}
           </button>
         </div>
       </div>
 
-      {isComplete && (
+      {isRoundComplete && (
         <p className="text-center text-xs uppercase tracking-[0.2em] text-white/50">
           Ready for the next word
         </p>
