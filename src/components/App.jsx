@@ -407,6 +407,16 @@ const App = ({ transportType, region = "" }) => {
       className={`app-mobile-shell ${characterBgClass}`}
       style={appShellStyle}
     >
+      {(() => {
+        const mainBackgroundClass =
+          activeComponent === "rewards"
+            ? "bg-[#2F2C2F]"
+            : activeComponent === "progress"
+              ? "bg-[#EAB7AF]"
+              : activeComponent === "library" || activeComponent === "home"
+                ? "bg-[radial-gradient(circle_at_top,_#fde7dd,_#ffffff)]"
+                : "";
+        return (
       <Layout
         mainRef={mainRef}
         disableScroll={isInteractiveView}
@@ -414,6 +424,7 @@ const App = ({ transportType, region = "" }) => {
           activeComponent !== "landing" && activeComponent !== "onboarding"
         }
         fullHeight={activeComponent === "rewards"}
+        mainClassName={mainBackgroundClass}
       >
         {activeComponent === "landing" ? (
           renderComponent()
@@ -423,6 +434,8 @@ const App = ({ transportType, region = "" }) => {
           </div>
         )}
       </Layout>
+        );
+      })()}
 
       {/* 🔌 Only pre-connect when on interactive screen */}
       {shouldShowConnectionManager && (

@@ -425,7 +425,7 @@ const VisualSpellingGame: React.FC = () => {
   }
 
   return (
-    <div className="safe-area-top relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#2F2C2F] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#2F2C2F] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-md items-center gap-3">
         <span className="text-[0.6rem] font-semibold tracking-[0.3em] text-[#d8cdbd]">
           WORDS
@@ -524,7 +524,7 @@ const VisualSpellingGame: React.FC = () => {
         </button>
       </div>
 
-      <div className="relative w-full max-w-md flex-1 min-h-0 max-h-[6.5rem] sm:max-h-[7.5rem]">
+      <div className="relative w-full max-w-md flex-1 min-h-0">
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full gap-2">
             {currentRow.guess.split("").map((letter, index) => {
