@@ -73,6 +73,9 @@ const VisualSpellingGame: React.FC = () => {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [message, setMessage] = useState("");
   const [isCorrectSolved, setIsCorrectSolved] = useState(false);
+  const [wordResults, setWordResults] = useState<
+    Array<"correct" | "wrong" | null>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
@@ -116,6 +119,7 @@ const VisualSpellingGame: React.FC = () => {
       setCurrentWordIndex(0);
       setTargetWord(wordList[0]?.toUpperCase() ?? "");
       setHasPlayedCurrent(false);
+      setWordResults(Array.from({ length: wordList.length }, () => null));
       setIsLoading(false);
     };
 
@@ -260,6 +264,11 @@ const VisualSpellingGame: React.FC = () => {
     if (guess === targetWord) {
       setMessage("");
       setIsCorrectSolved(true);
+      setWordResults((prev) => {
+        const next = [...prev];
+        next[currentWordIndex] = "correct";
+        return next;
+      });
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
         playbackTimeoutRef.current = null;
@@ -267,6 +276,11 @@ const VisualSpellingGame: React.FC = () => {
       audioRef.current?.pause();
     } else if (nextAttempts.length >= MAX_ATTEMPTS) {
       setMessage(`Nice try! The spelling is ${targetWord}.`);
+      setWordResults((prev) => {
+        const next = [...prev];
+        next[currentWordIndex] = "wrong";
+        return next;
+      });
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
         playbackTimeoutRef.current = null;
@@ -278,6 +292,9 @@ const VisualSpellingGame: React.FC = () => {
   };
 
   const handleReset = (nextIndex: number) => {
+    if (nextIndex === 0 && currentWordIndex === words.length - 1) {
+      setWordResults(Array.from({ length: words.length }, () => null));
+    }
     setCurrentWordIndex(nextIndex);
     setTargetWord(words[nextIndex]?.toUpperCase() ?? "");
     setCurrentGuess("");
@@ -329,6 +346,31 @@ const VisualSpellingGame: React.FC = () => {
 
   return (
     <div className="safe-area-top relative flex h-full w-full flex-col items-center gap-3 bg-black px-4 py-4 text-white sm:gap-4 sm:px-6 sm:py-6">
+      <div className="relative w-full max-w-md px-4">
+        <div className="absolute left-4 right-4 top-1/2 h-[3px] -translate-y-1/2 bg-gray-300" />
+        <div className="relative flex w-full items-center justify-between gap-2 py-2">
+          {words.map((_, index) => {
+            const isActive = index === currentWordIndex;
+            const result = wordResults[index];
+            const dotColor =
+              result === "correct"
+                ? "bg-green-500"
+                : result === "wrong"
+                  ? "bg-yellow-400"
+                  : "bg-gray-300";
+            return (
+              <div key={`word-step-${index}`} className="relative flex flex-shrink-0 items-center justify-center">
+                <span
+                  className={`rounded-full ${dotColor} ${
+                    isActive ? "h-3 w-3" : "h-2 w-2"
+                  }`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex w-full max-w-md items-center justify-center gap-3 sm:gap-4">
         <p className="text-3xl font-extrabold tracking-[0.35em] sm:text-4xl sm:tracking-[0.4em]">
           {targetWord}
@@ -336,7 +378,7 @@ const VisualSpellingGame: React.FC = () => {
         <button
           type="button"
           onClick={() => playWordAtIndex(currentWordIndex)}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border text-white sm:h-10 sm:w-10 ${
+          className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-white sm:h-11 sm:w-11 ${
             hasPlayedCurrent
               ? "border-white/40"
               : "border-white/80 animate-pulse"
@@ -346,7 +388,7 @@ const VisualSpellingGame: React.FC = () => {
           {hasPlayedCurrent ? (
             <svg
               viewBox="0 0 24 24"
-              className="h-4 w-4 sm:h-5 sm:w-5"
+              className="h-5 w-5 sm:h-6 sm:w-6"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -360,7 +402,7 @@ const VisualSpellingGame: React.FC = () => {
           ) : (
             <svg
               viewBox="0 0 24 24"
-              className="h-4 w-4 sm:h-5 sm:w-5"
+              className="h-5 w-5 sm:h-6 sm:w-6"
               fill="currentColor"
               aria-hidden="true"
             >
@@ -443,7 +485,7 @@ const VisualSpellingGame: React.FC = () => {
                     key={key}
                     type="button"
                     onClick={submitHandler}
-                    className={`min-h-[2.5rem] rounded-md text-white sm:min-h-[2.75rem] ${
+                    className={`min-h-[2.5rem] rounded-md sm:min-h-[2.75rem] ${
                       isRoundComplete
                         ? "bg-white text-black"
                         : canSubmit
