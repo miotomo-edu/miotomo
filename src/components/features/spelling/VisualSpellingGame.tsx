@@ -380,9 +380,14 @@ const VisualSpellingGame: React.FC = () => {
       </div>
 
       <div className="flex w-full max-w-md items-center justify-center gap-3 sm:gap-4">
-        <p className="text-3xl font-extrabold tracking-[0.35em] sm:text-4xl sm:tracking-[0.4em]">
-          {targetWord}
-        </p>
+        <div className="flex items-center gap-2">
+          {Array.from({ length: targetWord.length }).map((_, index) => (
+            <span
+              key={`word-placeholder-${index}`}
+              className="block h-8 w-5 rounded-sm border border-gray-300 sm:h-9 sm:w-6"
+            />
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => playWordAtIndex(currentWordIndex)}
