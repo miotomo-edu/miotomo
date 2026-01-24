@@ -87,6 +87,8 @@ const VisualSpellingGame: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [spinKey, setSpinKey] = useState(0);
   const [playLocked, setPlayLocked] = useState(false);
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
@@ -274,6 +276,19 @@ const VisualSpellingGame: React.FC = () => {
     setCurrentGuess((prev) => prev.slice(0, -1));
   };
 
+  const pressKey = (key: string) => {
+    setPressedKey(key);
+    if (pressedTimeoutRef.current) {
+      clearTimeout(pressedTimeoutRef.current);
+    }
+  };
+
+  const releaseKey = () => {
+    pressedTimeoutRef.current = setTimeout(() => {
+      setPressedKey(null);
+    }, 160);
+  };
+
   const handleSubmit = () => {
     if (isRoundComplete) return;
     if (currentGuess.length < targetWord.length) {
@@ -332,6 +347,11 @@ const VisualSpellingGame: React.FC = () => {
     setIsPlaying(false);
     setSpinKey((prev) => prev + 1);
     setPlayLocked(false);
+    setPressedKey(null);
+    if (pressedTimeoutRef.current) {
+      clearTimeout(pressedTimeoutRef.current);
+      pressedTimeoutRef.current = null;
+    }
     if (clickCooldownRef.current) {
       clearTimeout(clickCooldownRef.current);
       clickCooldownRef.current = null;
@@ -533,12 +553,21 @@ const VisualSpellingGame: React.FC = () => {
           ].map((row, rowIndex) => {
             const renderKey = (key: string) => {
               if (key === "DEL") {
+                const isPressed = pressedKey === "DEL";
                 return (
                   <button
                     key={key}
                     type="button"
-                    onClick={handleDelete}
-                    className="h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border border-white/20 bg-white/5 text-white"
+                    onPointerDown={() => pressKey("DEL")}
+                    onPointerUp={releaseKey}
+                    onPointerLeave={releaseKey}
+                    onClick={() => {
+                      handleDelete();
+                      releaseKey();
+                    }}
+                    className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border border-white/20 text-white transition ${
+                      isPressed ? "bg-white/20" : "bg-white/5"
+                    }`}
                     aria-label="Delete"
                   >
                     <svg
@@ -563,13 +592,22 @@ const VisualSpellingGame: React.FC = () => {
               const statusClass = status
                 ? getTileClass(status, true)
                 : "border-white/15 bg-white/5";
+              const isPressed = pressedKey === key;
 
               return (
                 <button
                   key={key}
                   type="button"
-                  onClick={() => handleLetter(key)}
-                  className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border text-[0.7rem] font-semibold sm:text-sm ${statusClass}`}
+                  onPointerDown={() => pressKey(key)}
+                  onPointerUp={releaseKey}
+                  onPointerLeave={releaseKey}
+                  onClick={() => {
+                    handleLetter(key);
+                    releaseKey();
+                  }}
+                  className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border text-[0.7rem] font-semibold transition sm:text-sm ${
+                    isPressed ? "bg-white/20" : statusClass
+                  }`}
                 >
                   {key}
                 </button>
@@ -587,33 +625,45 @@ const VisualSpellingGame: React.FC = () => {
           })}
         </div>
         <div className="flex justify-center pt-2">
-          <button
-            type="button"
-            onClick={submitHandler}
-            className={`min-h-[3.25rem] min-w-[8rem] select-none rounded-full px-6 text-sm font-semibold uppercase tracking-wide sm:min-h-[3.5rem] sm:min-w-[10rem] ${
-              isRoundComplete
-                ? "bg-white text-black"
-                : canSubmit
-                  ? "bg-white text-black"
-                  : "bg-white/40 text-black/60"
-            }`}
-            disabled={!isRoundComplete && !canSubmit}
-            aria-label={submitLabel}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="mx-auto h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M5 12H19" />
-              <path d="M13 6L19 12L13 18" />
-            </svg>
-          </button>
+          {(() => {
+            const isPressed = pressedKey === "SUBMIT";
+            return (
+              <button
+                type="button"
+                onPointerDown={() => pressKey("SUBMIT")}
+                onPointerUp={releaseKey}
+                onPointerLeave={releaseKey}
+                onClick={() => {
+                  if (!isRoundComplete && !canSubmit) return;
+                  submitHandler();
+                  releaseKey();
+                }}
+                className={`min-h-[3.25rem] min-w-[8rem] select-none rounded-full px-6 text-sm font-semibold uppercase tracking-wide transition sm:min-h-[3.5rem] sm:min-w-[10rem] ${
+                  isRoundComplete
+                    ? "bg-white text-black"
+                    : canSubmit
+                      ? "bg-white text-black"
+                      : "bg-white/40 text-black/60"
+                } ${isPressed ? "bg-white/30 text-black" : ""}`}
+                disabled={!isRoundComplete && !canSubmit}
+                aria-label={submitLabel}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="mx-auto h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12H19" />
+                  <path d="M13 6L19 12L13 18" />
+                </svg>
+              </button>
+            );
+          })()}
         </div>
       </div>
       {(isCorrectSolved || isFailedRound) && (
