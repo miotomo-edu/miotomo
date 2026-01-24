@@ -325,3 +325,13 @@ h2 {
 .mic-fade {
   opacity: 0.5;
 }
+
+@keyframes slowSpin {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.slow-spin {
+  animation: slowSpin 1.5s linear;
+}

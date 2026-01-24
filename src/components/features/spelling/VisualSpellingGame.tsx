@@ -82,7 +82,11 @@ const VisualSpellingGame: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
   const playbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clickCooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasPlayedCurrent, setHasPlayedCurrent] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [spinKey, setSpinKey] = useState(0);
+  const [playLocked, setPlayLocked] = useState(false);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
@@ -150,9 +154,14 @@ const VisualSpellingGame: React.FC = () => {
       setAudioReady(false);
     };
 
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
+
     audio.addEventListener("loadedmetadata", handleLoaded);
     audio.addEventListener("canplaythrough", handleLoaded);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("ended", handleEnded);
 
     audioRef.current = audio;
 
@@ -162,6 +171,7 @@ const VisualSpellingGame: React.FC = () => {
       audio.removeEventListener("loadedmetadata", handleLoaded);
       audio.removeEventListener("canplaythrough", handleLoaded);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("ended", handleEnded);
       setAudioReady(false);
     };
   }, [audioUrl]);
@@ -181,15 +191,30 @@ const VisualSpellingGame: React.FC = () => {
       audioRef.current.currentTime = seekTime;
       audioRef.current.play();
       setHasPlayedCurrent(true);
+      setIsPlaying(true);
+      setSpinKey((prev) => prev + 1);
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
       }
       playbackTimeoutRef.current = setTimeout(() => {
         audioRef.current?.pause();
+        setIsPlaying(false);
       }, WORD_INTERVAL_SECONDS * 1000);
     } catch (error) {
       console.warn("Failed to play spelling audio:", error);
     }
+  };
+
+  const handlePlayClick = () => {
+    if (playLocked) return;
+    playWordAtIndex(currentWordIndex);
+    setPlayLocked(true);
+    if (clickCooldownRef.current) {
+      clearTimeout(clickCooldownRef.current);
+    }
+    clickCooldownRef.current = setTimeout(() => {
+      setPlayLocked(false);
+    }, 2000);
   };
 
   useEffect(() => {
@@ -274,6 +299,7 @@ const VisualSpellingGame: React.FC = () => {
         playbackTimeoutRef.current = null;
       }
       audioRef.current?.pause();
+      setIsPlaying(false);
     } else if (nextAttempts.length >= MAX_ATTEMPTS) {
       setMessage("");
       setWordResults((prev) => {
@@ -286,6 +312,7 @@ const VisualSpellingGame: React.FC = () => {
         playbackTimeoutRef.current = null;
       }
       audioRef.current?.pause();
+      setIsPlaying(false);
     } else {
       setMessage("");
     }
@@ -302,9 +329,17 @@ const VisualSpellingGame: React.FC = () => {
     setMessage("");
     setIsCorrectSolved(false);
     setHasPlayedCurrent(false);
+    setIsPlaying(false);
+    setSpinKey((prev) => prev + 1);
+    setPlayLocked(false);
+    if (clickCooldownRef.current) {
+      clearTimeout(clickCooldownRef.current);
+      clickCooldownRef.current = null;
+    }
   };
 
   const canSubmit = currentGuess.length === targetWord.length;
+  const spinDurationSeconds = 0.4 + targetWord.length * 0.2;
   const isLastWord = currentWordIndex === words.length - 1;
   const correctCount = wordResults.filter(
     (result) => result === "correct",
@@ -390,18 +425,27 @@ const VisualSpellingGame: React.FC = () => {
         </p>
         <button
           type="button"
-          onClick={() => playWordAtIndex(currentWordIndex)}
+          onClick={handlePlayClick}
           className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-white sm:h-11 sm:w-11 ${
             hasPlayedCurrent
               ? "border-white/40"
               : "border-white/80 animate-pulse"
-          }`}
+          } ${playLocked ? "opacity-60" : ""}`}
           aria-label={hasPlayedCurrent ? "Replay word" : "Play word"}
+          disabled={playLocked}
         >
           {hasPlayedCurrent ? (
             <svg
+              key={`replay-${spinKey}`}
               viewBox="0 0 24 24"
-              className="h-5 w-5 sm:h-6 sm:w-6"
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                isPlaying ? "slow-spin" : ""
+              }`}
+              style={
+                isPlaying
+                  ? { animationDuration: `${spinDurationSeconds}s` }
+                  : undefined
+              }
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -414,8 +458,16 @@ const VisualSpellingGame: React.FC = () => {
             </svg>
           ) : (
             <svg
+              key={`play-${spinKey}`}
               viewBox="0 0 24 24"
-              className="h-5 w-5 sm:h-6 sm:w-6"
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                isPlaying ? "slow-spin" : ""
+              }`}
+              style={
+                isPlaying
+                  ? { animationDuration: `${spinDurationSeconds}s` }
+                  : undefined
+              }
               fill="currentColor"
               aria-hidden="true"
             >
@@ -465,20 +517,28 @@ const VisualSpellingGame: React.FC = () => {
       )}
 
       <div className="mt-auto w-full max-w-md space-y-2 min-h-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-        {[
-          ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-          ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-          ["Z", "X", "C", "V", "B", "N", "M", "DEL", "ENTER"],
-        ].map((row, rowIndex) => (
-          <div key={`kb-row-${rowIndex}`} className="flex justify-center gap-1">
-            {row.map((key) => {
+        <div
+          className="space-y-2"
+          style={
+            {
+              "--key-size": "clamp(2.2rem, 7.5vw, 2.8rem)",
+              "--key-height": "clamp(3.4rem, 9vw, 4rem)",
+            } as React.CSSProperties
+          }
+        >
+          {[
+            ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+            ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+            ["Z", "X", "C", "V", "B", "N", "M", "DEL"],
+          ].map((row, rowIndex) => {
+            const renderKey = (key: string) => {
               if (key === "DEL") {
                 return (
                   <button
                     key={key}
                     type="button"
                     onClick={handleDelete}
-                    className="min-h-[3rem] min-w-[2rem] select-none rounded-md border border-white/20 bg-white/5 text-white sm:min-h-[3.25rem] sm:min-w-[2.25rem]"
+                    className="h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border border-white/20 bg-white/5 text-white"
                     aria-label="Delete"
                   >
                     <svg
@@ -498,38 +558,6 @@ const VisualSpellingGame: React.FC = () => {
                   </button>
                 );
               }
-              if (key === "ENTER") {
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={submitHandler}
-                    className={`min-h-[3rem] min-w-[2rem] select-none rounded-md sm:min-h-[3.25rem] sm:min-w-[2.25rem] ${
-                      isRoundComplete
-                        ? "bg-white text-black"
-                        : canSubmit
-                          ? "bg-white text-black"
-                          : "bg-white/40 text-black/60"
-                    }`}
-                    disabled={!isRoundComplete && !canSubmit}
-                    aria-label={submitLabel}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="mx-auto h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12H19" />
-                      <path d="M13 6L19 12L13 18" />
-                    </svg>
-                  </button>
-                );
-              }
 
               const status = letterStatuses[key];
               const statusClass = status
@@ -541,14 +569,52 @@ const VisualSpellingGame: React.FC = () => {
                   key={key}
                   type="button"
                   onClick={() => handleLetter(key)}
-                  className={`min-h-[3rem] min-w-[2rem] select-none rounded-md border text-[0.7rem] font-semibold sm:min-h-[3.25rem] sm:min-w-[2.25rem] sm:text-sm ${statusClass}`}
+                  className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border text-[0.7rem] font-semibold sm:text-sm ${statusClass}`}
                 >
                   {key}
                 </button>
               );
-            })}
-          </div>
-        ))}
+            };
+
+            return (
+              <div
+                key={`kb-row-${rowIndex}`}
+                className="flex w-full justify-center gap-1"
+              >
+                {row.map(renderKey)}
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex justify-center pt-2">
+          <button
+            type="button"
+            onClick={submitHandler}
+            className={`min-h-[3.25rem] min-w-[8rem] select-none rounded-full px-6 text-sm font-semibold uppercase tracking-wide sm:min-h-[3.5rem] sm:min-w-[10rem] ${
+              isRoundComplete
+                ? "bg-white text-black"
+                : canSubmit
+                  ? "bg-white text-black"
+                  : "bg-white/40 text-black/60"
+            }`}
+            disabled={!isRoundComplete && !canSubmit}
+            aria-label={submitLabel}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="mx-auto h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12H19" />
+              <path d="M13 6L19 12L13 18" />
+            </svg>
+          </button>
+        </div>
       </div>
       {(isCorrectSolved || isFailedRound) && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 px-6">
