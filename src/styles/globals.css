@@ -296,6 +296,10 @@ h2 {
     width: 100vw;
     z-index: 50;
   }
+
+  .with-bottom-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* MicrophoneStatus Animations */

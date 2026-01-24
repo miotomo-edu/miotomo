@@ -6,7 +6,7 @@ const Layout = ({ children, mainRef, disableScroll = false }) => {
     <div className="flex flex-col flex-1 h-full min-h-0">
       <main
         ref={mainRef}
-        className={`flex-1 min-h-0 ${disableScroll ? "overflow-hidden" : "overflow-y-auto"}`}
+        className={`with-bottom-nav flex-1 min-h-0 ${disableScroll ? "overflow-hidden" : "overflow-y-auto"}`}
       >
         {children}
       </main>

@@ -11,7 +11,7 @@ type Attempt = {
 const TEST_CIRCLE_ID = "ff7f12ca-78e4-4987-9d2c-63a68694a1b1";
 const TEST_DOT = 1;
 const WORD_INTERVAL_SECONDS = 10;
-const MAX_ATTEMPTS = 6;
+const MAX_ATTEMPTS = 3;
 
 const evaluateGuess = (guess: string, target: string): LetterStatus[] => {
   const normalizedGuess = guess.toUpperCase();
@@ -84,8 +84,9 @@ const VisualSpellingGame: React.FC = () => {
   const playbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasPlayedCurrent, setHasPlayedCurrent] = useState(false);
 
-  const isRoundComplete =
-    isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
+  const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
+  const isFailedRound =
+    attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
 
   useEffect(() => {
     let isActive = true;
@@ -275,7 +276,7 @@ const VisualSpellingGame: React.FC = () => {
       }
       audioRef.current?.pause();
     } else if (nextAttempts.length >= MAX_ATTEMPTS) {
-      setMessage(`Nice try! The spelling is ${targetWord}.`);
+      setMessage("");
       setWordResults((prev) => {
         const next = [...prev];
         next[currentWordIndex] = "wrong";
@@ -345,7 +346,7 @@ const VisualSpellingGame: React.FC = () => {
   }
 
   return (
-    <div className="safe-area-top relative flex h-full w-full flex-col items-center gap-3 bg-black px-4 py-4 text-white sm:gap-4 sm:px-6 sm:py-6">
+    <div className="safe-area-top relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-black px-4 py-4 text-white sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative w-full max-w-md px-4">
         <div className="absolute left-4 right-4 top-1/2 h-[3px] -translate-y-1/2 bg-gray-300" />
         <div className="relative flex w-full items-center justify-between gap-2 py-2">
@@ -359,7 +360,10 @@ const VisualSpellingGame: React.FC = () => {
                   ? "bg-yellow-400"
                   : "bg-gray-300";
             return (
-              <div key={`word-step-${index}`} className="relative flex flex-shrink-0 items-center justify-center">
+              <div
+                key={`word-step-${index}`}
+                className="relative flex flex-shrink-0 items-center justify-center"
+              >
                 <span
                   className={`rounded-full ${dotColor} ${
                     isActive ? "h-3 w-3" : "h-2 w-2"
@@ -420,8 +424,7 @@ const VisualSpellingGame: React.FC = () => {
               const filled = letter.trim().length > 0;
               const isActiveRow =
                 rowIndex === attempts.length && !isRoundComplete;
-              const isActiveSlot =
-                isActiveRow && currentGuess.length === index;
+              const isActiveSlot = isActiveRow && currentGuess.length === index;
               return (
                 <div
                   key={`tile-${rowIndex}-${index}`}
@@ -440,11 +443,19 @@ const VisualSpellingGame: React.FC = () => {
 
       <div className="w-full max-w-md">
         {message && (
-          <p className="text-center text-xs text-white/70 sm:text-sm">{message}</p>
+          <p className="text-center text-xs text-white/70 sm:text-sm">
+            {message}
+          </p>
         )}
       </div>
 
-      <div className="w-full max-w-md space-y-2 min-h-0">
+      {isRoundComplete && (
+        <p className="text-center text-xs uppercase tracking-[0.2em] text-white/50">
+          Ready for the next word
+        </p>
+      )}
+
+      <div className="mt-auto w-full max-w-md space-y-2 min-h-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         {[
           ["A", "B", "C", "D", "E", "F", "G"],
           ["H", "I", "J", "K", "L", "M", "N"],
@@ -531,20 +542,28 @@ const VisualSpellingGame: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {isRoundComplete && (
-        <p className="text-center text-xs uppercase tracking-[0.2em] text-white/50">
-          Ready for the next word
-        </p>
-      )}
-      {isCorrectSolved && (
+      {(isCorrectSolved || isFailedRound) && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 px-6">
           <div className="w-full max-w-xs rounded-2xl border border-white/20 bg-black/90 p-6 text-center text-white shadow-2xl">
-            <p className="text-lg font-semibold">You spelled</p>
-            <p className="mt-2 text-2xl font-extrabold tracking-[0.2em]">
-              {targetWord}
-            </p>
-            <p className="mt-1 text-lg font-semibold">right!</p>
+            {isCorrectSolved ? (
+              <>
+                <p className="text-lg font-semibold">You spelled</p>
+                <p className="mt-2 text-2xl font-extrabold tracking-[0.2em]">
+                  {targetWord}
+                </p>
+                <p className="mt-1 text-lg font-semibold">right!</p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold">Nice try!</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.25em] text-white/70">
+                  The word was
+                </p>
+                <p className="mt-2 text-2xl font-extrabold tracking-[0.2em]">
+                  {targetWord}
+                </p>
+              </>
+            )}
             <button
               type="button"
               onClick={submitHandler}
