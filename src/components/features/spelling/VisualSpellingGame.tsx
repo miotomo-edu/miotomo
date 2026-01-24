@@ -72,7 +72,7 @@ const VisualSpellingGame: React.FC = () => {
   const [currentGuess, setCurrentGuess] = useState("");
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [message, setMessage] = useState("");
-  const [isSolved, setIsSolved] = useState(false);
+  const [isCorrectSolved, setIsCorrectSolved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
@@ -80,7 +80,8 @@ const VisualSpellingGame: React.FC = () => {
   const pendingSeekRef = useRef<number | null>(null);
   const playbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isRoundComplete = isSolved || attempts.length >= MAX_ATTEMPTS;
+  const isRoundComplete =
+    isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
 
   useEffect(() => {
     let isActive = true;
@@ -114,6 +115,9 @@ const VisualSpellingGame: React.FC = () => {
       setCurrentWordIndex(0);
       setTargetWord(wordList[0]?.toUpperCase() ?? "");
       setIsLoading(false);
+      if (audio && wordList.length) {
+        playWordAtIndex(0);
+      }
     };
 
     fetchSpellingData();
@@ -254,8 +258,8 @@ const VisualSpellingGame: React.FC = () => {
     setCurrentGuess("");
 
     if (guess === targetWord) {
-      setMessage("Great job! You spelled it right!");
-      setIsSolved(true);
+      setMessage("");
+      setIsCorrectSolved(true);
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
         playbackTimeoutRef.current = null;
@@ -263,7 +267,6 @@ const VisualSpellingGame: React.FC = () => {
       audioRef.current?.pause();
     } else if (nextAttempts.length >= MAX_ATTEMPTS) {
       setMessage(`Nice try! The spelling is ${targetWord}.`);
-      setIsSolved(true);
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
         playbackTimeoutRef.current = null;
@@ -280,14 +283,14 @@ const VisualSpellingGame: React.FC = () => {
     setCurrentGuess("");
     setAttempts([]);
     setMessage("");
-    setIsSolved(false);
+    setIsCorrectSolved(false);
     if (audioUrl) {
       playWordAtIndex(nextIndex);
     }
   };
 
   const canSubmit = currentGuess.length === targetWord.length;
-  const submitLabel = isRoundComplete ? "Next" : "Submit";
+  const submitLabel = "Submit";
   const submitHandler = isRoundComplete
     ? () => {
         if (!words.length) return;
@@ -327,29 +330,24 @@ const VisualSpellingGame: React.FC = () => {
   }
 
   return (
-    <div className="flex h-full w-full flex-col items-center gap-4 bg-black px-6 py-6 text-white">
-      <div className="flex w-full max-w-md items-center justify-center gap-4">
-        <p className="text-4xl font-extrabold tracking-[0.4em]">
+    <div className="safe-area-top relative flex h-full w-full flex-col items-center gap-3 bg-black px-4 py-4 text-white sm:gap-4 sm:px-6 sm:py-6">
+      <div className="flex w-full max-w-md items-center justify-center gap-3 sm:gap-4">
+        <p className="text-3xl font-extrabold tracking-[0.35em] sm:text-4xl sm:tracking-[0.4em]">
           {targetWord}
         </p>
         <button
           type="button"
           onClick={() => playWordAtIndex(currentWordIndex)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-white sm:h-10 sm:w-10"
           aria-label="Play word"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill="currentColor"
-            aria-hidden="true"
-          >
+          <svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" aria-hidden="true">
             <path d="M8 5.5L18.5 12L8 18.5V5.5Z" />
           </svg>
         </button>
       </div>
 
-      <div className="w-full max-w-md flex-1 space-y-2">
+      <div className="w-full max-w-md flex-1 space-y-3 min-h-0">
         {gridRows.map((row, rowIndex) => (
           <div key={`row-${rowIndex}`} className="flex gap-2">
             {row.guess.split("").map((letter, index) => {
@@ -362,7 +360,7 @@ const VisualSpellingGame: React.FC = () => {
               return (
                 <div
                   key={`tile-${rowIndex}-${index}`}
-                  className={`flex min-h-[2.25rem] flex-1 items-center justify-center border-b-2 text-lg font-semibold uppercase ${getUnderlineClass(
+                  className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-2 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg ${getUnderlineClass(
                     status,
                     filled,
                   )} ${isActiveRow ? "!border-white !text-white" : ""}`}
@@ -377,58 +375,120 @@ const VisualSpellingGame: React.FC = () => {
 
       <div className="w-full max-w-md">
         {message && (
-          <p className="text-center text-sm text-white/70">{message}</p>
+          <p className="text-center text-xs text-white/70 sm:text-sm">{message}</p>
         )}
       </div>
 
-      <div className="w-full max-w-md flex-1 space-y-2">
-        <div className="grid grid-cols-7 gap-2">
-          {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => {
-            const status = letterStatuses[letter];
-            const statusClass = status
-              ? getTileClass(status, true)
-              : "border-white/15 bg-white/5";
-            return (
-              <button
-                key={letter}
-                type="button"
-                onClick={() => handleLetter(letter)}
-                className={`min-h-[2.5rem] rounded-md border text-sm font-semibold ${statusClass}`}
-              >
-                {letter}
-              </button>
-            );
-          })}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="min-h-[2.75rem] rounded-md border border-white/20 bg-white/5 text-sm font-semibold uppercase tracking-wide text-white"
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            onClick={submitHandler}
-            className={`min-h-[2.75rem] rounded-md text-sm font-semibold uppercase tracking-wide ${
-              isRoundComplete
-                ? "bg-white text-black"
-                : canSubmit
-                  ? "bg-white text-black"
-                  : "bg-white/40 text-black/60"
-            }`}
-            disabled={!isRoundComplete && !canSubmit}
-          >
-            {submitLabel}
-          </button>
-        </div>
+      <div className="w-full max-w-md space-y-2 min-h-0">
+        {[
+          ["A", "B", "C", "D", "E", "F", "G"],
+          ["H", "I", "J", "K", "L", "M", "N"],
+          ["O", "P", "Q", "R", "S", "T", "U"],
+          ["V", "W", "X", "Y", "Z", "DEL", "ENTER"],
+        ].map((row, rowIndex) => (
+          <div key={`kb-row-${rowIndex}`} className="grid grid-cols-7 gap-2">
+            {row.map((key) => {
+              if (key === "DEL") {
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={handleDelete}
+                    className="min-h-[2.5rem] rounded-md border border-white/20 bg-white/5 text-white sm:min-h-[2.75rem]"
+                    aria-label="Delete"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="mx-auto h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M10 5L4 12L10 19H20A2 2 0 0 0 22 17V7A2 2 0 0 0 20 5H10Z" />
+                      <path d="M14 9L18 13" />
+                      <path d="M18 9L14 13" />
+                    </svg>
+                  </button>
+                );
+              }
+              if (key === "ENTER") {
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={submitHandler}
+                    className={`min-h-[2.5rem] rounded-md text-white sm:min-h-[2.75rem] ${
+                      isRoundComplete
+                        ? "bg-white text-black"
+                        : canSubmit
+                          ? "bg-white text-black"
+                          : "bg-white/40 text-black/60"
+                    }`}
+                    disabled={!isRoundComplete && !canSubmit}
+                    aria-label={submitLabel}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="mx-auto h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12H19" />
+                      <path d="M13 6L19 12L13 18" />
+                    </svg>
+                  </button>
+                );
+              }
+
+              const status = letterStatuses[key];
+              const statusClass = status
+                ? getTileClass(status, true)
+                : "border-white/15 bg-white/5";
+
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleLetter(key)}
+                  className={`min-h-[2.5rem] rounded-md border text-xs font-semibold sm:min-h-[2.75rem] sm:text-sm ${statusClass}`}
+                >
+                  {key}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
       {isRoundComplete && (
         <p className="text-center text-xs uppercase tracking-[0.2em] text-white/50">
           Ready for the next word
         </p>
+      )}
+      {isCorrectSolved && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-xs rounded-2xl border border-white/20 bg-black/90 p-6 text-center text-white shadow-2xl">
+            <p className="text-lg font-semibold">You spelled</p>
+            <p className="mt-2 text-2xl font-extrabold tracking-[0.2em]">
+              {targetWord}
+            </p>
+            <p className="mt-1 text-lg font-semibold">right!</p>
+            <button
+              type="button"
+              onClick={submitHandler}
+              className="mt-5 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold uppercase tracking-wide text-black"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
