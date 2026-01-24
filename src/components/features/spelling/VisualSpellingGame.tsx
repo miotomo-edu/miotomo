@@ -306,7 +306,9 @@ const VisualSpellingGame: React.FC = () => {
 
   const canSubmit = currentGuess.length === targetWord.length;
   const isLastWord = currentWordIndex === words.length - 1;
-  const correctCount = wordResults.filter((result) => result === "correct").length;
+  const correctCount = wordResults.filter(
+    (result) => result === "correct",
+  ).length;
   const submitLabel = "Submit";
   const submitHandler = isRoundComplete
     ? () => {
@@ -464,12 +466,11 @@ const VisualSpellingGame: React.FC = () => {
 
       <div className="mt-auto w-full max-w-md space-y-2 min-h-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         {[
-          ["A", "B", "C", "D", "E", "F", "G"],
-          ["H", "I", "J", "K", "L", "M", "N"],
-          ["O", "P", "Q", "R", "S", "T", "U"],
-          ["V", "W", "X", "Y", "Z", "DEL", "ENTER"],
+          ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+          ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+          ["Z", "X", "C", "V", "B", "N", "M", "DEL", "ENTER"],
         ].map((row, rowIndex) => (
-          <div key={`kb-row-${rowIndex}`} className="grid grid-cols-7 gap-2">
+          <div key={`kb-row-${rowIndex}`} className="flex justify-center gap-1">
             {row.map((key) => {
               if (key === "DEL") {
                 return (
@@ -477,7 +478,7 @@ const VisualSpellingGame: React.FC = () => {
                     key={key}
                     type="button"
                     onClick={handleDelete}
-                    className="min-h-[2.5rem] rounded-md border border-white/20 bg-white/5 text-white sm:min-h-[2.75rem]"
+                    className="min-h-[3rem] min-w-[2rem] select-none rounded-md border border-white/20 bg-white/5 text-white sm:min-h-[3.25rem] sm:min-w-[2.25rem]"
                     aria-label="Delete"
                   >
                     <svg
@@ -503,7 +504,7 @@ const VisualSpellingGame: React.FC = () => {
                     key={key}
                     type="button"
                     onClick={submitHandler}
-                    className={`min-h-[2.5rem] rounded-md sm:min-h-[2.75rem] ${
+                    className={`min-h-[3rem] min-w-[2rem] select-none rounded-md sm:min-h-[3.25rem] sm:min-w-[2.25rem] ${
                       isRoundComplete
                         ? "bg-white text-black"
                         : canSubmit
@@ -540,7 +541,7 @@ const VisualSpellingGame: React.FC = () => {
                   key={key}
                   type="button"
                   onClick={() => handleLetter(key)}
-                  className={`min-h-[2.5rem] rounded-md border text-xs font-semibold sm:min-h-[2.75rem] sm:text-sm ${statusClass}`}
+                  className={`min-h-[3rem] min-w-[2rem] select-none rounded-md border text-[0.7rem] font-semibold sm:min-h-[3.25rem] sm:min-w-[2.25rem] sm:text-sm ${statusClass}`}
                 >
                   {key}
                 </button>
