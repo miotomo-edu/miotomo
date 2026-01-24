@@ -97,15 +97,56 @@ const VisualSpellingGame: React.FC = () => {
   const [playLocked, setPlayLocked] = useState(false);
   const [pressedKey, setPressedKey] = useState<string | null>(null);
   const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [displayedQuote, setDisplayedQuote] = useState("");
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
+  const canSubmit = currentGuess.length === targetWord.length;
   const attemptQuote = (() => {
+    if (canSubmit && !isRoundComplete) return "Time to send!";
+    if (!hasPlayedCurrent)
+      return `Word ${currentWordIndex + 1}—now listen closely.`;
+    if (attempts.length === 0) return "First try—type in the spelling.";
+    if (attempts.length === 1) return "Second try—type in the spelling.";
     if (isCorrectSolved) return "You did it! Great listening.";
-    if (attempts.length === 0) return "First try—listen closely!";
-    if (attempts.length === 1) return "Nice effort—second try!";
-    return "Last chance—give it your best!";
+    return "Last try—give it your best!";
   })();
+
+  useEffect(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      setDisplayedQuote(attemptQuote);
+      return;
+    }
+
+    setDisplayedQuote("");
+    let index = 0;
+    const typeNext = () => {
+      index += 1;
+      setDisplayedQuote(attemptQuote.slice(0, index));
+      if (index < attemptQuote.length) {
+        typingTimeoutRef.current = setTimeout(typeNext, 28);
+      }
+    };
+    typingTimeoutRef.current = setTimeout(typeNext, 120);
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+    };
+  }, [attemptQuote]);
 
   useEffect(() => {
     let isActive = true;
@@ -362,7 +403,6 @@ const VisualSpellingGame: React.FC = () => {
     }
   };
 
-  const canSubmit = currentGuess.length === targetWord.length;
   const spinDurationSeconds = 0.4 + targetWord.length * 0.2;
   const isLastWord = currentWordIndex === words.length - 1;
   const correctCount = wordResults.filter(
@@ -464,9 +504,6 @@ const VisualSpellingGame: React.FC = () => {
       </div>
 
       <div className="flex w-full max-w-md flex-col items-center gap-5 sm:gap-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d8cdbd] sm:text-base">
-          A {targetWord.length} LETTER LONG WORD
-        </p>
         <button
           type="button"
           onClick={handlePlayClick}
@@ -569,18 +606,52 @@ const VisualSpellingGame: React.FC = () => {
           />
           <div className="relative flex-1">
             <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#4a4345]" />
-            <p
-              className="flex w-full items-center rounded-2xl bg-[#4a4345] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:text-lg"
-              style={{
-                minHeight: "2.75rem",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {attemptQuote}
-            </p>
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:text-lg">
+              <span
+                className="flex-1"
+                style={{
+                  minHeight: "2.75rem",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+              {displayedQuote}
+              </span>
+              {(canSubmit || isRoundComplete) && (
+                <button
+                  type="button"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    pressKey("SUBMIT");
+                    submitHandler();
+                  }}
+                  onPointerUp={releaseKey}
+                  onPointerLeave={releaseKey}
+                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] shadow-[0_6px_0_#766a5b] transition ${
+                    isRoundComplete
+                      ? "bg-[#C0B095] text-[#2a2629]"
+                      : "bg-[#C0B095] text-[#2a2629]"
+                  } ${pressedKey === "SUBMIT" ? "bg-[#c9ba9f] text-[#2a2629]" : ""}`}
+                  aria-label={submitLabel}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12H19" />
+                    <path d="M13 6L19 12L13 18" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -676,47 +747,6 @@ const VisualSpellingGame: React.FC = () => {
               </div>
             );
           })}
-        </div>
-        <div className="flex justify-center pt-2">
-          {(() => {
-            const isPressed = pressedKey === "SUBMIT";
-            return (
-              <button
-                type="button"
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                  pressKey("SUBMIT");
-                  if (!isRoundComplete && !canSubmit) return;
-                  submitHandler();
-                }}
-                onPointerUp={releaseKey}
-                onPointerLeave={releaseKey}
-                className={`flex h-12 w-12 select-none items-center justify-center rounded-full border-2 border-[#DACDB9] shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:h-14 sm:w-14 ${
-                  isRoundComplete
-                    ? "bg-[#C0B095] text-[#2a2629]"
-                    : canSubmit
-                      ? "bg-[#C0B095] text-[#2a2629]"
-                      : "bg-[#a59b8d] text-[#3a3431]"
-                } ${isPressed ? "bg-[#c9ba9f] text-[#2a2629]" : ""}`}
-                disabled={!isRoundComplete && !canSubmit}
-                aria-label={submitLabel}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12H19" />
-                  <path d="M13 6L19 12L13 18" />
-                </svg>
-              </button>
-            );
-          })()}
         </div>
       </div>
       {(isCorrectSolved || isFailedRound) && (
