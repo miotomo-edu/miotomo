@@ -305,9 +305,12 @@ const VisualSpellingGame: React.FC = () => {
   };
 
   const canSubmit = currentGuess.length === targetWord.length;
+  const isLastWord = currentWordIndex === words.length - 1;
+  const correctCount = wordResults.filter((result) => result === "correct").length;
   const submitLabel = "Submit";
   const submitHandler = isRoundComplete
     ? () => {
+        if (isLastWord) return;
         if (!words.length) return;
         const nextIndex = (currentWordIndex + 1) % words.length;
         handleReset(nextIndex);
@@ -380,14 +383,9 @@ const VisualSpellingGame: React.FC = () => {
       </div>
 
       <div className="flex w-full max-w-md items-center justify-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-2">
-          {Array.from({ length: targetWord.length }).map((_, index) => (
-            <span
-              key={`word-placeholder-${index}`}
-              className="block h-8 w-5 rounded-sm border border-gray-300 sm:h-9 sm:w-6"
-            />
-          ))}
-        </div>
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-gray-300 sm:text-base">
+          A {targetWord.length} LETTER LONG WORD
+        </p>
         <button
           type="button"
           onClick={() => playWordAtIndex(currentWordIndex)}
@@ -573,13 +571,19 @@ const VisualSpellingGame: React.FC = () => {
                 </p>
               </>
             )}
-            <button
-              type="button"
-              onClick={submitHandler}
-              className="mt-5 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold uppercase tracking-wide text-black"
-            >
-              Next
-            </button>
+            {isLastWord ? (
+              <p className="mt-5 text-sm font-semibold text-white">
+                Congratulations! You got {correctCount} on {words.length} right
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={submitHandler}
+                className="mt-5 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold uppercase tracking-wide text-black"
+              >
+                Next
+              </button>
+            )}
           </div>
         </div>
       )}
