@@ -516,7 +516,7 @@ const VisualSpellingGame: React.FC = () => {
         </p>
       )}
 
-      <div className="mt-auto w-full max-w-md space-y-2 min-h-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="tap-safe mt-auto w-full max-w-md space-y-2 min-h-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div
           className="space-y-2"
           style={

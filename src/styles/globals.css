@@ -335,3 +335,13 @@ h2 {
 .slow-spin {
   animation: slowSpin 1.5s linear;
 }
+
+.tap-safe {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+}
+
+.tap-safe * {
+  -webkit-tap-highlight-color: transparent;
+}
