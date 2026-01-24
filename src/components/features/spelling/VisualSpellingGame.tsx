@@ -467,26 +467,28 @@ const VisualSpellingGame: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex w-full max-w-md items-center justify-center gap-3 sm:gap-4">
+      <div className="flex w-full max-w-md flex-col items-center gap-5 sm:gap-6">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d8cdbd] sm:text-base">
           A {targetWord.length} LETTER LONG WORD
         </p>
         <button
           type="button"
           onClick={handlePlayClick}
-          className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-[#efe6d6] sm:h-11 sm:w-11 ${
+          className={`flex min-h-[3.25rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-[#DACDB9] px-6 text-sm font-bold uppercase tracking-wide shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:min-h-[3.5rem] sm:min-w-[12rem] ${
+            playLocked ? "opacity-70" : ""
+          } ${
             hasPlayedCurrent
-              ? "border-[#b7aca0]"
-              : "border-[#efe6d6] animate-pulse"
-          } ${playLocked ? "opacity-60" : ""}`}
-          aria-label={hasPlayedCurrent ? "Replay word" : "Play word"}
+              ? "bg-[#C0B095] text-[#2a2629]"
+              : "bg-[#C0B095] text-[#2a2629] animate-pulse"
+          }`}
+          aria-label="Listen"
           disabled={playLocked}
         >
           {hasPlayedCurrent ? (
             <svg
               key={`replay-${spinKey}`}
               viewBox="0 0 24 24"
-              className={`h-5 w-5 sm:h-6 sm:w-6 ${
+              className={`h-7 w-7 sm:h-8 sm:w-8 ${
                 isPlaying ? "slow-spin" : ""
               }`}
               style={
@@ -508,7 +510,7 @@ const VisualSpellingGame: React.FC = () => {
             <svg
               key={`play-${spinKey}`}
               viewBox="0 0 24 24"
-              className={`h-5 w-5 sm:h-6 sm:w-6 ${
+              className={`h-7 w-7 sm:h-8 sm:w-8 ${
                 isPlaying ? "slow-spin" : ""
               }`}
               style={
@@ -522,6 +524,7 @@ const VisualSpellingGame: React.FC = () => {
               <path d="M8 5.5L18.5 12L8 18.5V5.5Z" />
             </svg>
           )}
+          <span>Listen</span>
         </button>
       </div>
 
@@ -567,7 +570,7 @@ const VisualSpellingGame: React.FC = () => {
         </p>
       )}
 
-      <div className="tap-safe mt-auto w-full max-w-md space-y-2 min-h-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] overflow-visible">
+      <div className="tap-safe mt-auto w-full max-w-md space-y-2 min-h-0 pb-[env(safe-area-inset-bottom)] overflow-visible">
         <div
           className="relative space-y-2 overflow-visible"
           style={
@@ -580,7 +583,7 @@ const VisualSpellingGame: React.FC = () => {
           <img
             src={tomoSpellingIcon}
             alt=""
-            className="pointer-events-none absolute left-0 top-0 h-16 w-auto -translate-y-full opacity-80"
+            className="pointer-events-none absolute bottom-[-10px] left-0 h-16 w-auto translate-y-full"
           />
           {[
             ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -678,7 +681,7 @@ const VisualSpellingGame: React.FC = () => {
                 }}
                 onPointerUp={releaseKey}
                 onPointerLeave={releaseKey}
-                className={`min-h-[3.25rem] min-w-[8rem] select-none rounded-full border-2 border-[#DACDB9] px-6 text-sm font-semibold uppercase tracking-wide shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:min-h-[3.5rem] sm:min-w-[10rem] ${
+                className={`flex h-12 w-12 select-none items-center justify-center rounded-full border-2 border-[#DACDB9] shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:h-14 sm:w-14 ${
                   isRoundComplete
                     ? "bg-[#C0B095] text-[#2a2629]"
                     : canSubmit
@@ -688,12 +691,12 @@ const VisualSpellingGame: React.FC = () => {
                 disabled={!isRoundComplete && !canSubmit}
                 aria-label={submitLabel}
               >
-            <svg
-              viewBox="0 0 24 24"
-              className="mx-auto h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
