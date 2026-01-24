@@ -72,6 +72,16 @@ const getUnderlineClass = (status: LetterStatus, filled: boolean) => {
   return "border-[#5a5550] text-[#efe6d6]";
 };
 
+const getLetterClass = (status: LetterStatus, filled: boolean) => {
+  if (!filled) {
+    return "text-transparent";
+  }
+  if (status === "correct") return "text-[#8fb29a]";
+  if (status === "present") return "text-[#d2a84f]";
+  if (status === "absent") return "text-[#9c9287]";
+  return "text-[#efe6d6]";
+};
+
 const VisualSpellingGame: React.FC = () => {
   const [words, setWords] = useState<string[]>([]);
   const [audioUrl, setAudioUrl] = useState<string>("");
@@ -563,19 +573,48 @@ const VisualSpellingGame: React.FC = () => {
 
       <div className="relative w-full max-w-md flex-1 min-h-0">
         <div className="relative z-10 flex h-full items-center">
-          <div className="flex w-full gap-2">
-            {currentRow.guess.split("").map((letter, index) => {
-              const filled = letter.trim().length > 0;
-              const isActiveSlot = currentGuess.length === index;
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex w-full gap-2">
+              {currentRow.guess.split("").map((letter, index) => {
+                const filled = letter.trim().length > 0;
+                const isActiveSlot = currentGuess.length === index;
+                return (
+                  <div
+                    key={`tile-${index}`}
+                    className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-2 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg ${getUnderlineClass(
+                      "empty",
+                      filled,
+                    )} ${isActiveSlot ? "!border-[#efe6d6] !text-[#efe6d6]" : ""}`}
+                  >
+                    {letter.trim()}
+                  </div>
+                );
+              })}
+            </div>
+            {[...attempts].reverse().map((attempt, index) => {
+              const opacity =
+                index === 0 ? "opacity-100" : index === 1 ? "opacity-70" : "opacity-50";
               return (
                 <div
-                  key={`tile-${index}`}
-                  className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-2 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg ${getUnderlineClass(
-                    "empty",
-                    filled,
-                  )} ${isActiveSlot ? "!border-[#efe6d6] !text-[#efe6d6]" : ""}`}
+                  key={`attempt-${attempts.length - 1 - index}`}
+                  className={`flex w-full gap-2 ${opacity} animate-fade-in`}
                 >
-                  {letter.trim()}
+                  {Array.from({ length: targetWord.length }).map((_, letterIndex) => {
+                    const letter = attempt.guess[letterIndex] ?? " ";
+                    const status = attempt.statuses[letterIndex] ?? "empty";
+                    const filled = letter.trim().length > 0;
+                    return (
+                      <div
+                        key={`attempt-${attempts.length - 1 - index}-tile-${letterIndex}`}
+                        className={`flex min-h-[2.25rem] flex-1 items-center justify-center text-sm font-semibold uppercase sm:min-h-[2.5rem] sm:text-base ${getLetterClass(
+                          status,
+                          filled,
+                        )}`}
+                      >
+                        {letter.trim()}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
