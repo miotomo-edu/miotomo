@@ -101,10 +101,10 @@ const VisualSpellingGame: React.FC = () => {
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
   const attemptQuote = (() => {
-    if (isCorrectSolved) return "“You did it! Great listening.”";
-    if (attempts.length === 0) return "“First try—listen closely!”";
-    if (attempts.length === 1) return "“Nice effort—second try!”";
-    return "“Last chance—give it your best!”";
+    if (isCorrectSolved) return "You did it! Great listening.";
+    if (attempts.length === 0) return "First try—listen closely!";
+    if (attempts.length === 1) return "Nice effort—second try!";
+    return "Last chance—give it your best!";
   })();
 
   useEffect(() => {
@@ -560,6 +560,31 @@ const VisualSpellingGame: React.FC = () => {
         </p>
       )}
 
+      <div className="w-full max-w-md">
+        <div className="flex items-center gap-3">
+          <img
+            src={tomoSpellingIcon}
+            alt=""
+            className="h-16 w-auto"
+          />
+          <div className="relative flex-1">
+            <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#4a4345]" />
+            <p
+              className="flex w-full items-center rounded-2xl bg-[#4a4345] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:text-lg"
+              style={{
+                minHeight: "2.75rem",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {attemptQuote}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="tap-safe mt-auto w-full max-w-md space-y-2 min-h-0 pb-[env(safe-area-inset-bottom)] overflow-visible">
         <div
           className="relative space-y-2 overflow-visible"
@@ -570,19 +595,6 @@ const VisualSpellingGame: React.FC = () => {
             } as React.CSSProperties
           }
         >
-          <div className="pointer-events-none absolute top-0 left-0 flex items-center gap-3 -translate-y-full">
-            <img
-              src={tomoSpellingIcon}
-              alt=""
-              className="h-16 w-auto"
-            />
-            <div className="relative">
-              <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#4a4345]" />
-              <p className="max-w-[12rem] rounded-2xl bg-[#4a4345] px-3 py-2 text-sm font-semibold tracking-[0.1em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:max-w-[14rem] sm:text-base">
-                {attemptQuote}
-              </p>
-            </div>
-          </div>
           {[
             ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
             ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
