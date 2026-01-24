@@ -407,7 +407,13 @@ const App = ({ transportType, region = "" }) => {
       className={`app-mobile-shell ${characterBgClass}`}
       style={appShellStyle}
     >
-      <Layout mainRef={mainRef} disableScroll={isInteractiveView}>
+      <Layout
+        mainRef={mainRef}
+        disableScroll={isInteractiveView}
+        withBottomNav={
+          activeComponent !== "landing" && activeComponent !== "onboarding"
+        }
+      >
         {activeComponent === "landing" ? (
           renderComponent()
         ) : (

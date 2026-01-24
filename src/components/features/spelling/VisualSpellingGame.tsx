@@ -85,8 +85,7 @@ const VisualSpellingGame: React.FC = () => {
   const [hasPlayedCurrent, setHasPlayedCurrent] = useState(false);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
-  const isFailedRound =
-    attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
+  const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
 
   useEffect(() => {
     let isActive = true;
@@ -347,31 +346,36 @@ const VisualSpellingGame: React.FC = () => {
 
   return (
     <div className="safe-area-top relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-black px-4 py-4 text-white sm:gap-4 sm:px-6 sm:py-6">
-      <div className="relative w-full max-w-md px-4">
-        <div className="absolute left-4 right-4 top-1/2 h-[3px] -translate-y-1/2 bg-gray-300" />
-        <div className="relative flex w-full items-center justify-between gap-2 py-2">
-          {words.map((_, index) => {
-            const isActive = index === currentWordIndex;
-            const result = wordResults[index];
-            const dotColor =
-              result === "correct"
-                ? "bg-green-500"
-                : result === "wrong"
-                  ? "bg-yellow-400"
-                  : "bg-gray-300";
-            return (
-              <div
-                key={`word-step-${index}`}
-                className="relative flex flex-shrink-0 items-center justify-center"
-              >
-                <span
-                  className={`rounded-full ${dotColor} ${
-                    isActive ? "h-3 w-3" : "h-2 w-2"
-                  }`}
-                />
-              </div>
-            );
-          })}
+      <div className="relative flex w-full max-w-md items-center gap-3">
+        <span className="text-[0.6rem] font-semibold tracking-[0.3em] text-gray-300">
+          WORDS
+        </span>
+        <div className="relative flex-1">
+          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-gray-300" />
+          <div className="relative flex w-full items-center justify-between gap-2 py-2">
+            {words.map((_, index) => {
+              const isActive = index === currentWordIndex;
+              const result = wordResults[index];
+              const dotColor =
+                result === "correct"
+                  ? "bg-green-500"
+                  : result === "wrong"
+                    ? "bg-yellow-400"
+                    : "bg-gray-300";
+              return (
+                <div
+                  key={`word-step-${index}`}
+                  className="relative flex flex-shrink-0 items-center justify-center"
+                >
+                  <span
+                    className={`rounded-full ${dotColor} ${
+                      isActive ? "h-3 w-3" : "h-2 w-2"
+                    }`}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -416,7 +420,7 @@ const VisualSpellingGame: React.FC = () => {
         </button>
       </div>
 
-      <div className="w-full max-w-md flex-1 space-y-3 min-h-0">
+      <div className="w-full max-w-md flex-1 space-y-3 min-h-0 overflow-y-auto">
         {gridRows.map((row, rowIndex) => (
           <div key={`row-${rowIndex}`} className="flex gap-2">
             {row.guess.split("").map((letter, index) => {
