@@ -79,6 +79,7 @@ const VisualSpellingGame: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
   const playbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hasPlayedCurrent, setHasPlayedCurrent] = useState(false);
 
   const isRoundComplete =
     isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
@@ -114,10 +115,8 @@ const VisualSpellingGame: React.FC = () => {
       setAudioUrl(audio);
       setCurrentWordIndex(0);
       setTargetWord(wordList[0]?.toUpperCase() ?? "");
+      setHasPlayedCurrent(false);
       setIsLoading(false);
-      if (audio && wordList.length) {
-        playWordAtIndex(0);
-      }
     };
 
     fetchSpellingData();
@@ -177,6 +176,7 @@ const VisualSpellingGame: React.FC = () => {
       audioRef.current.pause();
       audioRef.current.currentTime = seekTime;
       audioRef.current.play();
+      setHasPlayedCurrent(true);
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
       }
@@ -284,9 +284,7 @@ const VisualSpellingGame: React.FC = () => {
     setAttempts([]);
     setMessage("");
     setIsCorrectSolved(false);
-    if (audioUrl) {
-      playWordAtIndex(nextIndex);
-    }
+    setHasPlayedCurrent(false);
   };
 
   const canSubmit = currentGuess.length === targetWord.length;
@@ -338,12 +336,37 @@ const VisualSpellingGame: React.FC = () => {
         <button
           type="button"
           onClick={() => playWordAtIndex(currentWordIndex)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-white sm:h-10 sm:w-10"
-          aria-label="Play word"
+          className={`flex h-9 w-9 items-center justify-center rounded-full border text-white sm:h-10 sm:w-10 ${
+            hasPlayedCurrent
+              ? "border-white/40"
+              : "border-white/80 animate-pulse"
+          }`}
+          aria-label={hasPlayedCurrent ? "Replay word" : "Play word"}
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" aria-hidden="true">
-            <path d="M8 5.5L18.5 12L8 18.5V5.5Z" />
-          </svg>
+          {hasPlayedCurrent ? (
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4 sm:h-5 sm:w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 12A9 9 0 1 0 6 5.5" />
+              <path d="M3 4V9H8" />
+            </svg>
+          ) : (
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4 sm:h-5 sm:w-5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M8 5.5L18.5 12L8 18.5V5.5Z" />
+            </svg>
+          )}
         </button>
       </div>
 
