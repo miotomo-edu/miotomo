@@ -413,16 +413,12 @@ const App = ({ transportType, region = "" }) => {
         withBottomNav={
           activeComponent !== "landing" && activeComponent !== "onboarding"
         }
+        fullHeight={activeComponent === "rewards"}
       >
         {activeComponent === "landing" ? (
           renderComponent()
         ) : (
-          <div
-            style={{
-              flexGrow: 1,
-              overflowY: isInteractiveView ? "hidden" : "auto",
-            }}
-          >
+          <div className="flex-1 min-h-0">
             {renderComponent()}
           </div>
         )}

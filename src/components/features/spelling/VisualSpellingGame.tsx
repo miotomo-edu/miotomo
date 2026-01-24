@@ -558,13 +558,13 @@ const VisualSpellingGame: React.FC = () => {
                   <button
                     key={key}
                     type="button"
-                    onPointerDown={() => pressKey("DEL")}
+                    onPointerDown={(event) => {
+                      event.preventDefault();
+                      pressKey("DEL");
+                      handleDelete();
+                    }}
                     onPointerUp={releaseKey}
                     onPointerLeave={releaseKey}
-                    onClick={() => {
-                      handleDelete();
-                      releaseKey();
-                    }}
                     className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border border-white/20 text-white transition ${
                       isPressed ? "bg-white/20" : "bg-white/5"
                     }`}
@@ -598,13 +598,13 @@ const VisualSpellingGame: React.FC = () => {
                 <button
                   key={key}
                   type="button"
-                  onPointerDown={() => pressKey(key)}
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    pressKey(key);
+                    handleLetter(key);
+                  }}
                   onPointerUp={releaseKey}
                   onPointerLeave={releaseKey}
-                  onClick={() => {
-                    handleLetter(key);
-                    releaseKey();
-                  }}
                   className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border text-[0.7rem] font-semibold transition sm:text-sm ${
                     isPressed ? "bg-white/20" : statusClass
                   }`}
@@ -630,14 +630,14 @@ const VisualSpellingGame: React.FC = () => {
             return (
               <button
                 type="button"
-                onPointerDown={() => pressKey("SUBMIT")}
-                onPointerUp={releaseKey}
-                onPointerLeave={releaseKey}
-                onClick={() => {
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  pressKey("SUBMIT");
                   if (!isRoundComplete && !canSubmit) return;
                   submitHandler();
-                  releaseKey();
                 }}
+                onPointerUp={releaseKey}
+                onPointerLeave={releaseKey}
                 className={`min-h-[3.25rem] min-w-[8rem] select-none rounded-full px-6 text-sm font-semibold uppercase tracking-wide transition sm:min-h-[3.5rem] sm:min-w-[10rem] ${
                   isRoundComplete
                     ? "bg-white text-black"
