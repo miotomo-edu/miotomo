@@ -100,6 +100,12 @@ const VisualSpellingGame: React.FC = () => {
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
+  const attemptQuote = (() => {
+    if (isCorrectSolved) return "“You did it! Great listening.”";
+    if (attempts.length === 0) return "“First try—listen closely!”";
+    if (attempts.length === 1) return "“Nice effort—second try!”";
+    return "“Last chance—give it your best!”";
+  })();
 
   useEffect(() => {
     let isActive = true;
@@ -518,7 +524,7 @@ const VisualSpellingGame: React.FC = () => {
         </button>
       </div>
 
-      <div className="relative w-full max-w-md flex-1 min-h-0">
+      <div className="relative w-full max-w-md flex-1 min-h-0 max-h-[6.5rem] sm:max-h-[7.5rem]">
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full gap-2">
             {currentRow.guess.split("").map((letter, index) => {
@@ -564,11 +570,19 @@ const VisualSpellingGame: React.FC = () => {
             } as React.CSSProperties
           }
         >
-          <img
-            src={tomoSpellingIcon}
-            alt=""
-            className="pointer-events-none absolute top-0 left-0 h-16 w-auto -translate-y-full"
-          />
+          <div className="pointer-events-none absolute top-0 left-0 flex items-center gap-3 -translate-y-full">
+            <img
+              src={tomoSpellingIcon}
+              alt=""
+              className="h-16 w-auto"
+            />
+            <div className="relative">
+              <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#4a4345]" />
+              <p className="max-w-[12rem] rounded-2xl bg-[#4a4345] px-3 py-2 text-sm font-semibold tracking-[0.1em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:max-w-[14rem] sm:text-base">
+                {attemptQuote}
+              </p>
+            </div>
+          </div>
           {[
             ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
             ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
