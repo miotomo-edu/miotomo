@@ -234,23 +234,13 @@ const VisualSpellingGame: React.FC = () => {
     playWordAtIndex(index);
   }, [audioReady]);
 
-  const gridRows = useMemo(() => {
-    const rows: Attempt[] = [...attempts];
+  const currentRow = useMemo(() => {
     const wordLength = targetWord.length;
-    if (attempts.length < MAX_ATTEMPTS) {
-      rows.push({
-        guess: currentGuess.padEnd(wordLength, " "),
-        statuses: Array.from({ length: wordLength }, () => "empty"),
-      });
-    }
-    while (rows.length < MAX_ATTEMPTS) {
-      rows.push({
-        guess: " ".repeat(wordLength),
-        statuses: Array.from({ length: wordLength }, () => "empty"),
-      });
-    }
-    return rows;
-  }, [attempts, currentGuess, targetWord]);
+    return {
+      guess: currentGuess.padEnd(wordLength, " "),
+      statuses: Array.from({ length: wordLength }, () => "empty"),
+    };
+  }, [currentGuess, targetWord]);
 
   const letterStatuses = useMemo(() => {
     const statusMap: Record<string, LetterStatus> = {};
@@ -529,30 +519,24 @@ const VisualSpellingGame: React.FC = () => {
       </div>
 
       <div className="relative w-full max-w-md flex-1 min-h-0">
-        <div className="relative z-10 flex h-full flex-col justify-center space-y-3">
-          {gridRows.map((row, rowIndex) => (
-            <div key={`row-${rowIndex}`} className="flex gap-2">
-              {row.guess.split("").map((letter, index) => {
-                const status = row.statuses[index];
-                const filled = letter.trim().length > 0;
-                const isActiveRow =
-                  rowIndex === attempts.length && !isRoundComplete;
-                const isActiveSlot =
-                  isActiveRow && currentGuess.length === index;
-                return (
-                  <div
-                    key={`tile-${rowIndex}-${index}`}
-                    className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-2 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg ${getUnderlineClass(
-                      status,
-                      filled,
-                    )} ${isActiveRow ? "!border-[#efe6d6] !text-[#efe6d6]" : ""}`}
-                  >
-                    {letter.trim()}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+        <div className="relative z-10 flex h-full items-center">
+          <div className="flex w-full gap-2">
+            {currentRow.guess.split("").map((letter, index) => {
+              const filled = letter.trim().length > 0;
+              const isActiveSlot = currentGuess.length === index;
+              return (
+                <div
+                  key={`tile-${index}`}
+                  className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-2 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg ${getUnderlineClass(
+                    "empty",
+                    filled,
+                  )} ${isActiveSlot ? "!border-[#efe6d6] !text-[#efe6d6]" : ""}`}
+                >
+                  {letter.trim()}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -583,7 +567,7 @@ const VisualSpellingGame: React.FC = () => {
           <img
             src={tomoSpellingIcon}
             alt=""
-            className="pointer-events-none absolute bottom-[-10px] left-0 h-16 w-auto translate-y-full"
+            className="pointer-events-none absolute top-0 left-0 h-16 w-auto -translate-y-full"
           />
           {[
             ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
