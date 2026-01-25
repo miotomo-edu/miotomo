@@ -174,7 +174,7 @@ function LandingPage({ onContinue }) {
   useEffect(() => {
     const updateLandscape = () => {
       if (typeof window === "undefined") return;
-      const isWide = window.innerWidth >= 1366;
+      const isWide = window.innerWidth >= 1024;
       const isLandscape =
         window.matchMedia &&
         window.matchMedia("(orientation: landscape)").matches;
@@ -258,11 +258,11 @@ function LandingPage({ onContinue }) {
       {/* Fixed bottom content */}
       <div
         key={`content-${transitionKey}`}
-        className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px]"
+        className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px] md:items-center md:text-center"
       >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
         <p
-          className="text-2xl font-bold text-white/80 max-w-sm mb-8"
+          className="text-2xl font-bold text-white/80 max-w-sm mb-8 md:max-w-xl"
           style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}
         >
           {text}
@@ -270,7 +270,7 @@ function LandingPage({ onContinue }) {
 
         <button
           onClick={handleNext}
-          className="bg-white text-black font-medium text-lg py-4 rounded-full w-full max-w-md mb-[40px]"
+          className="bg-white text-black font-medium text-lg py-4 rounded-full w-full max-w-md mb-[40px] md:max-w-lg md:mx-auto"
         >
           {currentStep === steps.length - 1 ? "Let's Go!" : "Next"}
         </button>
