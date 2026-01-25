@@ -318,6 +318,7 @@ const App = ({ transportType, region = "" }) => {
           <CirclePage
             book={selectedBook}
             studentId={studentId}
+            userName={userName}
             scrollContainerRef={mainRef}
             onBack={() =>
               setActiveComponent(circleReturnComponent || "library")
@@ -414,7 +415,7 @@ const App = ({ transportType, region = "" }) => {
             : activeComponent === "progress"
               ? "bg-[#EAB7AF]"
               : activeComponent === "library" || activeComponent === "home"
-                ? "bg-[radial-gradient(circle_at_top,_#fde7dd,_#ffffff)]"
+                ? "bg-library"
                 : "";
         return (
       <Layout

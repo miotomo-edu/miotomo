@@ -5,10 +5,12 @@ import { useBooks } from "../../hooks/useBooks";
 import { useCircleCover } from "../../hooks/useCircleCover";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import CircleCard from "../features/browse/CircleCard";
+import WelcomeSection from "./WelcomeSection";
 
 type CirclePageProps = {
   book: Book;
   studentId: string;
+  userName: string;
   scrollContainerRef?: React.RefObject<HTMLElement>;
   onBack: () => void;
   onPlayEpisode: (book: Book, episode: number) => void;
@@ -40,6 +42,7 @@ const toTagList = (value: string[] | string | null | undefined) => {
 const CirclePage: React.FC<CirclePageProps> = ({
   book,
   studentId,
+  userName,
   scrollContainerRef,
   onBack,
   onPlayEpisode,
@@ -74,6 +77,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const { updateBookProgress, isUpdating } = useBooks(studentId);
   const coverUrl = useCircleCover(book.thumbnailUrl);
   const { data: browseData } = useBrowseCircles(studentId);
+  const progressDot = Math.max(book?.progress ?? 1, 1);
 
   useEffect(() => {
     const target =
@@ -313,6 +317,15 @@ const CirclePage: React.FC<CirclePageProps> = ({
       };
     });
   }, [episodeCount, titlesByEpisode]);
+
+  const completedDots = useMemo(
+    () =>
+      episodes.filter(
+        (episode) =>
+          dotStatusByEpisode[episode.episode]?.talking_status === "completed",
+      ),
+    [episodes, dotStatusByEpisode],
+  );
 
   const handlePlay = (episode: number) => {
     if (studentId && book?.id) {
@@ -575,6 +588,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
+      <div className="w-full bg-white">
+        <WelcomeSection userName={userName} />
+      </div>
       <header
         className="sticky top-0 w-full overflow-hidden"
         style={{ height: "80vh" }}
@@ -591,7 +607,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div className="relative z-20 flex h-full flex-col px-6 py-6">
           <div className="flex items-start">
             <button
@@ -618,9 +634,30 @@ const CirclePage: React.FC<CirclePageProps> = ({
               </svg>
             </button>
           </div>
-          <div className="mt-auto flex w-full justify-center pb-16">
+          <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
+            {episodeCount > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {episodes.map((episode) => {
+                  const isFilled = completedDots.some(
+                    (item) => item.episode === episode.episode,
+                  );
+                  const isPaused =
+                    progressDot === episode.episode && !isFilled;
+                  return (
+                    <span
+                      key={`circle-header-dot-${episode.episode}`}
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        isPaused
+                          ? "border-2 border-white"
+                          : "border border-white/70"
+                      } ${isFilled ? "bg-white" : "bg-transparent"}`}
+                    />
+                  );
+                })}
+              </div>
+            )}
             <h1
-              className="text-center text-5xl font-bold text-white"
+              className="text-left text-6xl font-bold md:text-7xl"
               style={{ textShadow: "0 6px 14px rgba(0,0,0,1)" }}
             >
               {book.title}
@@ -631,23 +668,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
 
       <section className="relative z-10 -mt-16 bg-white px-6 pb-24 pt-8">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-black">
-            This circle has {episodeCount} dots
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 20 20"
-              className="h-4 w-4"
-              fill="none"
-            >
-              <path
-                d="M5 8l5 5 5-5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </h2>
+          <span className="text-sm font-medium text-gray-600">
+            {episodeCount ? `${episodeCount} dots` : "No dots available yet."}
+          </span>
           {isLoading && (
             <span className="text-sm text-gray-500">Loading...</span>
           )}
@@ -678,14 +701,14 @@ const CirclePage: React.FC<CirclePageProps> = ({
             );
             return (
               <React.Fragment key={episode.episode}>
-                <div className="flex w-full min-h-[88px] items-start justify-between px-1 py-0">
+                <div className="flex w-full min-h-[88px] items-start justify-between px-1 py-0 md:min-h-[120px]">
                   <div className="flex items-start gap-4">
-                    <div className="relative flex w-8 shrink-0 flex-col items-center self-stretch">
+                    <div className="relative flex w-8 shrink-0 flex-col items-center self-stretch md:w-12">
                       <span
                         className={`flex-1 w-[2px] ${complexityStyle.line} ${index === 0 ? "opacity-0" : "opacity-100"}`}
                       />
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${complexityStyle.border} bg-white text-sm font-semibold text-black aspect-square`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${complexityStyle.border} bg-white text-sm font-semibold text-black aspect-square md:h-12 md:w-12 md:text-lg`}
                       >
                         {episode.episode}
                       </div>
@@ -693,19 +716,21 @@ const CirclePage: React.FC<CirclePageProps> = ({
                         className={`flex-1 w-[2px] ${complexityStyle.line} ${index === episodes.length - 1 ? "opacity-0" : "opacity-100"}`}
                       />
                     </div>
-                    <div className="py-4">
-                      <div className="text-base font-semibold text-black">
+                    <div className="py-4 md:py-6">
+                      <div className="text-base font-semibold text-black md:text-2xl">
                         {title}
                       </div>
                       {typeName && (
-                        <div className="text-sm text-gray-500">{typeName}</div>
+                        <div className="text-sm text-gray-500 md:text-lg">
+                          {typeName}
+                        </div>
                       )}
                       {Number.isFinite(durationValue) && durationValue > 0 && (
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 md:text-lg">
                           {formatDuration(durationValue)}
                         </div>
                       )}
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 md:text-lg">
                         {formatStatus(episode.episode)}
                       </div>
                       <div className="mt-3">
@@ -713,12 +738,12 @@ const CirclePage: React.FC<CirclePageProps> = ({
                           type="button"
                           onClick={() => handlePlay(episode.episode)}
                           disabled={isUpdating}
-                          className="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800 hover:bg-gray-300 disabled:cursor-not-allowed"
+                          className="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800 hover:bg-gray-300 disabled:cursor-not-allowed md:px-5 md:py-2 md:text-lg"
                         >
                           <svg
                             aria-hidden="true"
                             viewBox="0 0 16 16"
-                            className="h-4 w-4"
+                            className="h-4 w-4 md:h-5 md:w-5"
                             fill="currentColor"
                           >
                             <path d="M4 2.5v11l9-5.5-9-5.5z" />

@@ -29,7 +29,9 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
 }) => (
   <section className="space-y-3">
     <div className="flex items-end justify-between">
-      <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+      <h2 className="text-lg font-bold text-gray-900 md:text-3xl">
+        {title}
+      </h2>
     </div>
     {items.length > 0 ? (
       <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -49,7 +51,7 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
         ))}
       </div>
     ) : (
-      <div className="rounded-2xl border border-dashed border-black/10 bg-white/60 px-4 py-6 text-sm font-medium text-gray-500">
+      <div className="rounded-2xl border border-dashed border-black/10 bg-white/60 px-4 py-6 text-sm font-medium text-gray-500 md:text-lg">
         {emptyMessage || "No circles yet."}
       </div>
     )}

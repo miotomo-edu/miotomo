@@ -65,6 +65,10 @@ body {
   overscroll-behavior: contain;
 }
 
+.bg-library {
+  background: #fde7dd;
+}
+
 @keyframes fadeInSoft {
   from {
     opacity: 0;
@@ -279,7 +283,7 @@ h2 {
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1367px) {
   body {
     background: #836e6e;
   }

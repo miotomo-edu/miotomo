@@ -5,35 +5,45 @@ import placeholder2 from "../../assets/img/onboarding/step2.png";
 import placeholder3 from "../../assets/img/onboarding/step3.png";
 import placeholder4 from "../../assets/img/onboarding/step4.png";
 import placeholder5 from "../../assets/img/onboarding/step5.png";
+import placeholder1Landscape from "../../assets/img/onboarding/landscape/step1.png";
+import placeholder2Landscape from "../../assets/img/onboarding/landscape/step2.png";
+import placeholder3Landscape from "../../assets/img/onboarding/landscape/step3.png";
+import placeholder4Landscape from "../../assets/img/onboarding/landscape/step4.png";
+import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.png";
 
 const steps = [
   {
     id: 1,
     image: placeholder1,
+    landscapeImage: placeholder1Landscape,
     title: "Welcome to Miotomo",
     text: "Tomo leaves Motara to discover the universe.",
   },
   {
     id: 2,
     image: placeholder2,
+    landscapeImage: placeholder2Landscape,
     title: "Talk about your books",
     text: "After a long journey, Tomo crashes on Earth. ",
   },
   {
     id: 3,
     image: placeholder3,
+    landscapeImage: placeholder3Landscape,
     title: "Chat about the book with Miotomo",
     text: "Tomo wants to explore planet Earth to discover how everything works.",
   },
   {
     id: 4,
     image: placeholder4,
+    landscapeImage: placeholder4Landscape,
     title: "See your progress",
     text: "You listen, talk, debate and learn with experts.",
   },
   {
     id: 5,
     image: placeholder5,
+    landscapeImage: placeholder5Landscape,
     title: "See your progress",
     text: "Teach Tomo everything you learn and help Tomo grow",
   },
@@ -45,6 +55,7 @@ function LandingPage({ onContinue }) {
   const [transitionPhase, setTransitionPhase] = useState("idle");
   const [transitionDirection, setTransitionDirection] = useState("left");
   const [transitionKey, setTransitionKey] = useState(0);
+  const [useLandscapeImage, setUseLandscapeImage] = useState(false);
   const touchStartRef = useRef({ x: 0, y: 0 });
   const [imageHeight, setImageHeight] = useState(null);
   const containerRef = useRef(null);
@@ -113,7 +124,12 @@ function LandingPage({ onContinue }) {
     }
   };
 
-  const { image, title, text } = steps[currentStep];
+  const selectStepImage = (step) => {
+    if (useLandscapeImage && step.landscapeImage) return step.landscapeImage;
+    return step.image;
+  };
+  const { title, text } = steps[currentStep];
+  const image = selectStepImage(steps[currentStep]);
   const gradientRatio =
     typeof window !== "undefined" && window.innerHeight <= 700 ? 0.4 : 0.2;
   const gradientHeight = imageHeight
@@ -156,11 +172,34 @@ function LandingPage({ onContinue }) {
   }, [image]);
 
   useEffect(() => {
+    const updateLandscape = () => {
+      if (typeof window === "undefined") return;
+      const isWide = window.innerWidth >= 1366;
+      const isLandscape =
+        window.matchMedia &&
+        window.matchMedia("(orientation: landscape)").matches;
+      setUseLandscapeImage(isWide && isLandscape);
+    };
+
+    updateLandscape();
+    window.addEventListener("resize", updateLandscape);
+    window.addEventListener("orientationchange", updateLandscape);
+    return () => {
+      window.removeEventListener("resize", updateLandscape);
+      window.removeEventListener("orientationchange", updateLandscape);
+    };
+  }, []);
+
+  useEffect(() => {
     if (preloadRef.current) return;
     preloadRef.current = true;
     steps.forEach((step) => {
       const img = new Image();
       img.src = step.image;
+      if (step.landscapeImage) {
+        const landscape = new Image();
+        landscape.src = step.landscapeImage;
+      }
     });
   }, []);
 
@@ -176,7 +215,7 @@ function LandingPage({ onContinue }) {
           key={`prev-${transitionKey}`}
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(${steps[prevStep].image})`,
+            backgroundImage: `url(${selectStepImage(steps[prevStep])})`,
             backgroundRepeat: "no-repeat",
             backgroundSize: "100% auto",
             backgroundPosition: "top center",

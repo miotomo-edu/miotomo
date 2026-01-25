@@ -1,9 +1,7 @@
 import React, { useMemo } from "react";
 import WelcomeSection from "./WelcomeSection";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
-import BrowseRow, {
-  type BrowseRowItem,
-} from "../features/browse/BrowseRow";
+import BrowseRow, { type BrowseRowItem } from "../features/browse/BrowseRow";
 import FeaturedHero from "../features/browse/FeaturedHero";
 import type { Book } from "./LibrarySection";
 
@@ -65,7 +63,10 @@ const toTagList = (value: string[] | string | null | undefined) => {
     .filter(Boolean);
 };
 
-const formatMetaStatus = (listening?: string | null, talking?: string | null) => {
+const formatMetaStatus = (
+  listening?: string | null,
+  talking?: string | null,
+) => {
   if (talking && talking !== "not_started") {
     return `Talking ${talking.replace("_", " ")}`;
   }
@@ -114,10 +115,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         domainTags: toTagList(catalog.domain_tags),
         lengthCategory: catalog.length_category ?? null,
         isNew: Boolean(catalog.is_new),
-        featured: Boolean(catalog.featured) && isWithinWindow(
-          catalog.featured_start,
-          catalog.featured_end,
-        ),
+        featured:
+          Boolean(catalog.featured) &&
+          isWithinWindow(catalog.featured_start, catalog.featured_end),
         featuredRank: catalog.featured_rank ?? Number.POSITIVE_INFINITY,
         publishedAt: catalog.published_at ?? null,
         popularityScore: catalog.popularity_score ?? 0,
@@ -197,11 +197,13 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
       const listening = row.listening_status ?? "not_started";
       const talking = row.talking_status ?? "not_started";
       if (talking === "completed") return false;
-      return ["paused", "in_progress"].includes(listening) ||
-        ["paused", "in_progress"].includes(talking);
+      return (
+        ["paused", "in_progress"].includes(listening) ||
+        ["paused", "in_progress"].includes(talking)
+      );
     });
 
-    const byBook = new Map<string, typeof activeRows[0]>();
+    const byBook = new Map<string, (typeof activeRows)[0]>();
     activeRows.forEach((row) => {
       if (!row.book_id) return;
       const existing = byBook.get(row.book_id);
@@ -218,7 +220,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
 
     return Array.from(byBook.entries())
       .map(([bookId, row]) => {
-        const match = enrichedCircles.find((entry) => entry.circle.id === bookId);
+        const match = enrichedCircles.find(
+          (entry) => entry.circle.id === bookId,
+        );
         if (!match) return null;
         const episode = Number(row.episode ?? 1);
         const completedDots = completedEpisodeByBook.get(bookId) ?? 0;
@@ -277,9 +281,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         kicker: isContinue ? "CONTINUE THIS CIRCLE" : "FEATURED CIRCLE",
         totalDots: circle.chapters ?? 0,
         completedDots: isContinue
-          ? completedEpisodeByBook.get(circle.id) ?? 0
+          ? (completedEpisodeByBook.get(circle.id) ?? 0)
           : 0,
-        currentDot: isContinue ? circle.progress ?? 1 : undefined,
+        currentDot: isContinue ? (circle.progress ?? 1) : undefined,
       });
       seen.add(circle.id);
     });
@@ -298,7 +302,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
       (row) => row.talking_status === "completed",
     );
 
-    const byBook = new Map<string, typeof completedRows[0]>();
+    const byBook = new Map<string, (typeof completedRows)[0]>();
     completedRows.forEach((row) => {
       if (!row.book_id) return;
       const existing = byBook.get(row.book_id);
@@ -315,7 +319,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
 
     return Array.from(byBook.entries())
       .map(([bookId, row]) => {
-        const match = enrichedCircles.find((entry) => entry.circle.id === bookId);
+        const match = enrichedCircles.find(
+          (entry) => entry.circle.id === bookId,
+        );
         if (!match) return null;
         const episode = Number(row.episode ?? 1);
         const item: BrowseRowItem = {
@@ -420,17 +426,17 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fde7dd,_#ffffff)]">
+    <div className="min-h-screen bg-[#fde7dd]">
       <div className="space-y-10 px-5 pb-24 pt-0">
         <div className="space-y-0">
           <WelcomeSection userName={userName} />
           <FeaturedHero
             items={heroItems}
-          kicker="FEATURED CIRCLE"
-          onSelect={(book) =>
-            onOpenCircle(book, Math.max(book.progress || 1, 1))
-          }
-        />
+            kicker="FEATURED CIRCLE"
+            onSelect={(book) =>
+              onOpenCircle(book, Math.max(book.progress || 1, 1))
+            }
+          />
         </div>
 
         <BrowseRow

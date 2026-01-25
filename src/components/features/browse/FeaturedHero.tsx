@@ -60,18 +60,18 @@ const FeaturedHeroSlide: React.FC<{
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
       {item.badge ? (
-        <span className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+        <span className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white md:px-4 md:py-2 md:text-sm">
           {item.badge}
         </span>
       ) : null}
       <div className="absolute bottom-6 left-6 right-6 text-white">
         {effectiveKicker ? (
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 md:text-sm">
             {effectiveKicker}
           </div>
         ) : null}
         {hasDots ? (
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="mt-2 flex flex-wrap gap-1 md:gap-1.5">
             {Array.from({ length: item.totalDots ?? 0 }).map((_, index) => {
               const isFilled = index < completedDots;
               const isCurrent =
@@ -79,7 +79,7 @@ const FeaturedHeroSlide: React.FC<{
               return (
                 <span
                   key={`${item.book.id}-hero-dot-${index}`}
-                  className={`h-2.5 w-2.5 rounded-full ${
+                  className={`h-2.5 w-2.5 rounded-full md:h-4 md:w-4 ${
                     isCurrent ? "border-2" : "border"
                   } ${isFilled ? "bg-white" : "bg-transparent"} border-white/70`}
                 />
@@ -87,7 +87,7 @@ const FeaturedHeroSlide: React.FC<{
             })}
           </div>
         ) : null}
-        <div className="mt-2 text-3xl font-bold leading-tight">
+        <div className="mt-2 text-3xl font-bold leading-tight md:text-5xl">
           {item.book.title}
         </div>
       </div>
@@ -141,11 +141,11 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             type="button"
             onClick={goPrev}
             aria-label="Previous featured circle"
-            className="absolute -left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-black transition hover:text-black"
+            className="absolute -left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-black transition hover:text-black md:-left-6 md:h-24 md:w-24"
           >
             <span
               aria-hidden="true"
-              className="text-7xl leading-none text-white drop-shadow-[0_0_8px_rgba(0,0,0,1)]"
+              className="text-7xl leading-none text-white drop-shadow-[0_0_8px_rgba(0,0,0,1)] md:text-[10rem]"
             >
               ‹
             </span>
@@ -154,11 +154,11 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             type="button"
             onClick={goNext}
             aria-label="Next featured circle"
-            className="absolute -right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-black transition hover:text-black"
+            className="absolute -right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-black transition hover:text-black md:-right-6 md:h-24 md:w-24"
           >
             <span
               aria-hidden="true"
-              className="text-7xl leading-none text-white drop-shadow-[0_0_8px_rgba(0,0,0,1)]"
+              className="text-7xl leading-none text-white drop-shadow-[0_0_8px_rgba(0,0,0,1)] md:text-[10rem]"
             >
               ›
             </span>
