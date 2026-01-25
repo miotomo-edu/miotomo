@@ -279,7 +279,7 @@ h2 {
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1280px) {
   body {
     background: #836e6e;
   }

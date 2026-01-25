@@ -422,9 +422,7 @@ const VisualSpellingGame: React.FC = () => {
   const keyRotations = useMemo(() => {
     const entries: Record<string, number> = {};
     const allKeys = [
-      ...Array.from({ length: 26 }, (_, idx) =>
-        String.fromCharCode(65 + idx),
-      ),
+      ...Array.from({ length: 26 }, (_, idx) => String.fromCharCode(65 + idx)),
       "DEL",
     ];
     allKeys.forEach((key) => {
@@ -476,13 +474,13 @@ const VisualSpellingGame: React.FC = () => {
 
   return (
     <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#2F2C2F] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
-      <div className="relative flex w-full max-w-md items-center gap-3">
-        <span className="text-[0.6rem] font-semibold tracking-[0.3em] text-[#d8cdbd]">
+      <div className="relative flex w-full max-w-3xl items-center gap-3">
+        <span className="text-[0.6rem] font-semibold tracking-[0.3em] text-[#d8cdbd] sm:text-xs md:text-2xl">
           WORDS
         </span>
         <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#6f6a63]" />
-          <div className="relative flex w-full items-center justify-between gap-2 py-2">
+          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#6f6a63] md:h-1.5" />
+          <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {words.map((_, index) => {
               const isActive = index === currentWordIndex;
               const result = wordResults[index];
@@ -498,13 +496,11 @@ const VisualSpellingGame: React.FC = () => {
                   className="relative flex flex-shrink-0 items-center justify-center"
                 >
                   {isActive ? (
-                    <img
-                      src={tomoIcon}
-                      alt=""
-                      className="h-6 w-auto"
-                    />
+                    <img src={tomoIcon} alt="" className="h-6 w-auto md:h-10" />
                   ) : (
-                    <span className={`h-2 w-2 rounded-full ${dotColor}`} />
+                    <span
+                      className={`h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
+                    />
                   )}
                 </div>
               );
@@ -513,11 +509,11 @@ const VisualSpellingGame: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex w-full max-w-md flex-col items-center gap-5 sm:gap-6">
+      <div className="flex w-full max-w-3xl flex-col items-center gap-5 sm:gap-6">
         <button
           type="button"
           onClick={handlePlayClick}
-          className={`flex min-h-[3.25rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-[#DACDB9] px-6 text-sm font-bold uppercase tracking-wide shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:min-h-[3.5rem] sm:min-w-[12rem] ${
+          className={`flex min-h-[3.25rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-[#DACDB9] px-6 text-sm font-bold uppercase tracking-wide shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:min-h-[3.5rem] sm:min-w-[12rem] md:text-2xl ${
             playLocked ? "opacity-70" : ""
           } ${
             hasPlayedCurrent
@@ -531,7 +527,7 @@ const VisualSpellingGame: React.FC = () => {
             <svg
               key={`replay-${spinKey}`}
               viewBox="0 0 24 24"
-              className={`h-7 w-7 sm:h-8 sm:w-8 ${
+              className={`h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 ${
                 isPlaying ? "slow-spin" : ""
               }`}
               style={
@@ -553,7 +549,7 @@ const VisualSpellingGame: React.FC = () => {
             <svg
               key={`play-${spinKey}`}
               viewBox="0 0 24 24"
-              className={`h-7 w-7 sm:h-8 sm:w-8 ${
+              className={`h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 ${
                 isPlaying ? "slow-spin" : ""
               }`}
               style={
@@ -571,17 +567,17 @@ const VisualSpellingGame: React.FC = () => {
         </button>
       </div>
 
-      <div className="relative w-full max-w-md flex-1 min-h-0">
+      <div className="relative w-full max-w-3xl flex-1 min-h-0">
         <div className="relative z-10 flex h-full items-center">
-          <div className="flex w-full flex-col gap-3">
-            <div className="flex w-full gap-2">
+          <div className="flex w-full flex-col">
+            <div className="mb-6 flex w-full gap-2 md:mb-10">
               {currentRow.guess.split("").map((letter, index) => {
                 const filled = letter.trim().length > 0;
                 const isActiveSlot = currentGuess.length === index;
                 return (
                   <div
                     key={`tile-${index}`}
-                    className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-2 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg ${getUnderlineClass(
+                    className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-4 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg md:text-[2.5rem] ${getUnderlineClass(
                       "empty",
                       filled,
                     )} ${isActiveSlot ? "!border-[#efe6d6] !text-[#efe6d6]" : ""}`}
@@ -591,38 +587,46 @@ const VisualSpellingGame: React.FC = () => {
                 );
               })}
             </div>
-            {[...attempts].reverse().map((attempt, index) => {
-              const opacity =
-                index === 0 ? "opacity-100" : index === 1 ? "opacity-70" : "opacity-50";
-              return (
-                <div
-                  key={`attempt-${attempts.length - 1 - index}`}
-                  className={`flex w-full gap-2 ${opacity} animate-fade-in`}
-                >
-                  {Array.from({ length: targetWord.length }).map((_, letterIndex) => {
-                    const letter = attempt.guess[letterIndex] ?? " ";
-                    const status = attempt.statuses[letterIndex] ?? "empty";
-                    const filled = letter.trim().length > 0;
-                    return (
-                      <div
-                        key={`attempt-${attempts.length - 1 - index}-tile-${letterIndex}`}
-                        className={`flex min-h-[2.25rem] flex-1 items-center justify-center text-sm font-semibold uppercase sm:min-h-[2.5rem] sm:text-base ${getLetterClass(
-                          status,
-                          filled,
-                        )}`}
-                      >
-                        {letter.trim()}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+            <div className="flex w-full flex-col gap-1 md:gap-4">
+              {[...attempts].reverse().map((attempt, index) => {
+                const fade =
+                  index === 0
+                    ? "opacity-100 brightness-100"
+                    : index === 1
+                      ? "opacity-75 brightness-90"
+                      : "opacity-55 brightness-75";
+                return (
+                  <div
+                    key={`attempt-${attempts.length - 1 - index}`}
+                    className={`flex w-full gap-2 ${fade} animate-fade-in`}
+                  >
+                    {Array.from({ length: targetWord.length }).map(
+                      (_, letterIndex) => {
+                        const letter = attempt.guess[letterIndex] ?? " ";
+                        const status = attempt.statuses[letterIndex] ?? "empty";
+                        const filled = letter.trim().length > 0;
+                        return (
+                          <div
+                            key={`attempt-${attempts.length - 1 - index}-tile-${letterIndex}`}
+                            className={`flex min-h-[2.25rem] flex-1 items-center justify-center text-sm font-semibold uppercase sm:min-h-[2.5rem] sm:text-base md:text-[2.5rem] ${getLetterClass(
+                              status,
+                              filled,
+                            )}`}
+                          >
+                            {letter.trim()}
+                          </div>
+                        );
+                      },
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-3xl">
         {message && (
           <p className="text-center text-xs text-[#d8cdbd] sm:text-sm">
             {message}
@@ -636,16 +640,16 @@ const VisualSpellingGame: React.FC = () => {
         </p>
       )}
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-2xl">
         <div className="flex items-center gap-3">
           <img
             src={tomoSpellingIcon}
             alt=""
-            className="h-16 w-auto"
+            className="h-14 w-auto sm:h-16 md:h-24"
           />
           <div className="relative flex-1">
             <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#4a4345]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:text-lg">
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:text-lg md:text-2xl">
               <span
                 className="flex-1"
                 style={{
@@ -656,7 +660,7 @@ const VisualSpellingGame: React.FC = () => {
                   overflow: "hidden",
                 }}
               >
-              {displayedQuote}
+                {displayedQuote}
               </span>
               {(canSubmit || isRoundComplete) && (
                 <button
@@ -668,7 +672,7 @@ const VisualSpellingGame: React.FC = () => {
                   }}
                   onPointerUp={releaseKey}
                   onPointerLeave={releaseKey}
-                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] shadow-[0_6px_0_#766a5b] transition ${
+                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] transition ${
                     isRoundComplete
                       ? "bg-[#C0B095] text-[#2a2629]"
                       : "bg-[#C0B095] text-[#2a2629]"
@@ -695,13 +699,13 @@ const VisualSpellingGame: React.FC = () => {
         </div>
       </div>
 
-      <div className="tap-safe mt-auto w-full max-w-md space-y-2 min-h-0 pb-[env(safe-area-inset-bottom)] overflow-visible">
+      <div className="tap-safe mt-auto w-full max-w-none space-y-2 min-h-0 pb-[env(safe-area-inset-bottom)] overflow-visible">
         <div
-          className="relative space-y-2 overflow-visible"
+          className="relative space-y-3 overflow-visible"
           style={
             {
-              "--key-size": "clamp(2.2rem, 7.5vw, 2.8rem)",
-              "--key-height": "clamp(3.4rem, 9vw, 4rem)",
+              "--key-size": "clamp(2.6rem, 6.2vw, 4.2rem)",
+              "--key-height": "clamp(3.6rem, 8.5vw, 5rem)",
             } as React.CSSProperties
           }
         >
@@ -733,7 +737,7 @@ const VisualSpellingGame: React.FC = () => {
                   >
                     <svg
                       viewBox="0 0 24 24"
-                      className="mx-auto h-4 w-4"
+                      className="mx-auto h-5 w-5 sm:h-6 sm:w-6"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
