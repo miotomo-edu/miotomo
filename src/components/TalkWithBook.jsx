@@ -10,8 +10,8 @@ import AnimationManager from "./layout/AnimationManager";
 import VocabularyPanel from "./features/modality/VocabularyPanel";
 import SpellingPanel from "./features/modality/SpellingPanel";
 import BotAudio from "./audio/BotAudio";
-import listenBackground from "../assets/img/discussion/listen.png";
-import talkBackground from "../assets/img/discussion/talk.png";
+import listenBackground from "../assets/img/discussion/landscape/listen.png";
+import talkBackground from "../assets/img/discussion/landscape/talk.png";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -29,6 +29,7 @@ export const TalkWithBook = ({
   onNavigate,
   selectedBook,
   chapter,
+  dotTitle,
   currentCharacter,
   userName = "",
   studentId = null,
@@ -1879,44 +1880,29 @@ export const TalkWithBook = ({
   const backgroundRef = useRef(null);
 
   useEffect(() => {
-    let isActive = true;
-    const img = new Image();
-
     const updateHeight = () => {
-      if (!backgroundRef.current || !img.naturalWidth) {
+      if (!backgroundRef.current) {
         return;
       }
-      const width = backgroundRef.current.clientWidth;
       const containerHeight = backgroundRef.current.clientHeight;
-      const ratio = img.naturalHeight / img.naturalWidth;
-      const height = Math.min(containerHeight, width * ratio);
-
-      if (isActive) {
-        setBackgroundHeight(height);
-      }
+      setBackgroundHeight(containerHeight);
     };
 
-    img.onload = updateHeight;
-    img.src = backgroundImage;
-
-    if (img.complete) {
-      updateHeight();
-    }
-
     window.addEventListener("resize", updateHeight);
+    updateHeight();
     return () => {
-      isActive = false;
       window.removeEventListener("resize", updateHeight);
     };
   }, [backgroundImage]);
+
 
   const talkBackgroundStyle = useMemo(() => {
     return {
       backgroundColor: "#000",
       backgroundImage: `url(${backgroundImage})`,
       backgroundRepeat: "no-repeat",
-      backgroundSize: "100% auto",
-      backgroundPosition: "top center",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
     };
   }, [backgroundImage]);
 
@@ -2041,7 +2027,7 @@ export const TalkWithBook = ({
     resolvedTalkingStatus !== "completed" &&
     !sessionEndingReason;
   const gradientHeight = backgroundHeight
-    ? Math.max(0, backgroundHeight * 0.2)
+    ? Math.max(0, backgroundHeight * 0.35)
     : null;
   const gradientTop = backgroundHeight
     ? Math.max(0, backgroundHeight - gradientHeight)
@@ -2059,7 +2045,7 @@ export const TalkWithBook = ({
       ref={backgroundRef}
     >
       <div
-        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
+        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none"
         style={{
           top: gradientTop ? `${gradientTop}px` : "44vh",
           height: gradientHeight ? `${gradientHeight}px` : "11vh",
@@ -2069,6 +2055,8 @@ export const TalkWithBook = ({
         <BookTitle
           book={selectedBook}
           chapter={chapter}
+          subtitle={dotTitle || undefined}
+          useSubtitleAsTitle
           onBack={() => {
             disconnectHere();
             onNavigate?.("circle");
@@ -2108,11 +2096,11 @@ export const TalkWithBook = ({
         )}
         {showIntroPlayer && (
           <div
-            className={`flex w-full max-w-md flex-col gap-2 transition-opacity ${
+            className={`flex w-full max-w-md flex-col gap-2 transition-opacity md:max-w-2xl md:gap-3 ${
               audioControlsDisabled ? "opacity-40" : "opacity-100"
             }`}
           >
-            <div className="flex items-center justify-between text-sm font-semibold text-white">
+            <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
               <span>{introPlayedLabel}</span>
               <span>{introRemainingNegativeLabel}</span>
             </div>
@@ -2129,7 +2117,7 @@ export const TalkWithBook = ({
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 16 16"
-                      className="h-5 w-5"
+                      className="h-5 w-5 md:h-10 md:w-10"
                       fill="currentColor"
                     >
                       <rect x="3" y="2" width="4" height="12" rx="1" />
@@ -2139,7 +2127,7 @@ export const TalkWithBook = ({
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 16 16"
-                      className="h-5 w-5"
+                      className="h-5 w-5 md:h-10 md:w-10"
                       fill="currentColor"
                     >
                       <path d="M4 2.5v11l9-5.5-9-5.5z" />
@@ -2163,7 +2151,7 @@ export const TalkWithBook = ({
                 style={{
                   background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
                 }}
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-full [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
               />
               {showIntroControls && (
                 <button
@@ -2176,7 +2164,7 @@ export const TalkWithBook = ({
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 16 16"
-                    className="h-5 w-5"
+                    className="h-5 w-5 md:h-10 md:w-10"
                     fill="currentColor"
                   >
                     <rect x="3" y="3" width="10" height="10" rx="1" />

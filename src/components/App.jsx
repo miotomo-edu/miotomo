@@ -33,6 +33,7 @@ const App = ({ transportType, region = "" }) => {
   const prevActiveComponent = useRef(activeComponent);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(1);
+  const [selectedDotTitle, setSelectedDotTitle] = useState("");
   const mainRef = useRef(null);
   const scrollPositionsRef = useRef({});
   const [userName, setUserName] = useState("");
@@ -168,11 +169,12 @@ const App = ({ transportType, region = "" }) => {
   );
 
   const handlePlayEpisode = useCallback(
-    (book, chapterValue) => {
+    (book, chapterValue, dotTitle) => {
       if (!book) return;
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
+      setSelectedDotTitle(typeof dotTitle === "string" ? dotTitle : "");
       if (!currentCharacter) {
         const defaultCharacter =
           characterData.find((character) => !character.disabled) ??
@@ -354,6 +356,7 @@ const App = ({ transportType, region = "" }) => {
               onNavigate={handleNavigationClick}
               selectedBook={selectedBook}
               chapter={selectedChapter}
+              dotTitle={selectedDotTitle}
               currentCharacter={currentCharacter}
               userName={userName}
               studentId={studentId}
@@ -414,7 +417,11 @@ const App = ({ transportType, region = "" }) => {
             ? "bg-[#2F2C2F]"
             : activeComponent === "progress"
               ? "bg-[#EAB7AF]"
-              : activeComponent === "library" || activeComponent === "home"
+              : activeComponent === "interactive"
+                ? "bg-black"
+              : activeComponent === "library" ||
+                  activeComponent === "home" ||
+                  activeComponent === "circle"
                 ? "bg-library"
                 : "";
         return (

@@ -262,7 +262,7 @@ function LandingPage({ onContinue }) {
       >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
         <p
-          className="text-2xl font-bold text-white/80 max-w-sm mb-8 md:max-w-xl"
+          className="text-4xl font-bold text-white/80 max-w-sm mb-8 md:max-w-xl"
           style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}
         >
           {text}

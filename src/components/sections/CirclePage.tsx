@@ -13,7 +13,7 @@ type CirclePageProps = {
   userName: string;
   scrollContainerRef?: React.RefObject<HTMLElement>;
   onBack: () => void;
-  onPlayEpisode: (book: Book, episode: number) => void;
+  onPlayEpisode: (book: Book, episode: number, dotTitle?: string) => void;
   onSelectCircle?: (book: Book, chapter: number) => void;
 };
 
@@ -335,7 +335,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
         progress: episode,
       });
     }
-    onPlayEpisode(book, episode);
+    const resolvedTitle = titlesByEpisode[episode] ?? "";
+    onPlayEpisode(book, episode, resolvedTitle || undefined);
   };
 
   const formatDuration = (value: number) => {
@@ -587,8 +588,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-white">
-      <div className="w-full bg-white">
+    <div className="min-h-screen w-full flex flex-col bg-library">
+      <div className="w-full bg-library">
         <WelcomeSection userName={userName} />
       </div>
       <header
@@ -635,29 +636,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
             </button>
           </div>
           <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
-            {episodeCount > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {episodes.map((episode) => {
-                  const isFilled = completedDots.some(
-                    (item) => item.episode === episode.episode,
-                  );
-                  const isPaused =
-                    progressDot === episode.episode && !isFilled;
-                  return (
-                    <span
-                      key={`circle-header-dot-${episode.episode}`}
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        isPaused
-                          ? "border-2 border-white"
-                          : "border border-white/70"
-                      } ${isFilled ? "bg-white" : "bg-transparent"}`}
-                    />
-                  );
-                })}
-              </div>
-            )}
             <h1
-              className="text-left text-6xl font-bold md:text-7xl"
+              className="text-left text-6xl font-bold md:text-6xl"
               style={{ textShadow: "0 6px 14px rgba(0,0,0,1)" }}
             >
               {book.title}
@@ -666,13 +646,12 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
       </header>
 
-      <section className="relative z-10 -mt-16 bg-white px-6 pb-24 pt-8">
+      <section className="relative z-10 -mt-16 bg-library px-6 pb-24 pt-8">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-600">
-            {episodeCount ? `${episodeCount} dots` : "No dots available yet."}
-          </span>
           {isLoading && (
-            <span className="text-sm text-gray-500">Loading...</span>
+            <span className="text-sm text-gray-500 md:text-base">
+              Loading...
+            </span>
           )}
         </div>
         {loadError && (
