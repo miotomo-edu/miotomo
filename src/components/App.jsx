@@ -419,29 +419,27 @@ const App = ({ transportType, region = "" }) => {
               ? "bg-[#EAB7AF]"
               : activeComponent === "interactive"
                 ? "bg-black"
-              : activeComponent === "library" ||
-                  activeComponent === "home" ||
-                  activeComponent === "circle"
-                ? "bg-library"
-                : "";
+                : activeComponent === "library" ||
+                    activeComponent === "home" ||
+                    activeComponent === "circle"
+                  ? "bg-library"
+                  : "";
         return (
-      <Layout
-        mainRef={mainRef}
-        disableScroll={isInteractiveView}
-        withBottomNav={
-          activeComponent !== "landing" && activeComponent !== "onboarding"
-        }
-        fullHeight={activeComponent === "rewards"}
-        mainClassName={mainBackgroundClass}
-      >
-        {activeComponent === "landing" ? (
-          renderComponent()
-        ) : (
-          <div className="flex-1 min-h-0">
-            {renderComponent()}
-          </div>
-        )}
-      </Layout>
+          <Layout
+            mainRef={mainRef}
+            disableScroll={isInteractiveView}
+            withBottomNav={
+              activeComponent !== "landing" && activeComponent !== "onboarding"
+            }
+            fullHeight={activeComponent === "rewards"}
+            mainClassName={mainBackgroundClass}
+          >
+            {activeComponent === "landing" ? (
+              renderComponent()
+            ) : (
+              <div className="flex-1 min-h-0">{renderComponent()}</div>
+            )}
+          </Layout>
         );
       })()}
 

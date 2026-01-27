@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import tomoIcon from "../../../assets/img/tomo.svg";
 import tomoSpellingIcon from "../../../assets/img/tomo-spelling.png";
+import talkBackground from "../../../assets/img/spelling_bg.png";
 import { supabase } from "../../../hooks/integrations/supabase/client";
+import PreGameScreen from "../modality/PreGameScreen";
 
 type LetterStatus = "correct" | "present" | "absent" | "empty";
 
@@ -109,6 +111,7 @@ const VisualSpellingGame: React.FC = () => {
   const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [displayedQuote, setDisplayedQuote] = useState("");
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showIntro, setShowIntro] = useState(true);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
@@ -441,6 +444,19 @@ const VisualSpellingGame: React.FC = () => {
         handleReset(nextIndex);
       }
     : handleSubmit;
+
+  if (showIntro) {
+    return (
+      <PreGameScreen
+        title="Good thinking!"
+        description="Now that we know what the words mean, let's quickly remember how they look."
+        subtitle="Next: spell the words"
+        buttonLabel="Start Spelling"
+        onStart={() => setShowIntro(false)}
+        backgroundImage={talkBackground}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
