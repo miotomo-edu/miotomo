@@ -14,6 +14,7 @@ type VocabItem = {
   contextText: string;
   contextAudioUrl: string;
   tomoPromptText: string;
+  feedbackTextMap: Record<string, string>;
   language?: string | null;
 };
 
@@ -26,8 +27,24 @@ const buildWsUrl = (targetWord: string) => {
   return `ws://localhost:8000/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
 };
 
-const normalizeText = (value: string) =>
-  value.toLowerCase().replace(/[^a-z]/g, "");
+const parseFeedbackTextMap = (value: unknown) => {
+  if (!value) return null;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, string>;
+      }
+    } catch (err) {
+      console.warn("Failed to parse feedback_text_map:", err);
+    }
+    return null;
+  }
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, string>;
+  }
+  return null;
+};
 
 const VisualVocabularyGame: React.FC = () => {
   const [items, setItems] = useState<VocabItem[]>([]);
@@ -46,12 +63,15 @@ const VisualVocabularyGame: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [transcriptText, setTranscriptText] = useState("");
   const [displayedQuote, setDisplayedQuote] = useState("");
   const [isGrading, setIsGrading] = useState(false);
   const [phase, setPhase] = useState<"listen" | "revealed" | "recording" | "grading" | "feedback">(
     "listen",
   );
+  const [feedbackTextMap, setFeedbackTextMap] = useState<Record<string, string>>(
+    {},
+  );
+  const [feedbackKey, setFeedbackKey] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasListened, setHasListened] = useState(false);
 
@@ -62,17 +82,24 @@ const VisualVocabularyGame: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
+  const lastTranscriptRef = useRef("");
 
   const attemptQuote = useMemo(() => {
+    const feedbackMessage = feedbackKey ? feedbackTextMap[feedbackKey] ?? "" : "";
+    if (
+      feedbackKey &&
+      (phase === "feedback" || phase === "revealed")
+    ) {
+      return feedbackMessage;
+    }
+    if (message) return message;
     if (phase === "listen") return "Tap listen to hear it.";
     if (phase === "revealed") return tomoPromptText || "Say the word.";
     if (phase === "recording") return "Listening…";
     if (phase === "grading") return "Grading…";
     if (phase === "feedback") return tomoPromptText || "Say the word.";
     return tomoPromptText || "Say the word.";
-  }, [phase, tomoPromptText]);
+  }, [feedbackKey, feedbackTextMap, message, phase, tomoPromptText]);
 
   useEffect(() => {
     let isActive = true;
@@ -83,7 +110,7 @@ const VisualVocabularyGame: React.FC = () => {
       const { data, error } = await supabase
         .from("vocab_items")
         .select(
-          "word_id,target_word,context_text,context_audio_url,tomo_prompt_text,language,active,created_at,index",
+          "word_id,target_word,context_text,context_audio_url,tomo_prompt_text,language,feedback_text_map,active,created_at,index",
         )
         .eq("circle_id", TEST_CIRCLE_ID)
         .eq("dot", TEST_DOT)
@@ -116,6 +143,8 @@ const VisualVocabularyGame: React.FC = () => {
               contextText: row.context_text || "",
               contextAudioUrl: row.context_audio_url || "",
               tomoPromptText: row.tomo_prompt_text || "",
+              feedbackTextMap:
+                parseFeedbackTextMap(row.feedback_text_map) ?? {},
               language: row.language ?? null,
             }))
         : [];
@@ -127,11 +156,12 @@ const VisualVocabularyGame: React.FC = () => {
       setContextText(vocabItems[0]?.contextText ?? "");
       setContextAudioUrl(vocabItems[0]?.contextAudioUrl ?? "");
       setTomoPromptText(vocabItems[0]?.tomoPromptText ?? "");
+      setFeedbackTextMap(vocabItems[0]?.feedbackTextMap ?? {});
       setPhase("listen");
       setWordResults(Array.from({ length: vocabItems.length }, () => null));
       setAttempts([]);
-      setTranscriptText("");
       setIsCorrectSolved(false);
+      setFeedbackKey(null);
       setHasListened(false);
       setIsLoading(false);
     };
@@ -260,38 +290,11 @@ const VisualVocabularyGame: React.FC = () => {
     }
   };
 
-  const handleFinalTranscript = (text: string) => {
-    console.log("Vocab transcript final:", text);
-    const normalizedText = normalizeText(text);
-    const normalizedTarget = normalizeText(targetWord);
-    const correct = normalizedText.length > 0 && normalizedText === normalizedTarget;
-    const nextAttempts = [...attempts, { text, correct }];
-    setAttempts(nextAttempts);
-    setTranscriptText(text);
-    setIsGrading(false);
-
-    if (correct) {
-      setIsCorrectSolved(true);
-      setWordResults((prev) => {
-        const next = [...prev];
-        next[currentWordIndex] = "correct";
-        return next;
-      });
-    } else if (nextAttempts.length >= MAX_ATTEMPTS) {
-      setWordResults((prev) => {
-        const next = [...prev];
-        next[currentWordIndex] = "wrong";
-        return next;
-      });
-    }
-    setPhase("feedback");
-  };
-
   const startRecording = async () => {
     if (isRecording || phase !== "revealed") return;
     console.log("Vocab mic: starting");
     setMessage("");
-    setTranscriptText("");
+    setFeedbackKey(null);
     setPhase("recording");
 
     try {
@@ -301,6 +304,7 @@ const VisualVocabularyGame: React.FC = () => {
           sampleRate: SAMPLE_RATE,
         },
       });
+      lastTranscriptRef.current = "";
       streamRef.current = stream;
 
       const ws = new WebSocket(buildWsUrl(targetWord));
@@ -347,23 +351,53 @@ const VisualVocabularyGame: React.FC = () => {
           if (payload?.type === "transcript") {
             if (payload.text) {
               console.log("Vocab transcript:", payload.text);
-              setTranscriptText(payload.text);
+              lastTranscriptRef.current = payload.text;
             }
             if (payload.final) {
-              stopRecording();
-              handleFinalTranscript(payload.text || "");
+              stopMicCapture();
             }
             return;
           }
           if (typeof payload?.transcript === "string") {
-            setTranscriptText(payload.transcript);
-          }
-          if (typeof payload?.outcome === "string") {
-            setIsGrading(false);
-            console.log("Vocab outcome:", payload.outcome);
+            console.log("Vocab transcript:", payload.transcript);
+            lastTranscriptRef.current = payload.transcript;
           }
           if (typeof payload?.feedback_key === "string") {
             console.log("Vocab feedback_key:", payload.feedback_key);
+            const feedbackKey = payload.feedback_key;
+            setFeedbackKey(feedbackKey);
+            const isSuccess = feedbackKey === "success_clear";
+            setIsGrading(false);
+            setMessage("");
+            const attemptText =
+              typeof payload?.transcript === "string"
+                ? payload.transcript
+                : lastTranscriptRef.current;
+            const nextAttempts = [
+              ...attempts,
+              { text: attemptText, correct: isSuccess },
+            ];
+            setAttempts(nextAttempts);
+            if (isSuccess && !isCorrectSolved) {
+              setIsCorrectSolved(true);
+              setWordResults((prev) => {
+                const next = [...prev];
+                next[currentWordIndex] = "correct";
+                return next;
+              });
+            } else if (!isSuccess && nextAttempts.length >= MAX_ATTEMPTS) {
+              setWordResults((prev) => {
+                const next = [...prev];
+                next[currentWordIndex] = "wrong";
+                return next;
+              });
+            }
+            setPhase("feedback");
+            stopRecording();
+            return;
+          }
+          if (typeof payload?.outcome === "string") {
+            console.log("Vocab outcome:", payload.outcome);
           }
           if (Array.isArray(payload?.tags)) {
             setIsGrading(false);
@@ -428,12 +462,13 @@ const VisualVocabularyGame: React.FC = () => {
     setContextText(items[nextIndex]?.contextText ?? "");
     setContextAudioUrl(items[nextIndex]?.contextAudioUrl ?? "");
     setTomoPromptText(items[nextIndex]?.tomoPromptText ?? "");
+    setFeedbackTextMap(items[nextIndex]?.feedbackTextMap ?? {});
     setAttempts([]);
-    setTranscriptText("");
     setIsGrading(false);
     setIsCorrectSolved(false);
     setMessage("");
     setPhase("listen");
+    setFeedbackKey(null);
     setHasListened(false);
     setIsPlaying(false);
     if (audioRef.current) {
@@ -665,42 +700,7 @@ const VisualVocabularyGame: React.FC = () => {
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full flex-col items-center gap-6">
             <div className="flex w-full flex-col gap-3">
-            {attempts.length > 0 && (
-              <div className="flex w-full flex-col gap-2 md:gap-4">
-                {[...attempts].reverse().map((attempt, index) => {
-                  const fade =
-                    index === 0
-                      ? "opacity-100 brightness-100"
-                      : index === 1
-                        ? "opacity-75 brightness-90"
-                        : "opacity-55 brightness-75";
-                  return (
-                    <div
-                      key={`attempt-${attempts.length - 1 - index}`}
-                      className={`flex w-full items-center gap-3 ${fade} animate-fade-in`}
-                    >
-                      <span
-                        className={`text-base font-semibold uppercase tracking-wide md:text-2xl ${
-                          attempt.correct ? "text-[#8fb29a]" : "text-[#d2a84f]"
-                        }`}
-                      >
-                        {attempt.text}
-                      </span>
-                    </div>
-                  );
-                })}
-                </div>
-              )}
-            {(transcriptText || isGrading) && !attempts.length && (
-                <div className="flex flex-col gap-2 text-base font-semibold text-[#d8cdbd] md:text-2xl">
-                  {transcriptText && <div>{transcriptText}</div>}
-                  {isGrading && (
-                    <div className="text-sm uppercase tracking-[0.2em] text-[#efe6d6] md:text-xl">
-                      Grading…
-                    </div>
-                  )}
-                </div>
-              )}
+            {attempts.length > 0 && null}
             </div>
           </div>
         </div>
