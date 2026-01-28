@@ -65,12 +65,12 @@ const VisualVocabularyGame: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [displayedQuote, setDisplayedQuote] = useState("");
   const [isGrading, setIsGrading] = useState(false);
-  const [phase, setPhase] = useState<"listen" | "revealed" | "recording" | "grading" | "feedback">(
-    "listen",
-  );
-  const [feedbackTextMap, setFeedbackTextMap] = useState<Record<string, string>>(
-    {},
-  );
+  const [phase, setPhase] = useState<
+    "listen" | "revealed" | "recording" | "grading" | "feedback"
+  >("listen");
+  const [feedbackTextMap, setFeedbackTextMap] = useState<
+    Record<string, string>
+  >({});
   const [feedbackKey, setFeedbackKey] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasListened, setHasListened] = useState(false);
@@ -85,15 +85,14 @@ const VisualVocabularyGame: React.FC = () => {
   const lastTranscriptRef = useRef("");
 
   const attemptQuote = useMemo(() => {
-    const feedbackMessage = feedbackKey ? feedbackTextMap[feedbackKey] ?? "" : "";
-    if (
-      feedbackKey &&
-      (phase === "feedback" || phase === "revealed")
-    ) {
+    const feedbackMessage = feedbackKey
+      ? (feedbackTextMap[feedbackKey] ?? "")
+      : "";
+    if (feedbackKey && (phase === "feedback" || phase === "revealed")) {
       return feedbackMessage;
     }
     if (message) return message;
-    if (phase === "listen") return "Tap listen to hear it.";
+    if (phase === "listen") return "Tap listen to hear about the word.";
     if (phase === "revealed") return tomoPromptText || "Say the word.";
     if (phase === "recording") return "Listening…";
     if (phase === "grading") return "Grading…";
@@ -392,7 +391,7 @@ const VisualVocabularyGame: React.FC = () => {
                 return next;
               });
             }
-            setPhase("feedback");
+            setPhase(isSuccess ? "feedback" : "revealed");
             stopRecording();
             return;
           }
@@ -478,7 +477,9 @@ const VisualVocabularyGame: React.FC = () => {
   };
 
   const isLastWord = currentWordIndex === items.length - 1;
-  const correctCount = wordResults.filter((result) => result === "correct").length;
+  const correctCount = wordResults.filter(
+    (result) => result === "correct",
+  ).length;
 
   if (isLoading) {
     return (
@@ -534,13 +535,11 @@ const VisualVocabularyGame: React.FC = () => {
                   className="relative flex flex-shrink-0 items-center justify-center"
                 >
                   {isActive ? (
-                    <img
-                      src={tomoIcon}
-                      alt=""
-                      className="h-6 w-auto md:h-10"
-                    />
+                    <img src={tomoIcon} alt="" className="h-6 w-auto md:h-10" />
                   ) : (
-                    <span className={`h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`} />
+                    <span
+                      className={`h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
+                    />
                   )}
                 </div>
               );
@@ -549,48 +548,79 @@ const VisualVocabularyGame: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex w-full max-w-3xl flex-col items-center gap-5 text-center sm:gap-6">
-        {phase === "listen" && !isRecording && (
+      {phase === "listen" && !isRecording && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center">
           <button
             type="button"
             onClick={handleListen}
             disabled={isPlaying}
             className={`flex h-16 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-10 text-xl font-semibold uppercase tracking-wide text-[#2a2629] transition sm:h-18 sm:text-2xl md:h-20 md:text-3xl ${
-              isPlaying ? "cursor-not-allowed opacity-70" : "hover:brightness-105"
+              isPlaying
+                ? "cursor-not-allowed opacity-70"
+                : "hover:brightness-105"
             }`}
           >
             Listen
           </button>
-        )}
+        </div>
+      )}
+
+      <div
+        className={`flex w-full max-w-3xl flex-col items-center gap-5 text-center sm:gap-6 ${
+          phase === "listen" ? "pointer-events-none" : "mt-10 sm:mt-12"
+        }`}
+      >
         <div className="flex w-full flex-col items-center gap-3 md:gap-4">
           <div className="flex w-full items-center justify-center">
             <div className="inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#efe6d6] md:text-5xl">
-              {phase === "listen" ? (
-                <span className="opacity-0">“{contextText}”</span>
-              ) : (
-                <>
-                  <span>“</span>
-                  {(() => {
-                    if (!rawTargetWord) return contextText;
-                    const escaped = rawTargetWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                    const regex = new RegExp(`(${escaped})`, "gi");
-                    const parts = contextText.split(regex);
-                    return parts.map((part, index) => {
-                      const isMatch =
-                        part.toLowerCase() === rawTargetWord.toLowerCase();
-                      return (
-                        <span
-                          key={`${part}-${index}`}
-                          className={isMatch ? "text-[#C59A41]" : undefined}
-                        >
-                          {part}
-                        </span>
+              <span className="inline">
+                {phase === "listen" ? (
+                  <span className="opacity-0">“{contextText}”</span>
+                ) : (
+                  <>
+                    {(() => {
+                      if (!rawTargetWord) return `“${contextText}”`;
+                      const lowerText = contextText.toLowerCase();
+                      const lowerTarget = rawTargetWord.toLowerCase();
+                      const matchIndex = lowerText.indexOf(lowerTarget);
+                      if (matchIndex === -1) {
+                        return `“${contextText}”`;
+                      }
+                      const beforeText = contextText.slice(0, matchIndex);
+                      const matchText = contextText.slice(
+                        matchIndex,
+                        matchIndex + rawTargetWord.length,
                       );
-                    });
-                  })()}
-                  <span>”</span>
-                </>
-              )}
+                      const afterText = contextText.slice(
+                        matchIndex + rawTargetWord.length,
+                      );
+                      const punctuationMatch = afterText.match(
+                        /^[,.;:!?)\]]+/,
+                      );
+                      const trailingPunctuation = punctuationMatch
+                        ? punctuationMatch[0]
+                        : "";
+                      const afterRest = afterText.slice(
+                        trailingPunctuation.length,
+                      );
+                      return (
+                        <>
+                          <span>{`“${beforeText}`}</span>
+                          <span className="text-[#C59A41]">
+                            {matchText}
+                            {trailingPunctuation ? (
+                              <span className="text-[#efe6d6]">
+                                {trailingPunctuation}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span>{`${afterRest}”`}</span>
+                        </>
+                      );
+                    })()}
+                  </>
+                )}
+              </span>
               {phase === "revealed" && !isRecording && (
                 <button
                   type="button"
@@ -601,7 +631,9 @@ const VisualVocabularyGame: React.FC = () => {
                       ? "cursor-not-allowed opacity-70"
                       : "hover:brightness-105"
                   }`}
-                  aria-label={hasListened ? "Replay sentence" : "Listen to sentence"}
+                  aria-label={
+                    hasListened ? "Replay sentence" : "Listen to sentence"
+                  }
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -628,71 +660,71 @@ const VisualVocabularyGame: React.FC = () => {
           <div className="text-3xl font-semibold text-[#d8cdbd] md:text-4xl">
             What is the meaning of “{rawTargetWord}”?
           </div>
-          {phase === "feedback" &&
-          (isCorrectSolved || attempts.length >= 2) ? (
-            !isLastWord && (
-              <button
-                type="button"
-                onClick={handleNextWord}
-                className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition md:h-32 md:w-32"
-                aria-label="Next word"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-14 w-14 md:h-16 md:w-16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+          {phase === "feedback" && (isCorrectSolved || attempts.length >= 2)
+            ? !isLastWord && (
+                <button
+                  type="button"
+                  onClick={handleNextWord}
+                  className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition md:h-32 md:w-32"
+                  aria-label="Next word"
                 >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            )
-          ) : (
-            (phase === "revealed" ||
-              phase === "recording" ||
-              (phase === "feedback" &&
-                !isCorrectSolved &&
-                attempts.length < MAX_ATTEMPTS)) && (
-            <button
-              type="button"
-              onClick={isRecording ? () => stopRecording() : startRecording}
-              className={`flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition md:h-32 md:w-32 ${
-                isRecording ? "opacity-80" : "hover:brightness-105"
-              }`}
-              aria-label={isRecording ? "Stop recording" : "Start recording"}
-            >
-              {isRecording ? (
-                <svg
-                  viewBox="0 0 16 16"
-                  className="h-14 w-14 md:h-16 md:w-16"
-                  fill="currentColor"
-                  aria-hidden="true"
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-14 w-14 md:h-16 md:w-16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              )
+            : (phase === "revealed" ||
+                phase === "recording" ||
+                (phase === "feedback" &&
+                  !isCorrectSolved &&
+                  attempts.length < MAX_ATTEMPTS)) && (
+                <button
+                  type="button"
+                  onClick={isRecording ? () => stopRecording() : startRecording}
+                  className={`flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition md:h-32 md:w-32 ${
+                    isRecording ? "opacity-80" : "hover:brightness-105"
+                  }`}
+                  aria-label={
+                    isRecording ? "Stop recording" : "Start recording"
+                  }
                 >
-                  <rect x="3" y="3" width="10" height="10" rx="1" />
-                </svg>
-              ) : (
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-14 w-14 md:h-16 md:w-16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
-                  <path d="M6 12a6 6 0 0 0 12 0" />
-                  <path d="M12 18v4" />
-                  <path d="M8 22h8" />
-                </svg>
+                  {isRecording ? (
+                    <svg
+                      viewBox="0 0 16 16"
+                      className="h-14 w-14 md:h-16 md:w-16"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <rect x="3" y="3" width="10" height="10" rx="1" />
+                    </svg>
+                  ) : (
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-14 w-14 md:h-16 md:w-16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
+                      <path d="M6 12a6 6 0 0 0 12 0" />
+                      <path d="M12 18v4" />
+                      <path d="M8 22h8" />
+                    </svg>
+                  )}
+                </button>
               )}
-            </button>
-          ))}
         </div>
       )}
 
@@ -700,7 +732,7 @@ const VisualVocabularyGame: React.FC = () => {
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full flex-col items-center gap-6">
             <div className="flex w-full flex-col gap-3">
-            {attempts.length > 0 && null}
+              {attempts.length > 0 && null}
             </div>
           </div>
         </div>
@@ -708,24 +740,24 @@ const VisualVocabularyGame: React.FC = () => {
 
       <div className="w-full max-w-2xl">
         <div className="flex items-end gap-3">
-            <img
-              src={tomoSpellingIcon}
-              alt=""
-              className="h-20 w-auto sm:h-24 md:h-32"
-            />
-            <div className="relative flex-1">
-              <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#4a4345]" />
-              <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
-                <span
-                  className="flex-1 break-words"
-                  style={{
-                    minHeight: "3.5rem",
-                  }}
-                >
-                  {displayedQuote}
-                </span>
-              </div>
+          <img
+            src={tomoSpellingIcon}
+            alt=""
+            className="h-20 w-auto sm:h-24 md:h-32"
+          />
+          <div className="relative flex-1">
+            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#4a4345]" />
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
+              <span
+                className="flex-1 break-words"
+                style={{
+                  minHeight: "3.5rem",
+                }}
+              >
+                {displayedQuote}
+              </span>
             </div>
+          </div>
         </div>
       </div>
 
