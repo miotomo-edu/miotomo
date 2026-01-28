@@ -15,6 +15,7 @@ type VocabItem = {
   contextAudioUrl: string;
   tomoPromptText: string;
   feedbackTextMap: Record<string, string>;
+  definition: string;
   language?: string | null;
 };
 
@@ -53,6 +54,7 @@ const VisualVocabularyGame: React.FC = () => {
   const [contextText, setContextText] = useState("");
   const [contextAudioUrl, setContextAudioUrl] = useState("");
   const [tomoPromptText, setTomoPromptText] = useState("");
+  const [definition, setDefinition] = useState("");
   const [rawTargetWord, setRawTargetWord] = useState("");
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [message, setMessage] = useState("");
@@ -109,7 +111,7 @@ const VisualVocabularyGame: React.FC = () => {
       const { data, error } = await supabase
         .from("vocab_items")
         .select(
-          "word_id,target_word,context_text,context_audio_url,tomo_prompt_text,language,feedback_text_map,active,created_at,index",
+          "word_id,target_word,context_text,context_audio_url,tomo_prompt_text,definition,language,feedback_text_map,active,created_at,index",
         )
         .eq("circle_id", TEST_CIRCLE_ID)
         .eq("dot", TEST_DOT)
@@ -142,6 +144,7 @@ const VisualVocabularyGame: React.FC = () => {
               contextText: row.context_text || "",
               contextAudioUrl: row.context_audio_url || "",
               tomoPromptText: row.tomo_prompt_text || "",
+              definition: row.definition || "",
               feedbackTextMap:
                 parseFeedbackTextMap(row.feedback_text_map) ?? {},
               language: row.language ?? null,
@@ -155,6 +158,7 @@ const VisualVocabularyGame: React.FC = () => {
       setContextText(vocabItems[0]?.contextText ?? "");
       setContextAudioUrl(vocabItems[0]?.contextAudioUrl ?? "");
       setTomoPromptText(vocabItems[0]?.tomoPromptText ?? "");
+      setDefinition(vocabItems[0]?.definition ?? "");
       setFeedbackTextMap(vocabItems[0]?.feedbackTextMap ?? {});
       setPhase("listen");
       setWordResults(Array.from({ length: vocabItems.length }, () => null));
@@ -290,7 +294,7 @@ const VisualVocabularyGame: React.FC = () => {
   };
 
   const startRecording = async () => {
-    if (isRecording || phase !== "revealed") return;
+    if (isRecording || (phase !== "revealed" && phase !== "feedback")) return;
     console.log("Vocab mic: starting");
     setMessage("");
     setFeedbackKey(null);
@@ -364,19 +368,25 @@ const VisualVocabularyGame: React.FC = () => {
           if (typeof payload?.feedback_key === "string") {
             console.log("Vocab feedback_key:", payload.feedback_key);
             const feedbackKey = payload.feedback_key;
-            setFeedbackKey(feedbackKey);
             const isSuccess = feedbackKey === "success_clear";
+            const shouldCountAttempt = feedbackKey !== "retry_audio";
             setIsGrading(false);
             setMessage("");
             const attemptText =
               typeof payload?.transcript === "string"
                 ? payload.transcript
                 : lastTranscriptRef.current;
-            const nextAttempts = [
-              ...attempts,
-              { text: attemptText, correct: isSuccess },
-            ];
-            setAttempts(nextAttempts);
+            const nextAttempts = shouldCountAttempt
+              ? [...attempts, { text: attemptText, correct: isSuccess }]
+              : attempts;
+            const hasReachedMax =
+              !isSuccess &&
+              shouldCountAttempt &&
+              nextAttempts.length >= MAX_ATTEMPTS;
+            setFeedbackKey(hasReachedMax ? "definition" : feedbackKey);
+            if (shouldCountAttempt) {
+              setAttempts(nextAttempts);
+            }
             if (isSuccess && !isCorrectSolved) {
               setIsCorrectSolved(true);
               setWordResults((prev) => {
@@ -384,14 +394,14 @@ const VisualVocabularyGame: React.FC = () => {
                 next[currentWordIndex] = "correct";
                 return next;
               });
-            } else if (!isSuccess && nextAttempts.length >= MAX_ATTEMPTS) {
+            } else if (hasReachedMax) {
               setWordResults((prev) => {
                 const next = [...prev];
                 next[currentWordIndex] = "wrong";
                 return next;
               });
             }
-            setPhase(isSuccess ? "feedback" : "revealed");
+            setPhase("feedback");
             stopRecording();
             return;
           }
@@ -461,6 +471,7 @@ const VisualVocabularyGame: React.FC = () => {
     setContextText(items[nextIndex]?.contextText ?? "");
     setContextAudioUrl(items[nextIndex]?.contextAudioUrl ?? "");
     setTomoPromptText(items[nextIndex]?.tomoPromptText ?? "");
+    setDefinition(items[nextIndex]?.definition ?? "");
     setFeedbackTextMap(items[nextIndex]?.feedbackTextMap ?? {});
     setAttempts([]);
     setIsGrading(false);
@@ -480,6 +491,20 @@ const VisualVocabularyGame: React.FC = () => {
   const correctCount = wordResults.filter(
     (result) => result === "correct",
   ).length;
+  const hasFailedMax = !isCorrectSolved && attempts.length >= MAX_ATTEMPTS;
+  const canRetry = !isCorrectSolved && attempts.length < MAX_ATTEMPTS;
+  const isDefinitionVisible = (isCorrectSolved || hasFailedMax) && definition;
+  const displayContextText = isDefinitionVisible ? definition : contextText;
+  const quoteStart = isDefinitionVisible ? "" : "“";
+  const quoteEnd = isDefinitionVisible ? "" : "”";
+  const promptText = (() => {
+    if (phase === "feedback") {
+      if (isCorrectSolved) return "Well done, ready for the next word?";
+      if (hasFailedMax) return "Let's move on to the next word.";
+      return `Let's try again! What is the meaning of “${rawTargetWord}”?`;
+    }
+    return `What is the meaning of “${rawTargetWord}”?`;
+  })();
 
   if (isLoading) {
     return (
@@ -579,24 +604,27 @@ const VisualVocabularyGame: React.FC = () => {
                 ) : (
                   <>
                     {(() => {
-                      if (!rawTargetWord) return `“${contextText}”`;
-                      const lowerText = contextText.toLowerCase();
+                      if (!rawTargetWord) {
+                        return `${quoteStart}${displayContextText}${quoteEnd}`;
+                      }
+                      const lowerText = displayContextText.toLowerCase();
                       const lowerTarget = rawTargetWord.toLowerCase();
                       const matchIndex = lowerText.indexOf(lowerTarget);
                       if (matchIndex === -1) {
-                        return `“${contextText}”`;
+                        return `${quoteStart}${displayContextText}${quoteEnd}`;
                       }
-                      const beforeText = contextText.slice(0, matchIndex);
-                      const matchText = contextText.slice(
+                      const beforeText = displayContextText.slice(
+                        0,
+                        matchIndex,
+                      );
+                      const matchText = displayContextText.slice(
                         matchIndex,
                         matchIndex + rawTargetWord.length,
                       );
-                      const afterText = contextText.slice(
+                      const afterText = displayContextText.slice(
                         matchIndex + rawTargetWord.length,
                       );
-                      const punctuationMatch = afterText.match(
-                        /^[,.;:!?)\]]+/,
-                      );
+                      const punctuationMatch = afterText.match(/^[,.;:!?)\]]+/);
                       const trailingPunctuation = punctuationMatch
                         ? punctuationMatch[0]
                         : "";
@@ -605,7 +633,7 @@ const VisualVocabularyGame: React.FC = () => {
                       );
                       return (
                         <>
-                          <span>{`“${beforeText}`}</span>
+                          <span>{`${quoteStart}${beforeText}`}</span>
                           <span className="text-[#C59A41]">
                             {matchText}
                             {trailingPunctuation ? (
@@ -614,7 +642,7 @@ const VisualVocabularyGame: React.FC = () => {
                               </span>
                             ) : null}
                           </span>
-                          <span>{`${afterRest}”`}</span>
+                          <span>{`${afterRest}${quoteEnd}`}</span>
                         </>
                       );
                     })()}
@@ -658,9 +686,9 @@ const VisualVocabularyGame: React.FC = () => {
       {rawTargetWord && phase !== "listen" && (
         <div className="absolute left-1/2 top-1/2 z-20 flex w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4 text-center px-4">
           <div className="text-3xl font-semibold text-[#d8cdbd] md:text-4xl">
-            What is the meaning of “{rawTargetWord}”?
+            {promptText}
           </div>
-          {phase === "feedback" && (isCorrectSolved || attempts.length >= 2)
+          {phase === "feedback" && (isCorrectSolved || hasFailedMax)
             ? !isLastWord && (
                 <button
                   type="button"
@@ -684,9 +712,7 @@ const VisualVocabularyGame: React.FC = () => {
               )
             : (phase === "revealed" ||
                 phase === "recording" ||
-                (phase === "feedback" &&
-                  !isCorrectSolved &&
-                  attempts.length < MAX_ATTEMPTS)) && (
+                (phase === "feedback" && canRetry)) && (
                 <button
                   type="button"
                   onClick={isRecording ? () => stopRecording() : startRecording}
