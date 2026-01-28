@@ -87,6 +87,10 @@ const VisualVocabularyGame: React.FC = () => {
   const lastTranscriptRef = useRef("");
 
   const attemptQuote = useMemo(() => {
+    const reachedMax = !isCorrectSolved && attempts.length >= MAX_ATTEMPTS;
+    if (reachedMax) {
+      return "Hmm… I think this one is tricky.\nLet’s look at how people usually explain it.";
+    }
     const feedbackMessage = feedbackKey
       ? (feedbackTextMap[feedbackKey] ?? "")
       : "";
@@ -100,7 +104,15 @@ const VisualVocabularyGame: React.FC = () => {
     if (phase === "grading") return "Grading…";
     if (phase === "feedback") return tomoPromptText || "Say the word.";
     return tomoPromptText || "Say the word.";
-  }, [feedbackKey, feedbackTextMap, message, phase, tomoPromptText]);
+  }, [
+    attempts.length,
+    feedbackKey,
+    feedbackTextMap,
+    isCorrectSolved,
+    message,
+    phase,
+    tomoPromptText,
+  ]);
 
   useEffect(() => {
     let isActive = true;
@@ -497,11 +509,19 @@ const VisualVocabularyGame: React.FC = () => {
   const displayContextText = isDefinitionVisible ? definition : contextText;
   const quoteStart = isDefinitionVisible ? "" : "“";
   const quoteEnd = isDefinitionVisible ? "" : "”";
+  const showNextButton =
+    phase === "feedback" && (isCorrectSolved || hasFailedMax) && !isLastWord;
+  const showMicButton =
+    phase === "revealed" ||
+    phase === "recording" ||
+    (phase === "feedback" && canRetry);
+  const showRetryHint =
+    showMicButton && phase === "feedback" && !isCorrectSolved && !hasFailedMax;
   const promptText = (() => {
     if (phase === "feedback") {
       if (isCorrectSolved) return "Well done, ready for the next word?";
       if (hasFailedMax) return "Let's move on to the next word.";
-      return `Let's try again! What is the meaning of “${rawTargetWord}”?`;
+      return `What is the meaning of “${rawTargetWord}”?`;
     }
     return `What is the meaning of “${rawTargetWord}”?`;
   })();
@@ -688,14 +708,46 @@ const VisualVocabularyGame: React.FC = () => {
           <div className="text-3xl font-semibold text-[#d8cdbd] md:text-4xl">
             {promptText}
           </div>
-          {phase === "feedback" && (isCorrectSolved || hasFailedMax)
-            ? !isLastWord && (
-                <button
-                  type="button"
-                  onClick={handleNextWord}
-                  className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition md:h-32 md:w-32"
-                  aria-label="Next word"
+          <div className="flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
+            {showNextButton ? (
+              <button
+                type="button"
+                onClick={handleNextWord}
+                className="flex h-full w-full items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition"
+                aria-label="Next word"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-14 w-14 md:h-16 md:w-16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            ) : showMicButton ? (
+              <button
+                type="button"
+                onClick={isRecording ? () => stopRecording() : startRecording}
+                className={`flex h-full w-full flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition ${
+                  isRecording ? "opacity-80" : "hover:brightness-105"
+                }`}
+                aria-label={isRecording ? "Stop recording" : "Start recording"}
+              >
+                {isRecording ? (
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="h-14 w-14 md:h-16 md:w-16"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="3" width="10" height="10" rx="1" />
+                  </svg>
+                ) : (
                   <svg
                     viewBox="0 0 24 24"
                     className="h-14 w-14 md:h-16 md:w-16"
@@ -706,51 +758,20 @@ const VisualVocabularyGame: React.FC = () => {
                     strokeLinejoin="round"
                     aria-hidden="true"
                   >
-                    <polyline points="9 18 15 12 9 6" />
+                    <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
+                    <path d="M6 12a6 6 0 0 0 12 0" />
+                    <path d="M12 18v4" />
+                    <path d="M8 22h8" />
                   </svg>
-                </button>
-              )
-            : (phase === "revealed" ||
-                phase === "recording" ||
-                (phase === "feedback" && canRetry)) && (
-                <button
-                  type="button"
-                  onClick={isRecording ? () => stopRecording() : startRecording}
-                  className={`flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition md:h-32 md:w-32 ${
-                    isRecording ? "opacity-80" : "hover:brightness-105"
-                  }`}
-                  aria-label={
-                    isRecording ? "Stop recording" : "Start recording"
-                  }
-                >
-                  {isRecording ? (
-                    <svg
-                      viewBox="0 0 16 16"
-                      className="h-14 w-14 md:h-16 md:w-16"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <rect x="3" y="3" width="10" height="10" rx="1" />
-                    </svg>
-                  ) : (
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-14 w-14 md:h-16 md:w-16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
-                      <path d="M6 12a6 6 0 0 0 12 0" />
-                      <path d="M12 18v4" />
-                      <path d="M8 22h8" />
-                    </svg>
-                  )}
-                </button>
-              )}
+                )}
+              </button>
+            ) : null}
+          </div>
+          <div className="mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#d8cdbd] md:text-3xl">
+            <span className={showRetryHint ? "opacity-100" : "opacity-0"}>
+              Let's try again!
+            </span>
+          </div>
         </div>
       )}
 
@@ -775,7 +796,7 @@ const VisualVocabularyGame: React.FC = () => {
             <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#4a4345]" />
             <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
               <span
-                className="flex-1 break-words"
+                className="flex-1 break-words whitespace-pre-line"
                 style={{
                   minHeight: "3.5rem",
                 }}
