@@ -37,7 +37,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 
 ## Architecture Overview
 - `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, and mirrors the chosen character’s accent color across the view.
-- `src/components/TalkWithBook.jsx` – Conversation surface: subscribes to RTVI events, controls mic state, and pushes updates into `VoiceBotContext`.
+- `src/components/TalkWithBook.tsx` – Conversation surface: subscribes to RTVI events, controls mic state, and pushes updates into `VoiceBotContext`.
 - `src/context/VoiceBotContextProvider.tsx` – Stores transcripts, latency metrics, sleep/thinking/speaking state, and auto-save behavior.
 - `src/hooks` – Reusable data hooks; notable ones are `usePipecatConnection` (connect/disconnect wrapper), `useConversations` (Supabase persistence), and `useStudent` (progress + streaks).
 - `src/components/sections` – Library, Map (modality picker), Progress, Rewards, Settings, etc.

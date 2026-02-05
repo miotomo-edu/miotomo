@@ -365,7 +365,13 @@ export const TalkWithBook = ({
             ? introDurationRef.current
             : audio.duration || null;
       const resumePosition = getResumePosition(duration);
-      if (Math.abs((audio.currentTime ?? 0) - resumePosition) < 0.25) {
+      const currentTime = audio.currentTime ?? 0;
+      const isPlaying =
+        introActiveRef.current && !audio.paused && !audio.ended;
+      if (isPlaying && resumePosition < currentTime - 0.25) {
+        return;
+      }
+      if (Math.abs(currentTime - resumePosition) < 0.25) {
         return;
       }
       audio.currentTime = resumePosition;

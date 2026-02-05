@@ -10,6 +10,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 - Intro audio is played locally; the avatar is not clickable during intro playback. Intro controls are enabled during intro and chat-paused, and disabled during chat-active.
 - Avatar pause/resume sends RTVI control messages (`pauseListening` with optional `reason`/`max_pause_s`, `resumeListening` on resume).
 - The browse/home experience is built from `circles_catalog` + `books`, with `dot_progress` powering the Continue row.
+- Vocabulary/Spelling games show `PreGameScreen` before gameplay; the CTA transitions into the game flow.
 
 ## Build, Test, and Development Commands
 - `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport.
@@ -17,6 +18,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 - `npm run preview` – Serve the built assets locally to smoke-test WebRTC flows.
 - `npm run lint` – Run ESLint over `ts,tsx`; fix or explain all findings.
 - `npx prettier --write "src/**/*.{ts,tsx,js,jsx,css,md}"` – Enforce formatting before commits.
+- TODO: Add any new game-specific dev commands when introduced.
 
 ## Coding Style & Naming Conventions
 Write new UI in TypeScript (`.tsx`) and convert legacy `.jsx` files when touching them. Components, hooks, and contexts use PascalCase (`BookShelfPanel.tsx`, `useTransport.ts`); utilities are camelCase; prompts follow `book-companion-prompt-{variant}.md`. Prefer 2-space indentation, named exports, React function components with typed props, and consistent Tailwind ordering (layout → spacing → typography) to keep diffs readable.
