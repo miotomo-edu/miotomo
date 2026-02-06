@@ -99,6 +99,13 @@ export const TalkWithBook = ({
   const [talkingStatus, setTalkingStatus] = useState(null);
   const [sessionEndingReason, setSessionEndingReason] = useState(null);
 
+  const disableProgressTracking = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get("disable_progress_tracking");
+    return value === "1" || value === "true";
+  }, []);
+
   const {
     addVoicebotMessage,
     setConversationConfig,
@@ -258,6 +265,7 @@ export const TalkWithBook = ({
 
   const updateDotProgressSafe = useCallback(
     (payload) => {
+      if (disableProgressTracking) return;
       if (!studentId || !selectedBook?.id) return;
       const episode = getEpisodeNumber();
       if (!episode) return;
@@ -268,7 +276,13 @@ export const TalkWithBook = ({
         ...payload,
       });
     },
-    [studentId, selectedBook?.id, getEpisodeNumber, upsertDotProgress],
+    [
+      disableProgressTracking,
+      studentId,
+      selectedBook?.id,
+      getEpisodeNumber,
+      upsertDotProgress,
+    ],
   );
 
   const setListeningStatusSafe = useCallback((status) => {
@@ -703,6 +717,7 @@ export const TalkWithBook = ({
     languageSentRef.current = false;
     micControlOverrideRef.current = null;
     listeningCompletedRef.current = false;
+    introAutoplayBlockedRef.current = false;
     setIsBotReady(false);
     setIntroRemainingSeconds(null);
     setIntroCurrentSeconds(null);
@@ -912,6 +927,13 @@ export const TalkWithBook = ({
         metadata.audio;
       const rawDuration = Number(metadata.duration);
       const duration = Number.isFinite(rawDuration) ? rawDuration : null;
+      if (!audioUrl) {
+        introMetaRef.current = metadata;
+        introAudioUrlRef.current = null;
+        introDurationRef.current = duration;
+        setPhase("intro_loading");
+        return;
+      }
       introMetaRef.current = metadata;
       introAudioUrlRef.current = audioUrl ?? null;
       introDurationRef.current = duration;
@@ -1390,6 +1412,7 @@ export const TalkWithBook = ({
 
   useEffect(() => {
     if (!studentId || !selectedBook?.id) return;
+    if (disableProgressTracking) return;
     const episode = getEpisodeNumber();
     if (!episode) return;
     let cancelled = false;
@@ -1452,6 +1475,7 @@ export const TalkWithBook = ({
       cancelled = true;
     };
   }, [
+    disableProgressTracking,
     studentId,
     selectedBook?.id,
     getEpisodeNumber,
