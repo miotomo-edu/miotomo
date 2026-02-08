@@ -380,8 +380,7 @@ export const TalkWithBook = ({
             : audio.duration || null;
       const resumePosition = getResumePosition(duration);
       const currentTime = audio.currentTime ?? 0;
-      const isPlaying =
-        introActiveRef.current && !audio.paused && !audio.ended;
+      const isPlaying = introActiveRef.current && !audio.paused && !audio.ended;
       if (isPlaying && resumePosition < currentTime - 0.25) {
         return;
       }
@@ -717,7 +716,7 @@ export const TalkWithBook = ({
     languageSentRef.current = false;
     micControlOverrideRef.current = null;
     listeningCompletedRef.current = false;
-    introAutoplayBlockedRef.current = false;
+    listeningElapsedRef.current = 0;
     setIsBotReady(false);
     setIntroRemainingSeconds(null);
     setIntroCurrentSeconds(null);
@@ -764,8 +763,12 @@ export const TalkWithBook = ({
 
   const extractSessionEnding = useCallback((payload) => {
     if (!payload || typeof payload !== "object") return null;
-    const topLevelType = payload.type || payload.event_type || payload.eventType;
-    if (topLevelType === "session-ending" || topLevelType === "session_ending") {
+    const topLevelType =
+      payload.type || payload.event_type || payload.eventType;
+    if (
+      topLevelType === "session-ending" ||
+      topLevelType === "session_ending"
+    ) {
       return payload;
     }
 
@@ -1496,6 +1499,9 @@ export const TalkWithBook = ({
   useEffect(() => {
     const introMetadata =
       botConfig?.metadata?.intro_metadata ?? botConfig?.metadata?.introMetadata;
+    if (!isConnected) {
+      return;
+    }
     if (!introMetadata || introStateRef.current.metadataReceived) {
       return;
     }
@@ -1504,6 +1510,7 @@ export const TalkWithBook = ({
     }
     handleIntroMetadata(introMetadata);
   }, [
+    isConnected,
     botConfig?.metadata?.intro_metadata,
     botConfig?.metadata?.introMetadata,
     handleIntroMetadata,
@@ -1855,9 +1862,7 @@ export const TalkWithBook = ({
       return (
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-6 py-5 text-center text-white">
           <span className="text-2xl font-semibold">Session ended</span>
-          <span className="text-sm text-white/70">
-            {sessionEndingReason}
-          </span>
+          <span className="text-sm text-white/70">{sessionEndingReason}</span>
         </div>
       );
     }
@@ -1904,7 +1909,13 @@ export const TalkWithBook = ({
         </pre>
       </div>
     );
-  }, [panelKey, serverEvent, eventMeta.eventType, isCelebrating, sessionEndingReason]);
+  }, [
+    panelKey,
+    serverEvent,
+    eventMeta.eventType,
+    isCelebrating,
+    sessionEndingReason,
+  ]);
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
@@ -1931,7 +1942,6 @@ export const TalkWithBook = ({
       window.removeEventListener("resize", updateHeight);
     };
   }, [backgroundImage]);
-
 
   const talkBackgroundStyle = useMemo(() => {
     return {
@@ -2064,10 +2074,14 @@ export const TalkWithBook = ({
         )
       : 0;
   const resolvedListeningStatus = (
-    listeningStatus ?? lastListeningStatusRef.current ?? ""
+    listeningStatus ??
+    lastListeningStatusRef.current ??
+    ""
   ).toLowerCase();
   const resolvedTalkingStatus = (
-    talkingStatus ?? lastTalkingStatusRef.current ?? "not_started"
+    talkingStatus ??
+    lastTalkingStatusRef.current ??
+    "not_started"
   ).toLowerCase();
   const shouldShowMic =
     resolvedListeningStatus === "completed" &&
