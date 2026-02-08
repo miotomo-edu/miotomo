@@ -764,11 +764,18 @@ export const TalkWithBook = ({
 
   const extractSessionEnding = useCallback((payload) => {
     if (!payload || typeof payload !== "object") return null;
-    if (payload.type === "session-ending") {
+    const topLevelType = payload.type || payload.event_type || payload.eventType;
+    if (topLevelType === "session-ending" || topLevelType === "session_ending") {
       return payload;
     }
-    if (payload.data) {
-      return extractSessionEnding(payload.data);
+
+    // Only inspect one envelope level to avoid false positives from arbitrary nested data.
+    const nested = payload.data;
+    if (nested && typeof nested === "object") {
+      const nestedType = nested.type || nested.event_type || nested.eventType;
+      if (nestedType === "session-ending" || nestedType === "session_ending") {
+        return nested;
+      }
     }
     return null;
   }, []);
@@ -1968,7 +1975,17 @@ export const TalkWithBook = ({
 
     const runAnalytics = async () => {
       try {
-        const { data } = await getConversations(studentId, selectedBook.id);
+        const chapterNumber =
+          typeof chapter === "number" ? chapter : parseInt(chapter ?? "0", 10);
+        const normalizedChapter =
+          Number.isFinite(chapterNumber) && chapterNumber > 0
+            ? chapterNumber
+            : undefined;
+        const { data } = await getConversations(
+          studentId,
+          selectedBook.id,
+          normalizedChapter,
+        );
         const latestConversation = (data || [])[0];
 
         if (!latestConversation?.id) {

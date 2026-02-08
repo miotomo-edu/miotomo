@@ -5,6 +5,7 @@ export interface ConversationData {
   id?: string;
   student_id: string;
   book_id: string;
+  chapter?: number | null;
   created_at?: string;
   updated_at?: string;
   env: string;
@@ -26,6 +27,7 @@ export interface UseConversationsReturn {
   getConversations: (
     studentId?: string,
     bookId?: string,
+    chapterOrOptions?: number | GetConversationsOptions,
     options?: GetConversationsOptions,
   ) => Promise<{ data: any; error: any }>;
   getConversationById: (
@@ -46,18 +48,28 @@ export const useConversations = (): UseConversationsReturn => {
     async (
       studentId?: string,
       bookId?: string,
-      options: GetConversationsOptions = {},
+      chapterOrOptions?: number | GetConversationsOptions,
+      options?: GetConversationsOptions,
     ) => {
       setLoading(true);
       setError(null);
 
       try {
+        const normalizedChapter =
+          typeof chapterOrOptions === "number" &&
+          Number.isFinite(chapterOrOptions)
+            ? chapterOrOptions
+            : undefined;
+        const normalizedOptions: GetConversationsOptions =
+          typeof chapterOrOptions === "object" && chapterOrOptions !== null
+            ? chapterOrOptions
+            : (options ?? {});
         const tableName = "conversations";
 
         let query = supabase
           .from(tableName)
           .select(
-            "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
+            "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id, chapter",
           )
           .order("created_at", { ascending: false });
 
@@ -67,6 +79,12 @@ export const useConversations = (): UseConversationsReturn => {
 
         if (bookId) {
           query = query.eq("book_id", bookId);
+        }
+        if (
+          typeof normalizedChapter === "number" &&
+          Number.isFinite(normalizedChapter)
+        ) {
+          query = query.eq("chapter", normalizedChapter);
         }
 
         const today = new Date().toISOString().slice(0, 10);
@@ -79,17 +97,23 @@ export const useConversations = (): UseConversationsReturn => {
           return { data: [], error }; // Return empty array instead of null
         }
 
-        if (options.includeFallback && (!data || data.length === 0)) {
+        if (normalizedOptions.includeFallback && (!data || data.length === 0)) {
           const fallbackQuery = supabase
             .from(tableName)
             .select(
-              "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
+              "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id, chapter",
             )
             .order("created_at", { ascending: false })
             .limit(1);
 
           if (studentId) fallbackQuery.eq("student_id", studentId);
           if (bookId) fallbackQuery.eq("book_id", bookId);
+          if (
+            typeof normalizedChapter === "number" &&
+            Number.isFinite(normalizedChapter)
+          ) {
+            fallbackQuery.eq("chapter", normalizedChapter);
+          }
 
           const { data: fallbackData, error: fallbackError } =
             await fallbackQuery;
@@ -132,7 +156,7 @@ export const useConversations = (): UseConversationsReturn => {
       const { data, error } = await supabase
         .from(tableName)
         .select(
-          "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id",
+          "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id, chapter",
         )
         .eq("id", conversationId)
         .single();

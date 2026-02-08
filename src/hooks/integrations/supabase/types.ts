@@ -41,6 +41,7 @@ export type Database = {
           id: string;
           student_id: string | null;
           book_id: string | null;
+          chapter: number | null;
           created_at: string | null;
           updated_at: string | null;
           messages: Json;
@@ -59,6 +60,7 @@ export type Database = {
           id?: string;
           student_id?: string | null;
           book_id?: string | null;
+          chapter?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           messages?: Json;
@@ -77,6 +79,7 @@ export type Database = {
           id?: string;
           student_id?: string | null;
           book_id?: string | null;
+          chapter?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           messages?: Json;
