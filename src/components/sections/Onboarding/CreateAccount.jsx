@@ -52,7 +52,7 @@ function CreateAccount({ onNext, onFinish }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full px-6 text-left text-white"
+      className="relative flex h-full min-h-full w-full flex-col px-6 text-left text-white"
     >
       <div
         className="absolute inset-x-0 top-0 bg-black"
@@ -72,7 +72,7 @@ function CreateAccount({ onNext, onFinish }) {
         }}
       />
       {/* Bottom content */}
-      <div className="relative z-10 w-full max-w-sm pt-[50vh] text-left">
+      <div className="relative z-10 mx-auto mt-auto w-full max-w-sm pt-[50vh] pb-8 text-left md:pt-0 md:pb-10">
         <h1
           className="text-2xl font-bold mb-6"
           style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}

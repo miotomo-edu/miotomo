@@ -60,7 +60,7 @@ function TellUsMore({ onBack, onFinish }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full px-6 text-left text-white"
+      className="relative flex h-full min-h-full w-full flex-col px-6 text-left text-white"
     >
       <div
         className="absolute inset-x-0 top-0 bg-black"
@@ -101,7 +101,7 @@ function TellUsMore({ onBack, onFinish }) {
           />
         </svg>
       </button>
-      <div className="relative z-10 w-full max-w-sm pt-[60vh] pb-10 text-left">
+      <div className="relative z-10 mx-auto mt-auto w-full max-w-sm pt-[60vh] pb-10 text-left md:pt-0">
         <h1
           className="text-2xl font-bold mb-6"
           style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}

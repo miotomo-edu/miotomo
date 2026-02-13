@@ -437,7 +437,7 @@ const App = ({ transportType, region = "" }) => {
             {activeComponent === "landing" ? (
               renderComponent()
             ) : (
-              <div className="flex-1 min-h-0">{renderComponent()}</div>
+              <div className="h-full min-h-0">{renderComponent()}</div>
             )}
           </Layout>
         );
