@@ -25,11 +25,12 @@ const TEST_CIRCLE_ID = "ff7f12ca-78e4-4987-9d2c-63a68694a1b1";
 const TEST_DOT = 1;
 const MAX_ATTEMPTS = 3;
 const SAMPLE_RATE = 16000;
+
 const buildWsUrl = (targetWord: string) => {
   const encoded = encodeURIComponent((targetWord || "").toLowerCase());
 
-  return `wss://miotomo-vocabulary.onrender.com/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
-  // return `ws://localhost:8001/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
+  // return `wss://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
+  return `ws://localhost:8001/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
 };
 
 const parseFeedbackTextMap = (value: unknown) => {
@@ -246,7 +247,7 @@ const VisualVocabularyGame: React.FC = () => {
     setIsRecording(false);
   };
 
-  const stopRecording = async (sendClose = true) => {
+  const stopRecording = async (sendClose = false) => {
     console.log("Vocab mic: stopping");
     if (logIntervalRef.current) {
       clearInterval(logIntervalRef.current);
@@ -349,13 +350,10 @@ const VisualVocabularyGame: React.FC = () => {
 
       ws.onopen = () => {
         console.log("Vocab ws: open");
-        ws.send(
-          JSON.stringify({
-            type: "start",
-            target_word: (targetWord || "").toLowerCase(),
-            language: "en",
-          }),
-        );
+
+        // Start streaming only after socket is open so chunks are not dropped.
+        recorder.start(250);
+        setIsRecording(true);
       };
 
       ws.onmessage = (event) => {
@@ -443,6 +441,10 @@ const VisualVocabularyGame: React.FC = () => {
       ws.onclose = () => {
         console.log("Vocab ws: closed");
         setIsRecording(false);
+        if (logIntervalRef.current) {
+          clearInterval(logIntervalRef.current);
+          logIntervalRef.current = null;
+        }
       };
 
       const recorder = new MediaRecorder(stream, {
@@ -470,8 +472,7 @@ const VisualVocabularyGame: React.FC = () => {
           }
         }
       };
-      recorder.start(250);
-      setIsRecording(true);
+      // recorder.start is triggered in ws.onopen
     } catch (err) {
       console.warn("Failed to start vocab mic:", err);
       setMessage("Microphone access is required.");

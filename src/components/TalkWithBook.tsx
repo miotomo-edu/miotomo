@@ -64,7 +64,9 @@ export const TalkWithBook = ({
   const botReadyRef = useRef(false);
   const languageSentRef = useRef(false);
   const isDisconnectingRef = useRef(false);
+  const offerConnectFailedRef = useRef(false);
   const introAutoplayBlockedRef = useRef(false);
+  const introMetadataLoadedKeyRef = useRef<string | null>(null);
   const sessionPhaseRef = useRef("intro_loading");
   const introHandlersRef = useRef({
     complete: null,
@@ -501,6 +503,7 @@ export const TalkWithBook = ({
     startedHereRef.current = true;
     isDisconnectingRef.current = false;
     introAutoplayBlockedRef.current = false;
+    offerConnectFailedRef.current = false;
     setSessionEndingReason(null);
     await connect({
       botConfig,
@@ -649,6 +652,7 @@ export const TalkWithBook = ({
   const requestOfferStart = useCallback(
     (positionOverride) => {
       if (introOfferRequestedRef.current) return;
+      if (offerConnectFailedRef.current) return;
       introOfferRequestedRef.current = true;
       if (
         connectionManagedExternally &&
@@ -657,6 +661,7 @@ export const TalkWithBook = ({
         onRequestSessionStart();
       } else if (!isConnected && !isConnecting) {
         connectHere().catch((err) => {
+          offerConnectFailedRef.current = true;
           console.error("Failed to start session:", err);
         });
       } else if (isConnected) {
@@ -676,6 +681,7 @@ export const TalkWithBook = ({
       sendIntroStarted,
       connectionManagedExternally,
       onRequestSessionStart,
+      offerConnectFailedRef,
     ],
   );
 
@@ -707,9 +713,11 @@ export const TalkWithBook = ({
     introMetaRef.current = null;
     introActiveRef.current = false;
     introOfferRequestedRef.current = false;
+    offerConnectFailedRef.current = false;
     introStartedSentRef.current = false;
     introDurationRef.current = null;
     introAudioUrlRef.current = null;
+    introMetadataLoadedKeyRef.current = null;
     pendingIntroInterruptRef.current = null;
     pendingIntroCompletedRef.current = null;
     botReadyRef.current = false;
@@ -941,7 +949,16 @@ export const TalkWithBook = ({
         introMetaRef.current = metadata;
         introAudioUrlRef.current = null;
         introDurationRef.current = duration;
-        setPhase("intro_loading");
+        introStateRef.current.metadataReceived = true;
+        const resolvedDuration =
+          typeof duration === "number" && duration > 0 ? duration : 0;
+        setIntroDurationSeconds(
+          typeof duration === "number" ? duration : resolvedDuration,
+        );
+        setIntroCurrentSeconds(resolvedDuration);
+        setIntroRemainingSeconds(0);
+        setPhase("intro_done");
+        requestOfferStart(0);
         return;
       }
       introMetaRef.current = metadata;
@@ -1368,6 +1385,8 @@ export const TalkWithBook = ({
       const rawEpisode = Number(chapter);
       const episode = Number.isFinite(rawEpisode) ? rawEpisode : null;
       if (episode === null) return;
+      const requestKey = `${selectedBook.id}:${episode}`;
+      if (introMetadataLoadedKeyRef.current === requestKey) return;
       if (isDisconnectingRef.current) return;
       if (introStateRef.current.metadataReceived) return;
       try {
@@ -1395,6 +1414,7 @@ export const TalkWithBook = ({
           audio_url: data?.audio ?? null,
           duration: data?.duration ?? null,
         });
+        introMetadataLoadedKeyRef.current = requestKey;
       } catch (err) {
         if (
           isCancelled ||
@@ -1410,6 +1430,7 @@ export const TalkWithBook = ({
           audio_url: null,
           duration: null,
         });
+        introMetadataLoadedKeyRef.current = requestKey;
       }
     };
 
@@ -1584,10 +1605,19 @@ export const TalkWithBook = ({
     const onConnected = () => {
       addLog("✅ Connected to Pipecat bot");
       startedChatRef.current = false;
+      offerConnectFailedRef.current = false;
     };
 
     const onDisconnected = () => {
       addLog("❌ Disconnected");
+      const phase = sessionPhaseRef.current;
+      const shouldPreserveIntroPlayback =
+        !isDisconnectingRef.current &&
+        !startedChatRef.current &&
+        (phase === "intro_loading" ||
+          phase === "intro_playing" ||
+          phase === "intro_paused" ||
+          phase === "intro_done");
       isDisconnectingRef.current = false;
       enableMic(false);
       micEnabledRef.current = false;
@@ -1600,6 +1630,10 @@ export const TalkWithBook = ({
         flushTalkingElapsed(isCelebrating ? "completed" : "paused");
       }
       startedChatRef.current = false;
+      if (shouldPreserveIntroPlayback) {
+        offerConnectFailedRef.current = true;
+        return;
+      }
       resetIntroState();
       stopIntroAudio({ unload: true });
     };
@@ -1754,6 +1788,9 @@ export const TalkWithBook = ({
     if (!introOfferRequestedRef.current) {
       return;
     }
+    if (offerConnectFailedRef.current) {
+      return;
+    }
 
     // Check if client is already connecting
     const clientState = client?.state;
@@ -1762,6 +1799,7 @@ export const TalkWithBook = ({
     }
 
     connectHere().catch((err) => {
+      offerConnectFailedRef.current = true;
       // Don't log if it's just a "already started" error
       if (!err.message?.includes("already started")) {
         console.error("Auto-connect failed", err);
@@ -1775,6 +1813,7 @@ export const TalkWithBook = ({
     connectHere,
     client,
     connectionManagedExternally,
+    offerConnectFailedRef,
   ]);
 
   // --- No BotReady fallbacks or safety mic toggles ---

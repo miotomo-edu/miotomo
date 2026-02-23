@@ -13,7 +13,12 @@ type CirclePageProps = {
   userName: string;
   scrollContainerRef?: React.RefObject<HTMLElement>;
   onBack: () => void;
-  onPlayEpisode: (book: Book, episode: number, dotTitle?: string) => void;
+  onPlayEpisode: (
+    book: Book,
+    episode: number,
+    dotTitle?: string,
+    dotType?: number,
+  ) => void;
   onSelectCircle?: (book: Book, chapter: number) => void;
 };
 
@@ -60,6 +65,12 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const [typeNamesByEpisode, setTypeNamesByEpisode] = useState<
     Record<number, string>
   >({});
+  const [typeIdsByEpisode, setTypeIdsByEpisode] = useState<Record<number, number>>(
+    {},
+  );
+  const [episodeNumbersFromDots, setEpisodeNumbersFromDots] = useState<
+    number[]
+  >([]);
   const [dotStatusByEpisode, setDotStatusByEpisode] = useState<
     Record<
       number,
@@ -102,6 +113,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
       setDurationsByEpisode({});
       setLevelsByEpisode({});
       setTypeNamesByEpisode({});
+      setTypeIdsByEpisode({});
+      setEpisodeNumbersFromDots([]);
       setDotStatusByEpisode({});
       try {
         const { data, error } = await supabase
@@ -142,6 +155,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         const titleMap: Record<number, string> = {};
         const durationMap: Record<number, number> = {};
         const levelMap: Record<number, number> = {};
+        const typeIdMap: Record<number, number> = {};
         const typeIds = new Set();
 
         episodeEntries.forEach((row, episodeNumber) => {
@@ -163,6 +177,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
           const typeId = Number(row.type);
           if (Number.isFinite(typeId) && typeId > 0) {
             typeIds.add(typeId);
+            typeIdMap[episodeNumber] = typeId;
           }
         });
 
@@ -200,6 +215,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
         setDurationsByEpisode(durationMap);
         setLevelsByEpisode(levelMap);
         setTypeNamesByEpisode(typeByEpisode);
+        setTypeIdsByEpisode(typeIdMap);
+        setEpisodeNumbersFromDots(
+          Array.from(episodeEntries.keys()).sort((a, b) => a - b),
+        );
       } catch (err) {
         if (isCancelled) return;
         setLoadError("Failed to load episodes.");
@@ -306,7 +325,16 @@ const CirclePage: React.FC<CirclePageProps> = ({
     };
   }, [scrollContainerRef]);
 
-  const episodeCount = Math.max(Number(book.chapters) || 0, 0);
+  const maxEpisodeFromDots = useMemo(
+    () =>
+      episodeNumbersFromDots.reduce((max, episode) => {
+        if (episode > max) return episode;
+        return max;
+      }, 0),
+    [episodeNumbersFromDots],
+  );
+
+  const episodeCount = Math.max(Number(book.chapters) || 0, maxEpisodeFromDots);
   const episodes = useMemo<EpisodeMeta[]>(() => {
     if (!episodeCount) return [];
     return Array.from({ length: episodeCount }, (_, idx) => {
@@ -336,7 +364,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
       });
     }
     const resolvedTitle = titlesByEpisode[episode] ?? "";
-    onPlayEpisode(book, episode, resolvedTitle || undefined);
+    const rawType = typeIdsByEpisode[episode];
+    const resolvedType =
+      Number.isFinite(rawType) && rawType > 0 ? rawType : undefined;
+    onPlayEpisode(book, episode, resolvedTitle || undefined, resolvedType);
   };
 
   const formatDuration = (value: number) => {

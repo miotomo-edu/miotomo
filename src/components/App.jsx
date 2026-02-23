@@ -34,6 +34,7 @@ const App = ({ transportType, region = "" }) => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [selectedDotTitle, setSelectedDotTitle] = useState("");
+  const [selectedDotType, setSelectedDotType] = useState(null);
   const mainRef = useRef(null);
   const scrollPositionsRef = useRef({});
   const [userName, setUserName] = useState("");
@@ -88,7 +89,18 @@ const App = ({ transportType, region = "" }) => {
     error: studentError,
   } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
   const { getConversations } = useConversations();
-  const { isAnalyzing } = useAnalytics();
+  const { isAnalyzing, wakeAnalytics } = useAnalytics();
+
+  useEffect(() => {
+    void wakeAnalytics();
+    const wakeInterval = window.setInterval(() => {
+      void wakeAnalytics();
+    }, 45_000);
+
+    return () => {
+      window.clearInterval(wakeInterval);
+    };
+  }, [wakeAnalytics]);
 
   useEffect(() => {
     if (student?.name) setUserName(student.name);
@@ -136,18 +148,12 @@ const App = ({ transportType, region = "" }) => {
         typeof book.progress === "number" && book.progress > 0
           ? book.progress
           : 1;
-      const fallback =
-        book.chapters && book.chapters > 0
-          ? Math.min(progressValue, book.chapters)
-          : progressValue;
+      const fallback = progressValue;
       const numeric = Number(rawChapter);
       if (!Number.isFinite(numeric)) {
         return Math.max(1, fallback || 1);
       }
       const rounded = Math.max(1, Math.round(numeric));
-      if (book.chapters && book.chapters > 0) {
-        return Math.min(rounded, book.chapters);
-      }
       return rounded;
     };
   }, []);
@@ -162,6 +168,7 @@ const App = ({ transportType, region = "" }) => {
       }
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
+      setSelectedDotType(null);
       setCircleReturnComponent(activeComponent);
       setActiveComponent("circle");
     },
@@ -169,12 +176,18 @@ const App = ({ transportType, region = "" }) => {
   );
 
   const handlePlayEpisode = useCallback(
-    (book, chapterValue, dotTitle) => {
+    (book, chapterValue, dotTitle, dotType) => {
       if (!book) return;
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
       setSelectedDotTitle(typeof dotTitle === "string" ? dotTitle : "");
+      const numericDotType = Number(dotType);
+      setSelectedDotType(
+        Number.isFinite(numericDotType) && numericDotType > 0
+          ? numericDotType
+          : null,
+      );
       if (!currentCharacter) {
         const defaultCharacter =
           characterData.find((character) => !character.disabled) ??
@@ -190,18 +203,34 @@ const App = ({ transportType, region = "" }) => {
   );
 
   const updatedBotConfig = useMemo(
-    () => ({
-      voice: currentCharacter?.voice ?? "default-voice",
-      transportType, // 'daily' or 'webrtc' from main.tsx
-      metadata: {
-        book: selectedBook,
-        chapter: selectedChapter,
-        studentName: userName,
-        studentId,
-        region,
-        character: currentCharacter,
-      },
-    }),
+    () => {
+      const forcedModeByDotType = selectedDotType === 1
+        ? "storytelling"
+        : selectedDotType === 4
+          ? "teachtime"
+          : null;
+      const characterMetadata = {
+        ...(currentCharacter ?? {}),
+      };
+      if (forcedModeByDotType) {
+        characterMetadata.prompt = forcedModeByDotType;
+        characterMetadata.modalities = forcedModeByDotType;
+      }
+
+      return {
+        voice: currentCharacter?.voice ?? "default-voice",
+        transportType, // 'daily' or 'webrtc' from main.tsx
+        metadata: {
+          book: selectedBook,
+          chapter: selectedChapter,
+          studentName: userName,
+          studentId,
+          region,
+          dotType: selectedDotType,
+          character: characterMetadata,
+        },
+      };
+    },
     [
       currentCharacter,
       selectedBook,
@@ -209,6 +238,7 @@ const App = ({ transportType, region = "" }) => {
       userName,
       studentId,
       region,
+      selectedDotType,
       transportType,
     ],
   );
@@ -216,6 +246,7 @@ const App = ({ transportType, region = "" }) => {
   const handleBookAndCharacterSelect = (book, character) => {
     setSelectedBook(book);
     setCurrentCharacter(character);
+    setSelectedDotType(null);
     setActiveComponent("interactive");
   };
 
@@ -379,7 +410,7 @@ const App = ({ transportType, region = "" }) => {
     currentCharacter?.modalities ||
     currentCharacter?.name ||
     "none";
-  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${characterKey}`;
+  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${characterKey}:${selectedDotType || 0}`;
 
   const appShellStyle = characterAccent
     ? {
