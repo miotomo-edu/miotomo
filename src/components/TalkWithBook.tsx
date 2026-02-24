@@ -64,7 +64,9 @@ export const TalkWithBook = ({
   const botReadyRef = useRef(false);
   const languageSentRef = useRef(false);
   const isDisconnectingRef = useRef(false);
+  const offerConnectFailedRef = useRef(false);
   const introAutoplayBlockedRef = useRef(false);
+  const introMetadataLoadedKeyRef = useRef<string | null>(null);
   const sessionPhaseRef = useRef("intro_loading");
   const introHandlersRef = useRef({
     complete: null,
@@ -380,8 +382,7 @@ export const TalkWithBook = ({
             : audio.duration || null;
       const resumePosition = getResumePosition(duration);
       const currentTime = audio.currentTime ?? 0;
-      const isPlaying =
-        introActiveRef.current && !audio.paused && !audio.ended;
+      const isPlaying = introActiveRef.current && !audio.paused && !audio.ended;
       if (isPlaying && resumePosition < currentTime - 0.25) {
         return;
       }
@@ -502,6 +503,7 @@ export const TalkWithBook = ({
     startedHereRef.current = true;
     isDisconnectingRef.current = false;
     introAutoplayBlockedRef.current = false;
+    offerConnectFailedRef.current = false;
     setSessionEndingReason(null);
     await connect({
       botConfig,
@@ -650,6 +652,7 @@ export const TalkWithBook = ({
   const requestOfferStart = useCallback(
     (positionOverride) => {
       if (introOfferRequestedRef.current) return;
+      if (offerConnectFailedRef.current) return;
       introOfferRequestedRef.current = true;
       if (
         connectionManagedExternally &&
@@ -658,6 +661,7 @@ export const TalkWithBook = ({
         onRequestSessionStart();
       } else if (!isConnected && !isConnecting) {
         connectHere().catch((err) => {
+          offerConnectFailedRef.current = true;
           console.error("Failed to start session:", err);
         });
       } else if (isConnected) {
@@ -677,6 +681,7 @@ export const TalkWithBook = ({
       sendIntroStarted,
       connectionManagedExternally,
       onRequestSessionStart,
+      offerConnectFailedRef,
     ],
   );
 
@@ -708,16 +713,18 @@ export const TalkWithBook = ({
     introMetaRef.current = null;
     introActiveRef.current = false;
     introOfferRequestedRef.current = false;
+    offerConnectFailedRef.current = false;
     introStartedSentRef.current = false;
     introDurationRef.current = null;
     introAudioUrlRef.current = null;
+    introMetadataLoadedKeyRef.current = null;
     pendingIntroInterruptRef.current = null;
     pendingIntroCompletedRef.current = null;
     botReadyRef.current = false;
     languageSentRef.current = false;
     micControlOverrideRef.current = null;
     listeningCompletedRef.current = false;
-    introAutoplayBlockedRef.current = false;
+    listeningElapsedRef.current = 0;
     setIsBotReady(false);
     setIntroRemainingSeconds(null);
     setIntroCurrentSeconds(null);
@@ -764,11 +771,22 @@ export const TalkWithBook = ({
 
   const extractSessionEnding = useCallback((payload) => {
     if (!payload || typeof payload !== "object") return null;
-    if (payload.type === "session-ending") {
+    const topLevelType =
+      payload.type || payload.event_type || payload.eventType;
+    if (
+      topLevelType === "session-ending" ||
+      topLevelType === "session_ending"
+    ) {
       return payload;
     }
-    if (payload.data) {
-      return extractSessionEnding(payload.data);
+
+    // Only inspect one envelope level to avoid false positives from arbitrary nested data.
+    const nested = payload.data;
+    if (nested && typeof nested === "object") {
+      const nestedType = nested.type || nested.event_type || nested.eventType;
+      if (nestedType === "session-ending" || nestedType === "session_ending") {
+        return nested;
+      }
     }
     return null;
   }, []);
@@ -931,7 +949,16 @@ export const TalkWithBook = ({
         introMetaRef.current = metadata;
         introAudioUrlRef.current = null;
         introDurationRef.current = duration;
-        setPhase("intro_loading");
+        introStateRef.current.metadataReceived = true;
+        const resolvedDuration =
+          typeof duration === "number" && duration > 0 ? duration : 0;
+        setIntroDurationSeconds(
+          typeof duration === "number" ? duration : resolvedDuration,
+        );
+        setIntroCurrentSeconds(resolvedDuration);
+        setIntroRemainingSeconds(0);
+        setPhase("intro_done");
+        requestOfferStart(0);
         return;
       }
       introMetaRef.current = metadata;
@@ -1358,6 +1385,8 @@ export const TalkWithBook = ({
       const rawEpisode = Number(chapter);
       const episode = Number.isFinite(rawEpisode) ? rawEpisode : null;
       if (episode === null) return;
+      const requestKey = `${selectedBook.id}:${episode}`;
+      if (introMetadataLoadedKeyRef.current === requestKey) return;
       if (isDisconnectingRef.current) return;
       if (introStateRef.current.metadataReceived) return;
       try {
@@ -1385,6 +1414,7 @@ export const TalkWithBook = ({
           audio_url: data?.audio ?? null,
           duration: data?.duration ?? null,
         });
+        introMetadataLoadedKeyRef.current = requestKey;
       } catch (err) {
         if (
           isCancelled ||
@@ -1400,6 +1430,7 @@ export const TalkWithBook = ({
           audio_url: null,
           duration: null,
         });
+        introMetadataLoadedKeyRef.current = requestKey;
       }
     };
 
@@ -1489,6 +1520,9 @@ export const TalkWithBook = ({
   useEffect(() => {
     const introMetadata =
       botConfig?.metadata?.intro_metadata ?? botConfig?.metadata?.introMetadata;
+    if (!isConnected) {
+      return;
+    }
     if (!introMetadata || introStateRef.current.metadataReceived) {
       return;
     }
@@ -1497,6 +1531,7 @@ export const TalkWithBook = ({
     }
     handleIntroMetadata(introMetadata);
   }, [
+    isConnected,
     botConfig?.metadata?.intro_metadata,
     botConfig?.metadata?.introMetadata,
     handleIntroMetadata,
@@ -1570,10 +1605,19 @@ export const TalkWithBook = ({
     const onConnected = () => {
       addLog("✅ Connected to Pipecat bot");
       startedChatRef.current = false;
+      offerConnectFailedRef.current = false;
     };
 
     const onDisconnected = () => {
       addLog("❌ Disconnected");
+      const phase = sessionPhaseRef.current;
+      const shouldPreserveIntroPlayback =
+        !isDisconnectingRef.current &&
+        !startedChatRef.current &&
+        (phase === "intro_loading" ||
+          phase === "intro_playing" ||
+          phase === "intro_paused" ||
+          phase === "intro_done");
       isDisconnectingRef.current = false;
       enableMic(false);
       micEnabledRef.current = false;
@@ -1586,6 +1630,10 @@ export const TalkWithBook = ({
         flushTalkingElapsed(isCelebrating ? "completed" : "paused");
       }
       startedChatRef.current = false;
+      if (shouldPreserveIntroPlayback) {
+        offerConnectFailedRef.current = true;
+        return;
+      }
       resetIntroState();
       stopIntroAudio({ unload: true });
     };
@@ -1740,6 +1788,9 @@ export const TalkWithBook = ({
     if (!introOfferRequestedRef.current) {
       return;
     }
+    if (offerConnectFailedRef.current) {
+      return;
+    }
 
     // Check if client is already connecting
     const clientState = client?.state;
@@ -1748,6 +1799,7 @@ export const TalkWithBook = ({
     }
 
     connectHere().catch((err) => {
+      offerConnectFailedRef.current = true;
       // Don't log if it's just a "already started" error
       if (!err.message?.includes("already started")) {
         console.error("Auto-connect failed", err);
@@ -1761,6 +1813,7 @@ export const TalkWithBook = ({
     connectHere,
     client,
     connectionManagedExternally,
+    offerConnectFailedRef,
   ]);
 
   // --- No BotReady fallbacks or safety mic toggles ---
@@ -1848,9 +1901,7 @@ export const TalkWithBook = ({
       return (
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-6 py-5 text-center text-white">
           <span className="text-2xl font-semibold">Session ended</span>
-          <span className="text-sm text-white/70">
-            {sessionEndingReason}
-          </span>
+          <span className="text-sm text-white/70">{sessionEndingReason}</span>
         </div>
       );
     }
@@ -1897,7 +1948,13 @@ export const TalkWithBook = ({
         </pre>
       </div>
     );
-  }, [panelKey, serverEvent, eventMeta.eventType, isCelebrating, sessionEndingReason]);
+  }, [
+    panelKey,
+    serverEvent,
+    eventMeta.eventType,
+    isCelebrating,
+    sessionEndingReason,
+  ]);
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
@@ -1924,7 +1981,6 @@ export const TalkWithBook = ({
       window.removeEventListener("resize", updateHeight);
     };
   }, [backgroundImage]);
-
 
   const talkBackgroundStyle = useMemo(() => {
     return {
@@ -1968,7 +2024,17 @@ export const TalkWithBook = ({
 
     const runAnalytics = async () => {
       try {
-        const { data } = await getConversations(studentId, selectedBook.id);
+        const chapterNumber =
+          typeof chapter === "number" ? chapter : parseInt(chapter ?? "0", 10);
+        const normalizedChapter =
+          Number.isFinite(chapterNumber) && chapterNumber > 0
+            ? chapterNumber
+            : undefined;
+        const { data } = await getConversations(
+          studentId,
+          selectedBook.id,
+          normalizedChapter,
+        );
         const latestConversation = (data || [])[0];
 
         if (!latestConversation?.id) {
@@ -2047,10 +2113,14 @@ export const TalkWithBook = ({
         )
       : 0;
   const resolvedListeningStatus = (
-    listeningStatus ?? lastListeningStatusRef.current ?? ""
+    listeningStatus ??
+    lastListeningStatusRef.current ??
+    ""
   ).toLowerCase();
   const resolvedTalkingStatus = (
-    talkingStatus ?? lastTalkingStatusRef.current ?? "not_started"
+    talkingStatus ??
+    lastTalkingStatusRef.current ??
+    "not_started"
   ).toLowerCase();
   const shouldShowMic =
     resolvedListeningStatus === "completed" &&

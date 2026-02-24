@@ -10,6 +10,7 @@ const ANALYTICS_BASE_URL =
   "https://littleark--a3f08acc7cb911f08eaf0224a6c84d84.web.val.run";
 const ANALYZE_PATH = "/analyze";
 const STATUS_PATH = "/analytics-status";
+const VOCABULARY_READY_URL = "https://miotomo-vocabulary.onrender.com/ready";
 
 interface AnalyzePayload {
   conversationId: string;
@@ -35,10 +36,19 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const wakeAnalytics = useCallback(async () => {
-    try {
-      await fetch(`${ANALYTICS_BASE_URL}${STATUS_PATH}`);
-    } catch (error) {
-      console.warn("Analytics wake-up failed", error);
+    const [analyticsWakeResult, vocabularyWakeResult] = await Promise.allSettled(
+      [
+        fetch(`${ANALYTICS_BASE_URL}${STATUS_PATH}`),
+        fetch(VOCABULARY_READY_URL),
+      ],
+    );
+
+    if (analyticsWakeResult.status === "rejected") {
+      console.warn("Analytics wake-up failed", analyticsWakeResult.reason);
+    }
+
+    if (vocabularyWakeResult.status === "rejected") {
+      console.warn("Vocabulary wake-up failed", vocabularyWakeResult.reason);
     }
   }, []);
 
