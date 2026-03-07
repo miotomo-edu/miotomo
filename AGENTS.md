@@ -11,6 +11,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 - Avatar pause/resume sends RTVI control messages (`pauseListening` with optional `reason`/`max_pause_s`, `resumeListening` on resume).
 - The browse/home experience is built from `circles_catalog` + `books`, with `dot_progress` powering the Continue row.
 - Vocabulary/Spelling games show `PreGameScreen` before gameplay; the CTA transitions into the game flow.
+- Warm-up pings run through `useAnalytics.wakeAnalytics()`: they call analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) on app start, every 45 seconds, and again on `BotReady` to reduce Render/edge cold starts.
 
 ## Build, Test, and Development Commands
 - `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport.

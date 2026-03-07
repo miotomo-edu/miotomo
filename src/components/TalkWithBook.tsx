@@ -1631,7 +1631,10 @@ export const TalkWithBook = ({
       }
       startedChatRef.current = false;
       if (shouldPreserveIntroPlayback) {
-        offerConnectFailedRef.current = true;
+        // Only mark offer as failed if we had actually requested one.
+        if (introOfferRequestedRef.current) {
+          offerConnectFailedRef.current = true;
+        }
         return;
       }
       resetIntroState();

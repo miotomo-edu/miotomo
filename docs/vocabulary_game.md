@@ -35,6 +35,12 @@ The frontend streams audio to:
 ws://localhost:8000/v1/vocab/grade?sample_rate=16000&target_word=<word>
 ```
 
+Production / remote backend:
+- `wss://miotomo-vocabulary.onrender.com/v1/vocab/grade?sample_rate=16000&target_word=<word>`
+
+Warm-up:
+- The app also pings `https://miotomo-vocabulary.onrender.com/ready` (via `useAnalytics.wakeAnalytics()`) to reduce Render cold-start latency before grading requests.
+
 Messages:
 - `type: "status", stage: "grading"` → stop mic capture, show “Grading…”.
 - `type: "transcript"` → logged only; not shown in the UI.

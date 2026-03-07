@@ -64,6 +64,7 @@ src
 4. `useConversation` (features/voice) merges bot and user utterances for display and analytics, while `VoiceBotContext` records latency and behind-the-scenes events.
 5. When Pipecat emits `celebration_sent`, `AnimationManager` swaps the character into its thumbs-up pose so the avatar keeps celebrating through the end of the session.
 6. Prompts can still be prototyped in `src/lib/*.md`, but the production bot prompt lives in Pipecat—document any backend updates in `AGENTS.md`.
+7. Warm-up calls run via `useAnalytics.wakeAnalytics()`: on app start and every 45 seconds (`src/components/App.jsx`), plus on `BotReady` (`src/components/TalkWithBook.tsx`). It pings analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) to reduce cold starts.
 
 ## Data & Persistence
 - Supabase tables: `students`, `books`, `conversations`, `dot_progress`. `dot_progress` tracks per-dot listening/talking status and elapsed seconds for the circle list UI.
