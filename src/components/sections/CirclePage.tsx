@@ -17,7 +17,7 @@ type CirclePageProps = {
     book: Book,
     episode: number,
     dotTitle?: string,
-    dotType?: number,
+    dotTypeSlug?: string,
   ) => void;
   onSelectCircle?: (book: Book, chapter: number) => void;
 };
@@ -25,6 +25,14 @@ type CirclePageProps = {
 type EpisodeMeta = {
   episode: number;
   title: string | null;
+};
+
+const normalizeDotTypeSlug = (value: string | null | undefined) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized === "mediaton") return "mediation";
+  return normalized;
 };
 
 const normalizeTag = (value: string) =>
@@ -65,9 +73,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const [typeNamesByEpisode, setTypeNamesByEpisode] = useState<
     Record<number, string>
   >({});
-  const [typeIdsByEpisode, setTypeIdsByEpisode] = useState<Record<number, number>>(
-    {},
-  );
+  const [typeSlugsByEpisode, setTypeSlugsByEpisode] = useState<
+    Record<number, string>
+  >({});
   const [episodeNumbersFromDots, setEpisodeNumbersFromDots] = useState<
     number[]
   >([]);
@@ -113,7 +121,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
       setDurationsByEpisode({});
       setLevelsByEpisode({});
       setTypeNamesByEpisode({});
-      setTypeIdsByEpisode({});
+      setTypeSlugsByEpisode({});
       setEpisodeNumbersFromDots([]);
       setDotStatusByEpisode({});
       try {
@@ -155,7 +163,6 @@ const CirclePage: React.FC<CirclePageProps> = ({
         const titleMap: Record<number, string> = {};
         const durationMap: Record<number, number> = {};
         const levelMap: Record<number, number> = {};
-        const typeIdMap: Record<number, number> = {};
         const typeIds = new Set();
 
         episodeEntries.forEach((row, episodeNumber) => {
@@ -177,15 +184,15 @@ const CirclePage: React.FC<CirclePageProps> = ({
           const typeId = Number(row.type);
           if (Number.isFinite(typeId) && typeId > 0) {
             typeIds.add(typeId);
-            typeIdMap[episodeNumber] = typeId;
           }
         });
 
         const typeNameMap: Record<number, string> = {};
+        const typeSlugMap: Record<number, string> = {};
         if (typeIds.size > 0) {
           const { data: typeData, error: typeError } = await supabase
             .from("dots_type")
-            .select("id, name")
+            .select("id, name, slug")
             .in("id", Array.from(typeIds));
           if (typeError) {
             console.warn("Failed to load dots type names:", typeError);
@@ -197,11 +204,18 @@ const CirclePage: React.FC<CirclePageProps> = ({
               const name = row.name.trim();
               if (name.length === 0) return;
               typeNameMap[idValue] = name;
+              if (typeof row.slug === "string") {
+                const slug = normalizeDotTypeSlug(row.slug);
+                if (slug) {
+                  typeSlugMap[idValue] = slug;
+                }
+              }
             });
           }
         }
 
         const typeByEpisode: Record<number, string> = {};
+        const typeSlugByEpisode: Record<number, string> = {};
         episodeEntries.forEach((row, episodeNumber) => {
           const typeId = Number(row.type);
           if (!Number.isFinite(typeId) || typeId <= 0) return;
@@ -209,13 +223,17 @@ const CirclePage: React.FC<CirclePageProps> = ({
           if (name) {
             typeByEpisode[episodeNumber] = name;
           }
+          const slug = typeSlugMap[typeId];
+          if (slug) {
+            typeSlugByEpisode[episodeNumber] = slug;
+          }
         });
 
         setTitlesByEpisode(titleMap);
         setDurationsByEpisode(durationMap);
         setLevelsByEpisode(levelMap);
         setTypeNamesByEpisode(typeByEpisode);
-        setTypeIdsByEpisode(typeIdMap);
+        setTypeSlugsByEpisode(typeSlugByEpisode);
         setEpisodeNumbersFromDots(
           Array.from(episodeEntries.keys()).sort((a, b) => a - b),
         );
@@ -364,10 +382,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
       });
     }
     const resolvedTitle = titlesByEpisode[episode] ?? "";
-    const rawType = typeIdsByEpisode[episode];
-    const resolvedType =
-      Number.isFinite(rawType) && rawType > 0 ? rawType : undefined;
-    onPlayEpisode(book, episode, resolvedTitle || undefined, resolvedType);
+    const resolvedTypeSlug = typeSlugsByEpisode[episode] ?? undefined;
+    onPlayEpisode(book, episode, resolvedTitle || undefined, resolvedTypeSlug);
   };
 
   const formatDuration = (value: number) => {

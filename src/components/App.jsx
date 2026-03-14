@@ -28,13 +28,21 @@ import { characterData } from "../lib/characters";
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
 
+const normalizeDotTypeSlug = (value) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized === "mediaton") return "mediation";
+  return normalized;
+};
+
 const App = ({ transportType, region = "" }) => {
   const [activeComponent, setActiveComponent] = useState("landing");
   const prevActiveComponent = useRef(activeComponent);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [selectedDotTitle, setSelectedDotTitle] = useState("");
-  const [selectedDotType, setSelectedDotType] = useState(null);
+  const [selectedDotTypeSlug, setSelectedDotTypeSlug] = useState(null);
   const mainRef = useRef(null);
   const scrollPositionsRef = useRef({});
   const [userName, setUserName] = useState("");
@@ -168,7 +176,7 @@ const App = ({ transportType, region = "" }) => {
       }
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
-      setSelectedDotType(null);
+      setSelectedDotTypeSlug(null);
       setCircleReturnComponent(activeComponent);
       setActiveComponent("circle");
     },
@@ -176,18 +184,13 @@ const App = ({ transportType, region = "" }) => {
   );
 
   const handlePlayEpisode = useCallback(
-    (book, chapterValue, dotTitle, dotType) => {
+    (book, chapterValue, dotTitle, dotTypeSlug) => {
       if (!book) return;
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
       setSelectedDotTitle(typeof dotTitle === "string" ? dotTitle : "");
-      const numericDotType = Number(dotType);
-      setSelectedDotType(
-        Number.isFinite(numericDotType) && numericDotType > 0
-          ? numericDotType
-          : null,
-      );
+      setSelectedDotTypeSlug(normalizeDotTypeSlug(dotTypeSlug));
       if (!currentCharacter) {
         const defaultCharacter =
           characterData.find((character) => !character.disabled) ??
@@ -204,11 +207,12 @@ const App = ({ transportType, region = "" }) => {
 
   const updatedBotConfig = useMemo(
     () => {
-      const forcedModeByDotType = selectedDotType === 1
-        ? "storytelling"
-        : selectedDotType === 4
-          ? "teachtime"
-          : null;
+      const forcedModeByDotType =
+        selectedDotTypeSlug === "storytelling"
+          ? "storytelling"
+          : selectedDotTypeSlug === "teachtime"
+            ? "teachtime"
+            : null;
       const characterMetadata = {
         ...(currentCharacter ?? {}),
       };
@@ -226,7 +230,7 @@ const App = ({ transportType, region = "" }) => {
           studentName: userName,
           studentId,
           region,
-          dotType: selectedDotType,
+          dotType: selectedDotTypeSlug,
           character: characterMetadata,
         },
       };
@@ -238,7 +242,7 @@ const App = ({ transportType, region = "" }) => {
       userName,
       studentId,
       region,
-      selectedDotType,
+      selectedDotTypeSlug,
       transportType,
     ],
   );
@@ -246,7 +250,7 @@ const App = ({ transportType, region = "" }) => {
   const handleBookAndCharacterSelect = (book, character) => {
     setSelectedBook(book);
     setCurrentCharacter(character);
-    setSelectedDotType(null);
+    setSelectedDotTypeSlug(null);
     setActiveComponent("interactive");
   };
 
@@ -410,7 +414,7 @@ const App = ({ transportType, region = "" }) => {
     currentCharacter?.modalities ||
     currentCharacter?.name ||
     "none";
-  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${characterKey}:${selectedDotType || 0}`;
+  const connectionKey = `${selectedBook?.id || "none"}:${selectedChapter || 0}:${characterKey}:${selectedDotTypeSlug || "none"}`;
 
   const appShellStyle = characterAccent
     ? {
