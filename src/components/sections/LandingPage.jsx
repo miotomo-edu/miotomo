@@ -206,7 +206,7 @@ function LandingPage({ onContinue }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen flex flex-col justify-between items-start text-left px-6 bg-black text-white"
+      className="relative flex h-screen flex-col items-start justify-between bg-black px-6 text-left text-white"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -255,6 +255,7 @@ function LandingPage({ onContinue }) {
           height: gradientHeight ? `${gradientHeight}px` : "11vh",
         }}
       />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[42%] bg-gradient-to-t from-black via-black/85 to-transparent" />
       {/* Fixed bottom content */}
       <div
         key={`content-${transitionKey}`}
@@ -262,8 +263,7 @@ function LandingPage({ onContinue }) {
       >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
         <p
-          className="text-4xl font-bold text-white/80 max-w-sm mb-8 md:max-w-xl"
-          style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}
+          className="mb-8 max-w-sm text-4xl font-bold text-white md:max-w-xl"
         >
           {text}
         </p>

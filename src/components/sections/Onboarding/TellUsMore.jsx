@@ -10,73 +10,18 @@ function TellUsMore({ onBack, onFinish }) {
     city: "",
     country: "",
   });
-  const [imageHeight, setImageHeight] = useState(null);
-  const containerRef = useRef(null);
-
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  useEffect(() => {
-    let isActive = true;
-    const img = new Image();
-
-    const updateHeight = () => {
-      if (!containerRef.current || !img.naturalWidth) {
-        return;
-      }
-      const width = containerRef.current.clientWidth;
-      const containerHeight = containerRef.current.clientHeight;
-      const ratio = img.naturalHeight / img.naturalWidth;
-      const height = Math.min(containerHeight, width * ratio);
-
-      if (isActive) {
-        setImageHeight(height);
-      }
-    };
-
-    img.onload = updateHeight;
-    img.src = createAccountImage;
-
-    if (img.complete) {
-      updateHeight();
-    }
-
-    window.addEventListener("resize", updateHeight);
-    return () => {
-      isActive = false;
-      window.removeEventListener("resize", updateHeight);
-    };
-  }, []);
-
-  const gradientRatio =
-    typeof window !== "undefined" && window.innerHeight <= 700 ? 0.4 : 0.2;
-  const gradientHeight = imageHeight
-    ? Math.max(0, imageHeight * gradientRatio)
-    : null;
-  const gradientTop = imageHeight
-    ? Math.max(0, imageHeight - gradientHeight)
-    : null;
-
   return (
-    <div
-      ref={containerRef}
-      className="relative flex h-full min-h-full w-full flex-col px-6 text-left text-white"
-    >
+    <div className="relative flex h-full min-h-full w-full flex-col bg-white px-6 text-left text-white">
       <div
-        className="absolute inset-x-0 top-0 bg-black"
+        className="absolute inset-0 bg-white"
         style={{
-          height: imageHeight ? `${imageHeight}px` : "55vh",
           backgroundImage: `url(${createAccountImage})`,
           backgroundRepeat: "no-repeat",
-          backgroundSize: "100% auto",
-          backgroundPosition: "top center",
-        }}
-      />
-      <div
-        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
-        style={{
-          top: gradientTop ? `${gradientTop}px` : "44vh",
-          height: gradientHeight ? `${gradientHeight}px` : "11vh",
+          backgroundSize: "auto 100%",
+          backgroundPosition: "right center",
         }}
       />
       <button
@@ -102,138 +47,137 @@ function TellUsMore({ onBack, onFinish }) {
         </svg>
       </button>
       <div className="relative z-10 mx-auto mt-auto w-full max-w-sm pt-[60vh] pb-10 text-left md:pt-0">
-        <h1
-          className="text-2xl font-bold mb-6"
-          style={{ textShadow: "0 4px 12px rgba(0,0,0,0.9)" }}
-        >
-          Tell us about your child
-        </h1>
+        <div className="rounded-[2rem] bg-black/55 px-5 py-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-[2px]">
+          <h1 className="mb-6 text-2xl font-bold text-white">
+            Tell us about your child
+          </h1>
 
-        <div className="space-y-4">
+          <div className="space-y-4">
           {/* Child Name */}
-          <div>
-            <label className="block text-xs font-light mb-1 text-white/70">
-              Child's Name
-            </label>
-            <input
-              name="name"
-              placeholder="First name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full rounded-xl border-2 border-black bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
-            />
-          </div>
+            <div>
+              <label className="mb-1 block text-xs font-light text-white/80">
+                Child's Name
+              </label>
+              <input
+                name="name"
+                placeholder="First name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full rounded-xl border-2 border-black bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+              />
+            </div>
           {/* Age */}
-          <div className="relative">
-            <label className="block text-xs font-light mb-1 text-white/70">
-              Age
-            </label>
-            <select
-              name="age"
-              value={form.age}
-              onChange={handleChange}
-              className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
-            >
-              <option value="">Select age</option>
-              {[6, 7, 8, 9, 10, 11, 12].map((age) => (
-                <option key={age} value={age}>
-                  {age}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <label className="mb-1 block text-xs font-light text-white/80">
+                Age
+              </label>
+              <select
+                name="age"
+                value={form.age}
+                onChange={handleChange}
+                className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+              >
+                <option value="">Select age</option>
+                {[6, 7, 8, 9, 10, 11, 12].map((age) => (
+                  <option key={age} value={age}>
+                    {age}
+                  </option>
+                ))}
+              </select>
 
-            {/* outlined V arrow */}
-            <svg
-              className="absolute right-4 top-[46px] w-3 h-3 pointer-events-none"
-              viewBox="0 0 12 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1 1L6 6L11 1"
-                stroke="black"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+              {/* outlined V arrow */}
+              <svg
+                className="absolute right-4 top-[46px] h-3 w-3 pointer-events-none"
+                viewBox="0 0 12 8"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 1L6 6L11 1"
+                  stroke="black"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           {/* Year */}
-          <div className="relative">
-            <label className="block text-xs font-light mb-1 text-white/70">
-              Level of English
-            </label>
-            <select
-              name="year"
-              value={form.year}
-              onChange={handleChange}
-              className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
-            >
-              <option value="">Grade</option>
-              {[1, 2, 3, 4, 5, 6].map((y) => (
-                <option key={y} value={y}>
-                  Year {y}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <label className="mb-1 block text-xs font-light text-white/80">
+                Level of English
+              </label>
+              <select
+                name="year"
+                value={form.year}
+                onChange={handleChange}
+                className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+              >
+                <option value="">Grade</option>
+                {[1, 2, 3, 4, 5, 6].map((y) => (
+                  <option key={y} value={y}>
+                    Year {y}
+                  </option>
+                ))}
+              </select>
 
-            <svg
-              className="absolute right-4 top-[46px] w-3 h-3 pointer-events-none"
-              viewBox="0 0 12 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1 1L6 6L11 1"
-                stroke="black"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+              <svg
+                className="absolute right-4 top-[46px] h-3 w-3 pointer-events-none"
+                viewBox="0 0 12 8"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 1L6 6L11 1"
+                  stroke="black"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           {/* Country */}
-          <div className="relative">
-            <label className="block text-xs font-light mb-1 text-white/70">
-              Country
-            </label>
-            <select
-              name="country"
-              value={form.country}
-              onChange={handleChange}
-              className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
-            >
-              <option value="">Select country</option>
-              <option value="Italy">Italy</option>
-              <option value="UK">UK</option>
-              <option value="India">India</option>
-              <option value="Other">Other</option>
-            </select>
+            <div className="relative">
+              <label className="mb-1 block text-xs font-light text-white/80">
+                Country
+              </label>
+              <select
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+                className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+              >
+                <option value="">Select country</option>
+                <option value="Italy">Italy</option>
+                <option value="UK">UK</option>
+                <option value="India">India</option>
+                <option value="Other">Other</option>
+              </select>
 
-            <svg
-              className="absolute right-4 top-[46px] w-3 h-3 pointer-events-none"
-              viewBox="0 0 12 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1 1L6 6L11 1"
-                stroke="black"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+              <svg
+                className="absolute right-4 top-[46px] h-3 w-3 pointer-events-none"
+                viewBox="0 0 12 8"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 1L6 6L11 1"
+                  stroke="black"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           </div>
-        </div>
 
-        {/* Finish Button */}
-        <button
-          onClick={onFinish}
-          className="mt-8 w-full rounded-full bg-white py-4 text-lg font-semibold text-black"
-        >
-          Finish
-        </button>
+          {/* Finish Button */}
+          <button
+            onClick={onFinish}
+            className="mt-8 w-full rounded-full bg-white py-4 text-lg font-semibold text-black"
+          >
+            Finish
+          </button>
+        </div>
       </div>
     </div>
   );
