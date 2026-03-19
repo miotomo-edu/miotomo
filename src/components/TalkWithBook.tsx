@@ -10,8 +10,10 @@ import AnimationManager from "./layout/AnimationManager";
 import VocabularyPanel from "./features/modality/VocabularyPanel";
 import SpellingPanel from "./features/modality/SpellingPanel";
 import BotAudio from "./audio/BotAudio";
-import listenBackground from "../assets/img/discussion/landscape/listen.png";
-import talkBackground from "../assets/img/discussion/landscape/talk.png";
+import portraitListenBackground from "../assets/img/discussion/listen.png";
+import portraitTalkBackground from "../assets/img/discussion/talk.png";
+import landscapeListenBackground from "../assets/img/discussion/landscape/listen.png";
+import landscapeTalkBackground from "../assets/img/discussion/landscape/talk.png";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -1961,15 +1963,29 @@ export const TalkWithBook = ({
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
+  const [isLandscapeDiscussion, setIsLandscapeDiscussion] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth > window.innerHeight;
+  });
   const isListenMode =
     sessionPhase === "intro_loading" ||
     sessionPhase === "intro_playing" ||
     sessionPhase === "intro_paused";
-  const backgroundImage = isListenMode ? listenBackground : talkBackground;
+  const backgroundImage = isListenMode
+    ? isLandscapeDiscussion
+      ? landscapeListenBackground
+      : portraitListenBackground
+    : isLandscapeDiscussion
+      ? landscapeTalkBackground
+      : portraitTalkBackground;
   const [backgroundHeight, setBackgroundHeight] = useState(null);
   const backgroundRef = useRef(null);
 
   useEffect(() => {
+    const updateOrientation = () => {
+      setIsLandscapeDiscussion(window.innerWidth > window.innerHeight);
+    };
+
     const updateHeight = () => {
       if (!backgroundRef.current) {
         return;
@@ -1978,10 +1994,15 @@ export const TalkWithBook = ({
       setBackgroundHeight(containerHeight);
     };
 
+    window.addEventListener("resize", updateOrientation);
     window.addEventListener("resize", updateHeight);
+    window.addEventListener("orientationchange", updateOrientation);
+    updateOrientation();
     updateHeight();
     return () => {
+      window.removeEventListener("resize", updateOrientation);
       window.removeEventListener("resize", updateHeight);
+      window.removeEventListener("orientationchange", updateOrientation);
     };
   }, [backgroundImage]);
 

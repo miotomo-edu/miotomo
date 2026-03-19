@@ -2,6 +2,54 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 
+const NO_ROWS_ERROR_CODE = "PGRST116";
+
+const fetchLatestPreviousProgress = async (conversationId: string) => {
+  const [{ data: metricsRows, error: metricsRowsErr }, { data: utteranceRows, error: utteranceRowsErr }] =
+    await Promise.all([
+      supabase
+        .from("metrics")
+        .select("*")
+        .neq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("utterances")
+        .select("*")
+        .neq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
+
+  if (metricsRowsErr) throw metricsRowsErr;
+  if (utteranceRowsErr) throw utteranceRowsErr;
+
+  const metricsByConversation = new Map(
+    (metricsRows ?? [])
+      .filter((row) => row?.conversation_id)
+      .map((row) => [row.conversation_id, row]),
+  );
+  const utterancesByConversation = new Map(
+    (utteranceRows ?? [])
+      .filter((row) => row?.conversation_id)
+      .map((row) => [row.conversation_id, row]),
+  );
+
+  const fallbackConversationId = (metricsRows ?? []).find(
+    (row) =>
+      row?.conversation_id && utterancesByConversation.has(row.conversation_id),
+  )?.conversation_id;
+
+  if (!fallbackConversationId) {
+    return null;
+  }
+
+  return {
+    metrics: metricsByConversation.get(fallbackConversationId) ?? null,
+    utterances: utterancesByConversation.get(fallbackConversationId) ?? null,
+  };
+};
+
 export function useProgress(conversationId: string) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -20,20 +68,38 @@ export function useProgress(conversationId: string) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: metrics, error: metricsErr } = await supabase
-          .from("metrics")
-          .select("*")
-          .eq("conversation_id", conversationId)
-          .single();
+        const [{ data: metrics, error: metricsErr }, { data: utterances, error: uttErr }] =
+          await Promise.all([
+            supabase
+              .from("metrics")
+              .select("*")
+              .eq("conversation_id", conversationId)
+              .maybeSingle(),
+            supabase
+              .from("utterances")
+              .select("*")
+              .eq("conversation_id", conversationId)
+              .maybeSingle(),
+          ]);
 
-        const { data: utterances, error: uttErr } = await supabase
-          .from("utterances")
-          .select("*")
-          .eq("conversation_id", conversationId)
-          .single();
+        if (metricsErr && metricsErr.code !== NO_ROWS_ERROR_CODE) throw metricsErr;
+        if (uttErr && uttErr.code !== NO_ROWS_ERROR_CODE) throw uttErr;
 
-        if (metricsErr) throw metricsErr;
-        if (uttErr) throw uttErr;
+        if (!metrics || !utterances) {
+          const fallback = await fetchLatestPreviousProgress(conversationId);
+          if (fallback?.metrics && fallback?.utterances) {
+            if (isMounted) {
+              setStatus({
+                metrics: fallback.metrics.status ?? "done",
+                utterances: fallback.utterances.status ?? "done",
+              });
+              setData(fallback);
+              setError(null);
+              setLoading(false);
+            }
+            return;
+          }
+        }
 
         const metricsStatus = metrics?.status ?? null;
         const utterancesStatus = utterances?.status ?? null;

@@ -9,7 +9,7 @@ interface WelcomeSectionProps {
 }
 
 const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
-  <section className="py-6 px-4">
+  <section className="px-4 pb-4 pt-6">
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <img
@@ -19,7 +19,9 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
         />
         <div className="ml-4 flex flex-col justify-center">
-          <h1 className="text-3xl font-bold md:text-5xl">Hi, {userName}!</h1>
+          <h1 className="text-3xl font-bold leading-none md:text-5xl">
+            Hi, {userName}!
+          </h1>
         </div>
       </div>
     </div>

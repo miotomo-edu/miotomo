@@ -61,6 +61,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   onPlayEpisode,
   onSelectCircle,
 }) => {
+  const showRecommendationSections = false;
   const [titlesByEpisode, setTitlesByEpisode] = useState<
     Record<number, string>
   >({});
@@ -807,7 +808,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             </div>
           </div>
         )}
-        {relatedItems.length > 0 && (
+        {showRecommendationSections && relatedItems.length > 0 && (
           <div className="mt-12">
             <h3 className="text-lg font-semibold text-black">
               You might also like
@@ -827,7 +828,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             </div>
           </div>
         )}
-        {differentItems.length > 0 && (
+        {showRecommendationSections && differentItems.length > 0 && (
           <div className="mt-12">
             <h3 className="text-lg font-semibold text-black">
               Try something different
