@@ -10,10 +10,6 @@ import AnimationManager from "./layout/AnimationManager";
 import VocabularyPanel from "./features/modality/VocabularyPanel";
 import SpellingPanel from "./features/modality/SpellingPanel";
 import BotAudio from "./audio/BotAudio";
-import portraitListenBackground from "../assets/img/discussion/listen.png";
-import portraitTalkBackground from "../assets/img/discussion/talk.png";
-import landscapeListenBackground from "../assets/img/discussion/landscape/listen.png";
-import landscapeTalkBackground from "../assets/img/discussion/landscape/talk.png";
 import {
   useVoiceBot,
   VoiceBotStatus,
@@ -25,6 +21,44 @@ import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { supabase } from "../hooks/integrations/supabase/client";
 import { useDotProgress } from "../hooks/useDotProgress";
+
+const discussionBackgroundAssets = import.meta.glob(
+  "../assets/img/discussion/**/*.png",
+  { eager: true, import: "default" },
+);
+
+const resolveDiscussionBackground = ({
+  bookId,
+  isTeachtime,
+  isLandscape,
+  isListenMode,
+}) => {
+  const filename = isListenMode ? "listen.png" : "talk.png";
+  const orientationPrefix = isLandscape ? "landscape/" : "";
+  const candidates = [];
+
+  if (bookId) {
+    if (isTeachtime) {
+      candidates.push(
+        `../assets/img/discussion/${bookId}/teachtime/${orientationPrefix}${filename}`,
+      );
+    }
+    candidates.push(
+      `../assets/img/discussion/${bookId}/${orientationPrefix}${filename}`,
+    );
+  }
+
+  if (isTeachtime) {
+    candidates.push(
+      `../assets/img/discussion/teachtime/${orientationPrefix}${filename}`,
+    );
+  }
+
+  candidates.push(`../assets/img/discussion/${orientationPrefix}${filename}`);
+
+  const resolvedPath = candidates.find((candidate) => candidate in discussionBackgroundAssets);
+  return resolvedPath ? discussionBackgroundAssets[resolvedPath] : "";
+};
 
 export const TalkWithBook = ({
   botConfig,
@@ -1963,6 +1997,7 @@ export const TalkWithBook = ({
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
+  const isTeachtimeDiscussion = botConfig?.metadata?.dotType === "teachtime";
   const [isLandscapeDiscussion, setIsLandscapeDiscussion] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.innerWidth > window.innerHeight;
@@ -1971,13 +2006,12 @@ export const TalkWithBook = ({
     sessionPhase === "intro_loading" ||
     sessionPhase === "intro_playing" ||
     sessionPhase === "intro_paused";
-  const backgroundImage = isListenMode
-    ? isLandscapeDiscussion
-      ? landscapeListenBackground
-      : portraitListenBackground
-    : isLandscapeDiscussion
-      ? landscapeTalkBackground
-      : portraitTalkBackground;
+  const backgroundImage = resolveDiscussionBackground({
+    bookId: selectedBook?.id,
+    isTeachtime: isTeachtimeDiscussion,
+    isLandscape: isLandscapeDiscussion,
+    isListenMode,
+  });
   const [backgroundHeight, setBackgroundHeight] = useState(null);
   const backgroundRef = useRef(null);
 
@@ -2181,11 +2215,11 @@ export const TalkWithBook = ({
           chapter={chapter}
           subtitle={dotTitle || undefined}
           useSubtitleAsTitle
+          darkBackButton
           onBack={() => {
             disconnectHere();
             onNavigate?.("circle");
           }}
-          isDark
         />
       </div>
 
