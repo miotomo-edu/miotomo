@@ -2,13 +2,15 @@ import React, { useMemo } from "react";
 import WelcomeSection from "./WelcomeSection";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import BrowseRow, { type BrowseRowItem } from "../features/browse/BrowseRow";
-import FeaturedHero from "../features/browse/FeaturedHero";
+import CategoryChips from "../features/browse/CategoryChips";
+import CurrentCircleHero from "../features/browse/CurrentCircleHero";
 import type { Book } from "./LibrarySection";
 
 type BrowsePageProps = {
   userName: string;
   studentId: string;
   onOpenCircle: (book: Book, chapter: number) => void;
+  showContinueRow?: boolean;
 };
 
 const THEME_BUCKETS = [
@@ -100,6 +102,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   userName,
   studentId,
   onOpenCircle,
+  showContinueRow = true,
 }) => {
   const { data, isLoading, error } = useBrowseCircles(studentId);
 
@@ -148,15 +151,35 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     });
   }, [enrichedCircles]);
 
+  const completedEpisodeCountByBook = useMemo(() => {
+    const counts = new Map<string, Set<number>>();
+    (data?.progressRows ?? []).forEach((row) => {
+      if (!row.book_id || row.talking_status !== "completed") return;
+      const episode = Number(row.episode ?? 0);
+      if (!Number.isFinite(episode) || episode <= 0) return;
+      const existing = counts.get(row.book_id) ?? new Set<number>();
+      existing.add(episode);
+      counts.set(row.book_id, existing);
+    });
+    return new Map(
+      Array.from(counts.entries()).map(([bookId, episodes]) => [
+        bookId,
+        episodes.size,
+      ]),
+    );
+  }, [data?.progressRows]);
+
   const completedBookIds = useMemo(() => {
     const ids = new Set<string>();
-    (data?.progressRows ?? []).forEach((row) => {
-      if (row.book_id && row.talking_status === "completed") {
-        ids.add(row.book_id);
+    enrichedCircles.forEach((entry) => {
+      const totalDots = Number(entry.circle.chapters ?? 0);
+      const completedDots = completedEpisodeCountByBook.get(entry.circle.id) ?? 0;
+      if (totalDots > 0 && completedDots >= totalDots) {
+        ids.add(entry.circle.id);
       }
     });
     return ids;
-  }, [data?.progressRows]);
+  }, [enrichedCircles, completedEpisodeCountByBook]);
 
   const completedEpisodeByBook = useMemo(() => {
     const map = new Map<string, number>();
@@ -246,60 +269,38 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     return new Set(continueItems.map((item) => item.book.id));
   }, [continueItems]);
 
-  const heroItems = useMemo(() => {
-    const seen = new Set<string>();
-    const items: {
-      book: Book;
-      badge?: string;
-      kicker?: string;
-      totalDots?: number;
-      completedDots?: number;
-      currentDot?: number;
-    }[] = [];
-    continueItems.forEach((item) => {
-      if (!item.book?.id || seen.has(item.book.id)) return;
-      seen.add(item.book.id);
-      items.push({
-        book: item.book,
-        badge: "Continue",
-        kicker: "CONTINUE THIS CIRCLE",
-        totalDots: item.totalDots,
-        completedDots: item.completedDots,
-        currentDot: item.chapter,
-      });
-    });
-    const source =
-      featuredItems.length > 0
-        ? featuredItems.map((entry) => entry.circle)
-        : enrichedCircles.slice(0, 5).map((entry) => entry.circle);
-    source.forEach((circle) => {
-      if (!circle?.id || seen.has(circle.id)) return;
-      const isContinue = continueBookIds.has(circle.id);
-      items.push({
-        book: circle,
-        badge: isContinue ? "Continue" : undefined,
-        kicker: isContinue ? "CONTINUE THIS CIRCLE" : "FEATURED CIRCLE",
-        totalDots: circle.chapters ?? 0,
-        completedDots: isContinue
-          ? (completedEpisodeByBook.get(circle.id) ?? 0)
-          : 0,
-        currentDot: isContinue ? (circle.progress ?? 1) : undefined,
-      });
-      seen.add(circle.id);
-    });
-    return items;
+  const currentCircleItem = useMemo(() => {
+    const book = featuredItems[0]?.circle ?? enrichedCircles[0]?.circle ?? null;
+    if (!book) return null;
+
+    const continueItem = continueItems.find((item) => item.book.id === book.id);
+    const isContinue = continueBookIds.has(book.id);
+
+    return {
+      book,
+      badge: undefined,
+      kicker: "CONTINUE TALKING",
+      totalDots: book.chapters ?? 0,
+      completedDots: isContinue
+        ? (completedEpisodeByBook.get(book.id) ?? 0)
+        : 0,
+      currentDot: continueItem?.chapter,
+    };
   }, [
-    continueItems,
-    continueBookIds,
     featuredItems,
     enrichedCircles,
+    continueItems,
+    continueBookIds,
     completedEpisodeByBook,
   ]);
 
   const listenAgainItems = useMemo(() => {
     const progressRows = data?.progressRows ?? [];
     const completedRows = progressRows.filter(
-      (row) => row.talking_status === "completed",
+      (row) =>
+        row.talking_status === "completed" &&
+        !!row.book_id &&
+        completedBookIds.has(row.book_id),
     );
 
     const byBook = new Map<string, (typeof completedRows)[0]>();
@@ -329,13 +330,14 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
           chapter: episode,
           badge: "REPLAY",
           totalDots: match.circle.chapters ?? 0,
-          completedDots: match.circle.chapters ?? 0,
+          completedDots:
+            completedEpisodeCountByBook.get(bookId) ?? match.circle.chapters ?? 0,
           highlightCompleted: true,
         };
         return item;
       })
       .filter(Boolean) as BrowseRowItem[];
-  }, [data?.progressRows, enrichedCircles, newBookIds]);
+  }, [data?.progressRows, enrichedCircles, completedBookIds, completedEpisodeCountByBook]);
 
   const newItems = useMemo(() => {
     return enrichedCircles
@@ -426,79 +428,88 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#fde7dd]">
+    <div className="min-h-screen">
       <div className="space-y-10 px-5 pb-24 pt-0">
         <div className="space-y-0">
           <WelcomeSection userName={userName} />
-          <FeaturedHero
-            items={heroItems}
-            kicker="FEATURED CIRCLE"
-            onSelect={(book) =>
-              onOpenCircle(book, Math.max(book.progress || 1, 1))
-            }
-          />
+          <CategoryChips />
+          {currentCircleItem ? (
+            <CurrentCircleHero
+              item={currentCircleItem}
+              onSelect={(book) =>
+                onOpenCircle(book, Math.max(book.progress || 1, 1))
+              }
+            />
+          ) : null}
         </div>
 
-        <BrowseRow
-          title="Continue talking"
-          items={continueItems}
-          emptyMessage="No circles to continue yet."
-          onSelect={(item) => onOpenCircle(item.book, item.chapter)}
-        />
-
-        <BrowseRow
-          title="New"
-          items={newItems}
-          emptyMessage="No new circles yet."
-          onSelect={(item) => onOpenCircle(item.book, item.chapter)}
-        />
-
-        <BrowseRow
-          title="Listen again"
-          items={listenAgainItems}
-          emptyMessage="No finished circles yet."
-          onSelect={(item) => onOpenCircle(item.book, item.chapter)}
-        />
-
-        {themeRows.map((row) => (
+        {showContinueRow && continueItems.length > 0 ? (
           <BrowseRow
-            key={`theme-${row.title}`}
-            title={row.title}
-            items={row.items}
-            emptyMessage="No circles here yet."
+            title="Continue talking"
+            items={continueItems}
             onSelect={(item) => onOpenCircle(item.book, item.chapter)}
           />
-        ))}
+        ) : null}
 
-        {moodRows.map((row) => (
+        {newItems.length > 0 ? (
           <BrowseRow
-            key={`mood-${row.title}`}
-            title={row.title}
-            items={row.items}
-            emptyMessage="No circles here yet."
+            title="New"
+            items={newItems}
             onSelect={(item) => onOpenCircle(item.book, item.chapter)}
           />
-        ))}
+        ) : null}
 
-        {lengthRows.map((row) => (
+        {listenAgainItems.length > 0 ? (
           <BrowseRow
-            key={`length-${row.title}`}
-            title={row.title}
-            items={row.items}
-            emptyMessage="No circles here yet."
+            title="Listen again"
+            items={listenAgainItems}
             onSelect={(item) => onOpenCircle(item.book, item.chapter)}
           />
-        ))}
+        ) : null}
 
-        {domainRows.map((row) => (
-          <BrowseRow
-            key={`domain-${row.title}`}
-            title={row.title}
-            items={row.items}
-            emptyMessage="No circles here yet."
-            onSelect={(item) => onOpenCircle(item.book, item.chapter)}
-          />
-        ))}
+        {themeRows
+          .filter((row) => row.items.length > 0)
+          .map((row) => (
+            <BrowseRow
+              key={`theme-${row.title}`}
+              title={row.title}
+              items={row.items}
+              onSelect={(item) => onOpenCircle(item.book, item.chapter)}
+            />
+          ))}
+
+        {moodRows
+          .filter((row) => row.items.length > 0)
+          .map((row) => (
+            <BrowseRow
+              key={`mood-${row.title}`}
+              title={row.title}
+              items={row.items}
+              onSelect={(item) => onOpenCircle(item.book, item.chapter)}
+            />
+          ))}
+
+        {lengthRows
+          .filter((row) => row.items.length > 0)
+          .map((row) => (
+            <BrowseRow
+              key={`length-${row.title}`}
+              title={row.title}
+              items={row.items}
+              onSelect={(item) => onOpenCircle(item.book, item.chapter)}
+            />
+          ))}
+
+        {domainRows
+          .filter((row) => row.items.length > 0)
+          .map((row) => (
+            <BrowseRow
+              key={`domain-${row.title}`}
+              title={row.title}
+              items={row.items}
+              onSelect={(item) => onOpenCircle(item.book, item.chapter)}
+            />
+          ))}
       </div>
     </div>
   );

@@ -61,7 +61,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
         {typeof totalDots === "number" && totalDots > 0 ? (
           <div className="my-3 flex flex-wrap gap-1 md:gap-1.5">
             {Array.from({ length: totalDots }).map((_, index) => {
-              const isFilled = highlightCompleted && index < completedDots;
+              const isFilled = index < completedDots;
               const isPausedDot =
                 typeof pausedDotIndex === "number" &&
                 pausedDotIndex > 0 &&
@@ -72,8 +72,8 @@ const CircleCard: React.FC<CircleCardProps> = ({
                   key={`${book.id}-dot-${index}`}
                   className={`h-2.5 w-2.5 rounded-full md:h-3.5 md:w-3.5 ${
                     isPausedDot
-                      ? "border-2 border-black"
-                      : "border border-black/30"
+                      ? "border-[2.5px] border-black"
+                      : "border-2 border-black/40"
                   } ${isFilled ? "bg-black" : "bg-transparent"}`}
                 />
               );

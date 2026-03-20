@@ -9,6 +9,7 @@ type BookTitleProps = {
   useSubtitleAsTitle?: boolean;
   onBack?: () => void;
   isDark?: boolean;
+  darkBackButton?: boolean;
 };
 
 const BookTitle = ({
@@ -18,6 +19,7 @@ const BookTitle = ({
   useSubtitleAsTitle = false,
   onBack,
   isDark = false,
+  darkBackButton = false,
 }: BookTitleProps) => (
   <div
     className={`w-full px-6 py-4 flex items-start ${
@@ -30,6 +32,8 @@ const BookTitle = ({
       className={`w-10 h-10 flex items-center justify-center mr-8 mt-1 rounded-full transition-colors duration-200 ease-in-out md:w-14 md:h-14 md:mr-10 ${
         isDark
           ? "bg-white/10 hover:bg-white/20"
+          : darkBackButton
+            ? "bg-black hover:bg-black/85"
           : "hover:bg-gray-200 hover:text-blue-600"
       }`}
       aria-label="Back"
@@ -47,7 +51,7 @@ const BookTitle = ({
       >
         <path
           d="M15.8327 10L4.16602 10.0003L9.99935 4.16699L4.16602 10.0003L9.99935 15.8337"
-          stroke={isDark ? "white" : "black"}
+          stroke={isDark || darkBackButton ? "white" : "black"}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"

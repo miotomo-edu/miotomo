@@ -27,6 +27,68 @@ type EpisodeMeta = {
   title: string | null;
 };
 
+type NextDotCardProps = {
+  episode: number;
+  title: string;
+  typeName?: string;
+  durationLabel?: string;
+  onPlay: () => void;
+};
+
+const NextDotCard: React.FC<NextDotCardProps> = ({
+  episode,
+  title,
+  typeName,
+  durationLabel,
+  onPlay,
+}) => (
+  <section className="relative mb-8 overflow-hidden rounded-[28px] bg-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+    <div className="px-5 pb-4 pt-5 pr-32 md:px-7 md:pb-5 md:pt-6 md:pr-40">
+      <div className="flex items-center gap-3 text-xl font-medium md:text-2xl">
+        <span className="text-xl md:text-xl" aria-hidden="true">
+          ★
+        </span>
+        <span>Today&apos;s Mission</span>
+      </div>
+      <div className="mt-5 flex items-center gap-4">
+        <div className="flex min-w-0 items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-black md:h-14 md:w-14 md:text-2xl">
+            {episode}
+          </div>
+          <div className="min-w-0">
+            <div className="text-3xl font-bold leading-[0.95] tracking-[-0.03em] md:text-4xl">
+              {title}
+            </div>
+            {typeName ? (
+              <div className="mt-2 text-lg font-medium md:text-2xl">
+                {typeName}
+              </div>
+            ) : null}
+            {durationLabel ? (
+              <div className="mt-1 text-lg md:text-2xl">{durationLabel}</div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+    <button
+      type="button"
+      onClick={onPlay}
+      aria-label={`Play ${title}`}
+      className="absolute right-5 top-1/2 flex h-20 w-20 -translate-y-1/2 items-center justify-center rounded-full bg-[#f25a57] text-white shadow-[0_0_0_8px_rgba(242,90,87,0.22)] transition hover:scale-[1.02] md:right-7 md:h-28 md:w-28"
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 16 16"
+        className="ml-1 h-9 w-9 md:h-12 md:w-12"
+        fill="currentColor"
+      >
+        <path d="M4 2.5v11l9-5.5-9-5.5z" />
+      </svg>
+    </button>
+  </section>
+);
+
 const normalizeDotTypeSlug = (value: string | null | undefined) => {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
@@ -61,6 +123,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   onPlayEpisode,
   onSelectCircle,
 }) => {
+  const showRecommendationSections = false;
   const [titlesByEpisode, setTitlesByEpisode] = useState<
     Record<number, string>
   >({});
@@ -373,6 +436,14 @@ const CirclePage: React.FC<CirclePageProps> = ({
     [episodes, dotStatusByEpisode],
   );
 
+  const nextEpisode = useMemo(() => {
+    const firstIncomplete = episodes.find(
+      (episode) =>
+        dotStatusByEpisode[episode.episode]?.talking_status !== "completed",
+    );
+    return firstIncomplete ?? episodes[0] ?? null;
+  }, [episodes, dotStatusByEpisode]);
+
   const handlePlay = (episode: number) => {
     if (studentId && book?.id) {
       updateBookProgress({
@@ -586,53 +657,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
       return `Talking ${talking.replace("_", " ")}`;
     }
     if (listening && listening !== "not_started") {
-      const listenedSeconds =
-        typeof status.elapsed_listening_seconds === "number"
-          ? Math.max(status.elapsed_listening_seconds, 0)
-          : 0;
-      const durationSeconds =
-        typeof durationsByEpisode[episode] === "number"
-          ? durationsByEpisode[episode]
-          : null;
-      if (listening === "paused" || listening === "in_progress") {
-        if (durationSeconds && durationSeconds > 0) {
-          const remaining = Math.max(
-            0,
-            Math.ceil(durationSeconds - listenedSeconds),
-          );
-          return `Listening paused · remaining ${formatDuration(remaining)}`;
-        }
-        return `Listening paused · ${formatDuration(listenedSeconds)}`;
-      }
       return `Listening ${listening.replace("_", " ")}`;
     }
     return "Not started";
   };
-
-  const getComplexityStyle = useCallback((level: number | null) => {
-    if (level === 1) {
-      return {
-        line: "bg-green-500",
-        border: "border-green-500",
-      };
-    }
-    if (level === 2) {
-      return {
-        line: "bg-yellow-500",
-        border: "border-yellow-500",
-      };
-    }
-    if (level === 3) {
-      return {
-        line: "bg-red-500",
-        border: "border-red-500",
-      };
-    }
-    return {
-      line: "bg-black/40",
-      border: "border-black/40",
-    };
-  }, []);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-library">
@@ -709,41 +737,72 @@ const CirclePage: React.FC<CirclePageProps> = ({
             No episodes available yet.
           </div>
         )}
+        {nextEpisode ? (
+          <NextDotCard
+            episode={nextEpisode.episode}
+            title={nextEpisode.title || `Dot ${nextEpisode.episode}`}
+            typeName={typeNamesByEpisode[nextEpisode.episode] || undefined}
+            durationLabel={
+              (() => {
+                const typeSlug = typeSlugsByEpisode[nextEpisode.episode];
+                const durationValue = durationsByEpisode[nextEpisode.episode];
+                if (typeSlug === "teachtime") {
+                  return undefined;
+                }
+                return Number.isFinite(durationValue) && durationValue > 0
+                  ? formatDuration(durationValue)
+                  : undefined;
+              })()
+            }
+            onPlay={() => handlePlay(nextEpisode.episode)}
+          />
+        ) : null}
         <div className="mt-4 flex flex-col">
           {episodes.map((episode, index) => {
             const title = episode.title || `Dot ${episode.episode}`;
             const typeName = typeNamesByEpisode[episode.episode] || "";
+            const typeSlug = typeSlugsByEpisode[episode.episode] || "";
             const durationValue = durationsByEpisode[episode.episode];
+            const durationLabel =
+              typeSlug !== "teachtime" &&
+              Number.isFinite(durationValue) &&
+              durationValue > 0
+                ? formatDuration(durationValue)
+                : null;
             const progressStatus = dotStatusByEpisode[episode.episode];
+            const isCompleted = progressStatus?.talking_status === "completed";
+            const isCurrent = nextEpisode?.episode === episode.episode;
             const hasStarted =
               (progressStatus?.listening_status &&
                 progressStatus.listening_status !== "not_started") ||
               (progressStatus?.talking_status &&
                 progressStatus.talking_status !== "not_started");
-            const playLabel = hasStarted ? "Resume" : "Play";
-            const levelValue = Number(levelsByEpisode[episode.episode]);
-            const complexityStyle = getComplexityStyle(
-              Number.isFinite(levelValue) ? levelValue : null,
-            );
+            const showRowButton = isCompleted;
+            const playLabel = isCompleted
+              ? "Listen again"
+              : hasStarted
+                ? "Resume"
+                : "Play";
+            const dotCircleClass = isCompleted
+              ? "border-[#f25a57] bg-[#f25a57] text-white"
+              : "border-black bg-white text-black";
             return (
               <React.Fragment key={episode.episode}>
                 <div className="flex w-full min-h-[88px] items-start justify-between px-1 py-0 md:min-h-[120px]">
                   <div className="flex items-start gap-4">
-                    <div className="relative flex w-8 shrink-0 flex-col items-center self-stretch md:w-12">
-                      <span
-                        className={`flex-1 w-[2px] ${complexityStyle.line} ${index === 0 ? "opacity-0" : "opacity-100"}`}
-                      />
+                    <div className="flex w-8 shrink-0 flex-col items-center pt-4 md:w-12 md:pt-6">
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${complexityStyle.border} bg-white text-sm font-semibold text-black aspect-square md:h-12 md:w-12 md:text-lg`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold aspect-square md:h-12 md:w-12 md:text-lg ${dotCircleClass}`}
                       >
                         {episode.episode}
                       </div>
-                      <span
-                        className={`flex-1 w-[2px] ${complexityStyle.line} ${index === episodes.length - 1 ? "opacity-0" : "opacity-100"}`}
-                      />
                     </div>
                     <div className="py-4 md:py-6">
-                      <div className="text-base font-semibold text-black md:text-2xl">
+                      <div
+                        className={`text-base font-semibold md:text-2xl ${
+                          isCurrent ? "text-black/80" : "text-black"
+                        }`}
+                      >
                         {title}
                       </div>
                       {typeName && (
@@ -751,32 +810,40 @@ const CirclePage: React.FC<CirclePageProps> = ({
                           {typeName}
                         </div>
                       )}
-                      {Number.isFinite(durationValue) && durationValue > 0 && (
+                      {durationLabel ? (
                         <div className="text-sm text-gray-600 md:text-lg">
-                          {formatDuration(durationValue)}
+                          {durationLabel}
                         </div>
-                      )}
-                      <div className="text-sm text-gray-500 md:text-lg">
-                        {formatStatus(episode.episode)}
-                      </div>
-                      <div className="mt-3">
-                        <button
-                          type="button"
-                          onClick={() => handlePlay(episode.episode)}
-                          disabled={isUpdating}
-                          className="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800 hover:bg-gray-300 disabled:cursor-not-allowed md:px-5 md:py-2 md:text-lg"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 16 16"
-                            className="h-4 w-4 md:h-5 md:w-5"
-                            fill="currentColor"
+                      ) : null}
+                      {isCompleted ? (
+                        <div className="text-sm font-semibold text-green-600 md:text-lg">
+                          Completed
+                        </div>
+                      ) : isCurrent ? (
+                        <div className="text-sm font-semibold text-black/55 md:text-lg">
+                          Current mission
+                        </div>
+                      ) : null}
+                      {showRowButton ? (
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={() => handlePlay(episode.episode)}
+                            disabled={isUpdating}
+                            className="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800 hover:bg-gray-300 disabled:cursor-not-allowed md:px-5 md:py-2 md:text-lg"
                           >
-                            <path d="M4 2.5v11l9-5.5-9-5.5z" />
-                          </svg>
-                          {playLabel}
-                        </button>
-                      </div>
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 16 16"
+                              className="h-4 w-4 md:h-5 md:w-5"
+                              fill="currentColor"
+                            >
+                              <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                            </svg>
+                            {playLabel}
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex items-center gap-3" />
@@ -807,7 +874,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             </div>
           </div>
         )}
-        {relatedItems.length > 0 && (
+        {showRecommendationSections && relatedItems.length > 0 && (
           <div className="mt-12">
             <h3 className="text-lg font-semibold text-black">
               You might also like
@@ -827,7 +894,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             </div>
           </div>
         )}
-        {differentItems.length > 0 && (
+        {showRecommendationSections && differentItems.length > 0 && (
           <div className="mt-12">
             <h3 className="text-lg font-semibold text-black">
               Try something different

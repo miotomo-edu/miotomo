@@ -18,6 +18,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
       userName={userName}
       studentId={studentId}
       onOpenCircle={onOpenCircle}
+      showContinueRow={false}
     />
   );
 };
