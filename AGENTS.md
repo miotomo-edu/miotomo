@@ -4,6 +4,7 @@
 Miotomo is a Vite + React voice companion. Static assets stay in `public/`; builds land in `dist/`. Within `src/`, UI lives in `components/` (voice transports under `components/features/voice`, circle pages under `components/sections/`), prompts plus Deepgram/Pipecat constants live in `lib/`, shared state in `context/`, reusable hooks in `hooks/`, Tailwind entry points in `styles/`, helpers in `utils/`, and media under `assets/img`. Pipecat now owns the production prompt—keep experiments or handoff drafts in `src/lib/` and document variants at the top of each file.
 
 ### Voice & Flow Notes
+- `skipOnboarding=1` (or `true`) in the URL opens the app directly on Library; default startup still shows Landing + Onboarding.
 - After a reader taps a book anywhere in the Library/Home experience, open the circle page with the episode list; Play goes directly to the chat for the chosen episode.
 - When Pipecat sends `celebration_sent`, the character avatar swaps to its thumbs-up art; only emit that event when the celebration should persist through the rest of the session.
 - Dot completion and phase status live in `dot_progress` (listening/talking statuses + elapsed seconds) and are updated by the frontend during intro/chat.
@@ -14,7 +15,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 - Warm-up pings run through `useAnalytics.wakeAnalytics()`: they call analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) on app start, every 45 seconds, and again on `BotReady` to reduce Render/edge cold starts.
 
 ## Build, Test, and Development Commands
-- `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport.
+- `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport and `?skipOnboarding=1` to jump straight to Library for QA.
 - `npm run build` – Produce the optimized bundle in `dist/`; this must succeed before a PR leaves draft.
 - `npm run preview` – Serve the built assets locally to smoke-test WebRTC flows.
 - `npm run lint` – Run ESLint over `ts,tsx`; fix or explain all findings.
