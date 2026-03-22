@@ -32,6 +32,12 @@ type DotProgressRow = {
   last_active_at?: string | null;
 };
 
+type CircleDotRow = {
+  circle_id?: string | null;
+  episode?: number | null;
+  title?: string | null;
+};
+
 export type BrowseCircle = LocalBook & {
   catalog?: CatalogRow | null;
 };
@@ -40,6 +46,7 @@ export type BrowseData = {
   circles: BrowseCircle[];
   catalogRows: CatalogRow[];
   progressRows: DotProgressRow[];
+  dotRows: CircleDotRow[];
 };
 
 const resolveCatalogId = (row: CatalogRow) =>
@@ -49,7 +56,7 @@ export function useBrowseCircles(studentId?: string) {
   return useQuery({
     queryKey: ["browse-circles", studentId],
     queryFn: async (): Promise<BrowseData> => {
-      const [booksResult, catalogResult, progressResult] = await Promise.all([
+      const [booksResult, catalogResult, progressResult, dotsResult] = await Promise.all([
         supabase
           .from("books")
           .select("id, title, author, cover, chapters, section_type")
@@ -63,11 +70,16 @@ export function useBrowseCircles(studentId?: string) {
               )
               .eq("student_id", studentId)
           : Promise.resolve({ data: [], error: null }),
+        supabase
+          .from("circles_dots")
+          .select("circle_id, episode, title")
+          .order("created_at", { ascending: false }),
       ]);
 
       if (booksResult.error) throw booksResult.error;
       if (catalogResult.error) throw catalogResult.error;
       if (progressResult.error) throw progressResult.error;
+      if (dotsResult.error) throw dotsResult.error;
 
       const catalogRows = (catalogResult.data ?? []) as CatalogRow[];
       const catalogById = new Map<string, CatalogRow>();
@@ -99,6 +111,7 @@ export function useBrowseCircles(studentId?: string) {
         circles,
         catalogRows,
         progressRows: (progressResult.data ?? []) as DotProgressRow[],
+        dotRows: (dotsResult.data ?? []) as CircleDotRow[],
       };
     },
     enabled: studentId !== undefined,

@@ -10,6 +10,8 @@ type CurrentCircleHeroProps = {
     totalDots?: number;
     completedDots?: number;
     currentDot?: number;
+    nextDotTitle?: string;
+    nextChapter?: number;
   };
   onSelect: (book: Book) => void;
 };
@@ -82,12 +84,12 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
         </div>
         <div className="absolute bottom-6 left-6 right-6 text-white md:bottom-8 md:left-8 md:right-8">
           {item.book.title ? (
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 md:text-sm">
+            <div className="text-lg font-semibold uppercase tracking-[0.2em] text-white/80 md:text-sm">
               {`Continue ${item.book.title}`}
             </div>
           ) : null}
           <div className="mt-2 max-w-xl text-3xl font-bold leading-tight md:text-5xl">
-            {item.book.title}
+            {item.nextDotTitle || item.book.title}
           </div>
           {hasDots ? (
             <div className="mt-4 flex flex-wrap gap-1 md:gap-1.5">

@@ -27,17 +27,37 @@ const discussionBackgroundAssets = import.meta.glob(
   { eager: true, import: "default" },
 );
 
+const normalizeDiscussionCharacterSlug = (value) => {
+  if (typeof value !== "string") return "";
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+};
+
 const resolveDiscussionBackground = ({
   bookId,
   isTeachtime,
   isLandscape,
   isListenMode,
+  customFilename,
 }) => {
   const filename = isListenMode ? "listen.png" : "talk.png";
   const orientationPrefix = isLandscape ? "landscape/" : "";
   const candidates = [];
 
   if (bookId) {
+    if (customFilename) {
+      if (isTeachtime) {
+        candidates.push(
+          `../assets/img/discussion/${bookId}/teachtime/${orientationPrefix}${customFilename}`,
+        );
+      }
+      candidates.push(
+        `../assets/img/discussion/${bookId}/${orientationPrefix}${customFilename}`,
+      );
+    }
     if (isTeachtime) {
       candidates.push(
         `../assets/img/discussion/${bookId}/teachtime/${orientationPrefix}${filename}`,
@@ -56,7 +76,9 @@ const resolveDiscussionBackground = ({
 
   candidates.push(`../assets/img/discussion/${orientationPrefix}${filename}`);
 
-  const resolvedPath = candidates.find((candidate) => candidate in discussionBackgroundAssets);
+  const resolvedPath = candidates.find(
+    (candidate) => candidate in discussionBackgroundAssets,
+  );
   return resolvedPath ? discussionBackgroundAssets[resolvedPath] : "";
 };
 
@@ -136,6 +158,8 @@ export const TalkWithBook = ({
   const [listeningStatus, setListeningStatus] = useState(null);
   const [talkingStatus, setTalkingStatus] = useState(null);
   const [sessionEndingReason, setSessionEndingReason] = useState(null);
+  const [activeVoiceCharacterName, setActiveVoiceCharacterName] =
+    useState(null);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -761,6 +785,7 @@ export const TalkWithBook = ({
     micControlOverrideRef.current = null;
     listeningCompletedRef.current = false;
     listeningElapsedRef.current = 0;
+    setActiveVoiceCharacterName(null);
     setIsBotReady(false);
     setIntroRemainingSeconds(null);
     setIntroCurrentSeconds(null);
@@ -779,6 +804,16 @@ export const TalkWithBook = ({
     }
     if (typeof payload === "object") return payload;
     return null;
+  }, []);
+
+  const extractVoiceChangeCharacter = useCallback((payload) => {
+    if (!payload || typeof payload !== "object") return null;
+    const type = payload.type || payload.event_type || payload.eventType;
+    if (type !== "voice-change") return null;
+    const character = payload.data?.character;
+    if (typeof character !== "string") return null;
+    const normalizedCharacter = character.trim();
+    return normalizedCharacter.length > 0 ? normalizedCharacter : null;
   }, []);
 
   const extractIntroMetadata = useCallback((payload) => {
@@ -1638,13 +1673,19 @@ export const TalkWithBook = ({
   useEffect(() => {
     if (!client) return;
 
-    const onConnected = () => {
+    const logRtviEvent = (eventName, payload) => {
+      console.log(`[RTVIEvent] ${eventName}`, payload);
+    };
+
+    const onConnected = (payload) => {
+      logRtviEvent("Connected", payload);
       addLog("✅ Connected to Pipecat bot");
       startedChatRef.current = false;
       offerConnectFailedRef.current = false;
     };
 
-    const onDisconnected = () => {
+    const onDisconnected = (payload) => {
+      logRtviEvent("Disconnected", payload);
       addLog("❌ Disconnected");
       const phase = sessionPhaseRef.current;
       const shouldPreserveIntroPlayback =
@@ -1677,7 +1718,8 @@ export const TalkWithBook = ({
       stopIntroAudio({ unload: true });
     };
 
-    const onBotReady = () => {
+    const onBotReady = (payload) => {
+      logRtviEvent("BotReady", payload);
       addLog("🤖 Bot ready!");
       botReadyRef.current = true;
       setIsBotReady(true);
@@ -1697,25 +1739,33 @@ export const TalkWithBook = ({
       }, 200);
     };
 
-    const onUserStartedSpeaking = () => {
+    const onUserStartedSpeaking = (payload) => {
+      logRtviEvent("UserStartedSpeaking", payload);
       setIsMicActive(true);
     };
 
-    const onUserStoppedSpeaking = () => {
+    const onUserStoppedSpeaking = (payload) => {
+      logRtviEvent("UserStoppedSpeaking", payload);
       setIsMicActive(false);
     };
 
-    const onBotStartedSpeaking = () => {
+    const onBotStartedSpeaking = (payload) => {
+      logRtviEvent("BotStartedSpeaking", payload);
       setIsBotSpeaking(true);
       setIsBotThinking(false);
       startSpeaking();
     };
-    const onBotStoppedSpeaking = () => setIsBotSpeaking(false);
-    const onBotLlmStarted = () => {
+    const onBotStoppedSpeaking = (payload) => {
+      logRtviEvent("BotStoppedSpeaking", payload);
+      setIsBotSpeaking(false);
+    };
+    const onBotLlmStarted = (payload) => {
+      logRtviEvent("BotLlmStarted", payload);
       setIsBotThinking(true);
       startThinking();
     };
-    const onBotLlmStopped = () => {
+    const onBotLlmStopped = (payload) => {
+      logRtviEvent("BotLlmStopped", payload);
       setIsBotThinking(false);
       if (!isBotSpeaking && sessionPhaseRef.current === "chat_active") {
         startListening();
@@ -1723,6 +1773,7 @@ export const TalkWithBook = ({
     };
 
     const onUserTranscript = (data) => {
+      logRtviEvent("UserTranscript", data);
       if (data.final) {
         addVoicebotMessage({ user: data.text });
         if (sessionPhaseRef.current === "chat_active") {
@@ -1731,13 +1782,19 @@ export const TalkWithBook = ({
       }
     };
     const onBotOutput = (data) => {
+      logRtviEvent("BotOutput", data);
       if (!data?.text) return;
       addVoicebotMessage({ assistant: data.text });
     };
 
     const onServerMessage = (msg) => {
+      logRtviEvent("ServerMessage", msg);
       // Keep the server message visible in the UI via serverEvent only.
       const parsed = parseServerPayload(msg);
+      const voiceChangeCharacter = extractVoiceChangeCharacter(parsed);
+      if (voiceChangeCharacter) {
+        setActiveVoiceCharacterName(voiceChangeCharacter);
+      }
       const introMetadata = extractIntroMetadata(parsed);
       if (introMetadata) {
         handleIntroMetadata(introMetadata);
@@ -1797,6 +1854,7 @@ export const TalkWithBook = ({
     startSpeaking,
     startThinking,
     parseServerPayload,
+    extractVoiceChangeCharacter,
     extractIntroMetadata,
     extractIntroStatus,
     extractSessionEnding,
@@ -1997,6 +2055,24 @@ export const TalkWithBook = ({
 
   const characterAccent = currentCharacter?.customBg ?? "";
   const characterBgClass = currentCharacter?.bg ?? "";
+  const defaultCharacterName =
+    currentCharacter?.name?.trim() && currentCharacter.name.trim().length > 0
+      ? currentCharacter.name.trim()
+      : "Tomo";
+  const talkingCharacterName =
+    activeVoiceCharacterName?.trim() &&
+    activeVoiceCharacterName.trim().length > 0
+      ? activeVoiceCharacterName.trim()
+      : defaultCharacterName;
+  const activityState = isBotSpeaking
+    ? "talking"
+    : isBotThinking
+      ? "thinking"
+      : isMicActive
+        ? "listening"
+        : null;
+  const activityCharacterName =
+    activityState === "talking" ? talkingCharacterName : defaultCharacterName;
   const isTeachtimeDiscussion = botConfig?.metadata?.dotType === "teachtime";
   const [isLandscapeDiscussion, setIsLandscapeDiscussion] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -2006,11 +2082,26 @@ export const TalkWithBook = ({
     sessionPhase === "intro_loading" ||
     sessionPhase === "intro_playing" ||
     sessionPhase === "intro_paused";
+  const shouldUseListeningBackground =
+    isListenMode || activityState !== "talking";
+  const discussionCustomFilename = useMemo(() => {
+    if (shouldUseListeningBackground) {
+      return "listening.png";
+    }
+    if (activityState === "talking") {
+      const speakerSlug = normalizeDiscussionCharacterSlug(talkingCharacterName);
+      if (speakerSlug) {
+        return `${speakerSlug}_talking.png`;
+      }
+    }
+    return null;
+  }, [activityState, shouldUseListeningBackground, talkingCharacterName]);
   const backgroundImage = resolveDiscussionBackground({
     bookId: selectedBook?.id,
     isTeachtime: isTeachtimeDiscussion,
     isLandscape: isLandscapeDiscussion,
-    isListenMode,
+    isListenMode: shouldUseListeningBackground,
+    customFilename: discussionCustomFilename,
   });
   const [backgroundHeight, setBackgroundHeight] = useState(null);
   const backgroundRef = useRef(null);
@@ -2050,15 +2141,16 @@ export const TalkWithBook = ({
     };
   }, [backgroundImage]);
 
-  const thinkingCharacterName =
-    currentCharacter?.name?.trim() && currentCharacter.name.trim().length > 0
-      ? currentCharacter.name.trim()
-      : "Tomo";
-  const showThinkingBadge =
-    isBotThinking &&
-    thinkingCharacterName.toLowerCase() !== "wordie" &&
-    thinkingCharacterName.length > 0;
-  const thinkingLabel = `${thinkingCharacterName} is thinking...`;
+  const showActivityBadge =
+    activityState !== null &&
+    activityCharacterName.length > 0 &&
+    sessionPhase === "chat_active";
+  const activityLabel =
+    activityState === "talking"
+      ? `${activityCharacterName} is talking...`
+      : activityState === "thinking"
+        ? "Thinking..."
+        : "Listening...";
 
   useEffect(() => {
     if (eventMeta.eventType === "celebration_sent") {
@@ -2373,11 +2465,11 @@ export const TalkWithBook = ({
         )}
       </div>
 
-      {showThinkingBadge && (
+      {showActivityBadge && (
         <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
           <div className="flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 shadow-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
-            {thinkingLabel}
+            {activityLabel}
           </div>
         </div>
       )}
