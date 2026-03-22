@@ -36,8 +36,17 @@ const normalizeDotTypeSlug = (value) => {
   return normalized;
 };
 
+const shouldSkipOnboarding = () => {
+  if (typeof window === "undefined") return false;
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("skipOnboarding");
+  return value === "1" || value === "true";
+};
+
 const App = ({ transportType, region = "" }) => {
-  const [activeComponent, setActiveComponent] = useState("landing");
+  const [activeComponent, setActiveComponent] = useState(() =>
+    shouldSkipOnboarding() ? "library" : "landing",
+  );
   const prevActiveComponent = useRef(activeComponent);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(1);

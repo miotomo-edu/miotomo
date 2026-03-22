@@ -24,7 +24,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    VITE_SMALL_WEBRTC_URL=<Pipecat offer endpoint>
    ```
    The GitHub Pages workflow expects the same variables (store them as repository secrets). The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
-4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the Daily SDK; the default path uses Small WebRTC.
+4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the Daily SDK; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; the default path shows the full onboarding flow and uses Small WebRTC unless `transport=daily` is set.
 
 ## Useful Scripts
 | Command | Description |
@@ -36,7 +36,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 | `npx prettier --write "src/**/*.{ts,tsx,js,jsx,css,md}"` | Format code & Markdown. |
 
 ## Architecture Overview
-- `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, and mirrors the chosen character’s accent color across the view.
+- `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, mirrors the chosen character’s accent color across the view, and supports `skipOnboarding=1` to boot directly into Library for local QA.
 - `src/components/TalkWithBook.tsx` – Conversation surface: subscribes to RTVI events, controls mic state, and pushes updates into `VoiceBotContext`.
 - `src/context/VoiceBotContextProvider.tsx` – Stores transcripts, latency metrics, sleep/thinking/speaking state, and auto-save behavior.
 - `src/hooks` – Reusable data hooks; notable ones are `usePipecatConnection` (connect/disconnect wrapper), `useConversations` (Supabase persistence), and `useStudent` (progress + streaks).
