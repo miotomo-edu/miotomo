@@ -195,6 +195,21 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     return map;
   }, [data?.progressRows]);
 
+  const dotTitleByBookEpisode = useMemo(() => {
+    const map = new Map<string, string>();
+    (data?.dotRows ?? []).forEach((row) => {
+      const bookId = row.circle_id;
+      const episode = Number(row.episode ?? 0);
+      const title = typeof row.title === "string" ? row.title.trim() : "";
+      if (!bookId || !Number.isFinite(episode) || episode <= 0 || !title) return;
+      const key = `${bookId}:${episode}`;
+      if (!map.has(key)) {
+        map.set(key, title);
+      }
+    });
+    return map;
+  }, [data?.dotRows]);
+
   const newBookIds = useMemo(() => {
     const ids = new Set<string>();
     enrichedCircles.forEach((entry) => {
@@ -274,24 +289,30 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     if (!book) return null;
 
     const continueItem = continueItems.find((item) => item.book.id === book.id);
-    const isContinue = continueBookIds.has(book.id);
+    const totalDots = Math.max(Number(book.chapters) || 0, 0);
+    const completedDots = completedEpisodeByBook.get(book.id) ?? 0;
+    const nextChapter = continueItem?.chapter
+      ? continueItem.chapter
+      : totalDots > 0 && completedDots >= totalDots
+        ? 1
+        : Math.max(completedDots + 1, 1);
 
     return {
       book,
       badge: undefined,
       kicker: "CONTINUE TALKING",
-      totalDots: book.chapters ?? 0,
-      completedDots: isContinue
-        ? (completedEpisodeByBook.get(book.id) ?? 0)
-        : 0,
+      totalDots,
+      completedDots,
       currentDot: continueItem?.chapter,
+      nextChapter,
+      nextDotTitle: dotTitleByBookEpisode.get(`${book.id}:${nextChapter}`),
     };
   }, [
     featuredItems,
     enrichedCircles,
     continueItems,
-    continueBookIds,
     completedEpisodeByBook,
+    dotTitleByBookEpisode,
   ]);
 
   const listenAgainItems = useMemo(() => {
@@ -437,7 +458,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
             <CurrentCircleHero
               item={currentCircleItem}
               onSelect={(book) =>
-                onOpenCircle(book, Math.max(book.progress || 1, 1))
+                onOpenCircle(book, Math.max(currentCircleItem.nextChapter || 1, 1))
               }
             />
           ) : null}
