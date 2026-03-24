@@ -14,12 +14,16 @@
 |-------|-----|-------|
 | `--color-bg-dark` | `#000000` | Voice/talk screen backgrounds, bottom nav |
 | `--color-bg-light` | `#FFFFFF` | Library, browse, circle page backgrounds |
+| `--color-bg-paper` | `#F4ECDF` | Warm light surface for browse / circle detail backgrounds |
+| `--color-bg-paper-deep` | `#EFE6D8` | Lower light surface / overlapping content area |
 | `--color-surface-dark` | `#232329` | Speech bubbles, dark cards |
 | `--color-surface-elevated` | `#2C2C33` | gray-800 — elevated dark surfaces |
 | `--color-cta` | `#f25a57` | Primary play buttons, completed dot indicator |
 | `--color-cta-ring` | `rgba(242,90,87,0.22)` | Glow ring around play button |
 | `--color-assistant-bubble` | `#FAC304` | AI chat bubble background (yellow/gold) |
 | `--color-assistant-bubble-20` | `#FAC30433` | AI bubble with 20% opacity |
+| `--color-highlight-gold` | `#FAC304` | Hero / circle-detail highlight color, completed dots, current-mission accents |
+| `--color-highlight-gold-ring` | `rgba(250,195,4,0.22)` | Glow ring around gold play buttons |
 | `--color-user-bubble` | `#F4F7F4` | User chat bubble background |
 | `--color-accent-green` | `#13EF93` | green-spring, success states |
 | `--color-accent-blue` | `#79AFFA` | blue-link, interactive links |
@@ -60,7 +64,8 @@ Each character has a soft pastel accent for their avatar container / background 
 | Secondary text | `gray-500 (#64748B)` | `#FFFFFF` | 5.9:1 ✓ |
 | Badge text | `#FFFFFF` | `#000/80` | ≥7:1 ✓ |
 | Completed label | `#16a34a` | `#FFFFFF` | 5.9:1 ✓ |
-| CTA button text | `#FFFFFF` | `#f25a57` | 4.6:1 ✓ |
+| CTA button text (coral) | `#FFFFFF` | `#f25a57` | 4.6:1 ✓ |
+| CTA button text (gold) | `#111111` | `#FAC304` | 11.3:1 ✓ |
 
 ---
 
@@ -81,7 +86,7 @@ font-inter:   var(--font-inter), Arial, sans-serif;
 font-fira:    var(--font-fira), monospace;   /* code/mono contexts */
 ```
 
-**Nunito** is the primary display and body font. It is playful, highly legible for children, and already loaded globally. All new UI should default to Nunito unless a different `font-*` class is explicitly needed.
+**Nunito** is the primary body font. Hero, browse, and circle-detail titles may use the existing `font-display` family when matching the editorial hero treatment.
 
 ### Type Scale
 
@@ -160,10 +165,11 @@ Never add arbitrary drop shadows. Use `ring-*` for card outlines and the specifi
 The app has two distinct visual surfaces that must not be mixed on the same screen:
 
 ### Light Surface (Library / Browse)
-- Background: `#FFFFFF` / `bg-library`
+- Background: `#FFFFFF` / `bg-library` for neutral browse layouts
+- Warm variant: `#F4ECDF → #EFE6D8` for hero-aligned browse / circle-detail surfaces
 - Text: `text-gray-900` (#0F172A)
 - Cards: white with `ring-1 ring-black/10`
-- Hero overlay: `bg-gradient-to-t from-black/80 via-black/30 to-transparent`
+- Hero overlay: either `bg-gradient-to-t from-black/80 via-black/30 to-transparent` or the warmer editorial gradient used by `CurrentCircleHero` / `CirclePage`
 - Used in: LibraryPage, BrowsePage, CirclePage, ProgressSection
 
 ### Dark Surface (Voice / Talk)
@@ -179,10 +185,15 @@ The app has two distinct visual surfaces that must not be mixed on the same scre
 
 ### Buttons
 
-**Primary CTA (Play)**
+**Primary CTA (Play, dark-surface card)**
 ```tsx
 // Coral/red pill — always full-width or 80×80px circle
 className="rounded-full bg-[#f25a57] text-white shadow-[0_0_0_8px_rgba(242,90,87,0.22)] transition hover:scale-[1.02]"
+```
+
+**Primary CTA (Play, hero-aligned light surface)**
+```tsx
+className="rounded-full bg-[#FAC304] text-black shadow-[0_0_0_8px_rgba(250,195,4,0.22)] transition hover:scale-[1.02]"
 ```
 
 **Secondary Action (replay/resume pill)**
@@ -233,6 +244,23 @@ className="h-2.5 w-2.5 rounded-full border-2 border-black/40 bg-transparent"
 ```
 
 On dark backgrounds (hero), use `bg-white` and `border-white/70` instead.
+
+### CircleDotsSymbol
+
+Reusable episode-progress symbol used in hero/detail contexts.
+
+- Outer ring with evenly spaced dots around a circle
+- Two visual states only for dots: completed (`#FAC304`) and not completed (same color as ring)
+- The dot matching the current row / episode number may be larger, but not recolored
+- Optional center label for episode number
+- Default dark version:
+  - ring / incomplete dots: `#0A1024`
+  - completed dots: `#FAC304`
+  - label: `#111111`
+- Inverted hero/detail version:
+  - ring / incomplete dots: `#FFFFFF`
+  - completed dots: `#FAC304`
+  - label: `#FFFFFF`
 
 ### Bottom Navigation
 - Height: `h-16` (64px)

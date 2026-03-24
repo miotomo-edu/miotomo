@@ -29,17 +29,6 @@ const FeaturedHeroSlide: React.FC<{
 }> = ({ item, kicker, onSelect }) => {
   const coverUrl = useCircleCover(item.book.thumbnailUrl);
   const effectiveKicker = item.kicker ?? kicker;
-  const hasDots =
-    typeof item.totalDots === "number" && item.totalDots > 0;
-  const completedDots =
-    typeof item.completedDots === "number" && item.completedDots > 0
-      ? Math.min(item.completedDots, item.totalDots ?? item.completedDots)
-      : 0;
-  const currentDot =
-    typeof item.currentDot === "number" && item.currentDot > 0
-      ? item.currentDot
-      : null;
-
   return (
     <button
       type="button"
@@ -68,23 +57,6 @@ const FeaturedHeroSlide: React.FC<{
         {effectiveKicker ? (
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 md:text-sm">
             {effectiveKicker}
-          </div>
-        ) : null}
-        {hasDots ? (
-          <div className="mt-2 flex flex-wrap gap-1 md:gap-1.5">
-            {Array.from({ length: item.totalDots ?? 0 }).map((_, index) => {
-              const isFilled = index < completedDots;
-              const isCurrent =
-                currentDot !== null && index + 1 === currentDot && !isFilled;
-              return (
-                <span
-                  key={`${item.book.id}-hero-dot-${index}`}
-                  className={`h-2.5 w-2.5 rounded-full md:h-4 md:w-4 ${
-                    isCurrent ? "border-2" : "border"
-                  } ${isFilled ? "bg-white" : "bg-transparent"} border-white/70`}
-                />
-              );
-            })}
           </div>
         ) : null}
         <div className="font-display mt-2 text-3xl font-extrabold leading-tight md:text-5xl">
@@ -141,27 +113,21 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             type="button"
             onClick={goPrev}
             aria-label="Previous featured circle"
-            className="absolute -left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-black transition hover:text-black md:-left-6 md:h-24 md:w-24"
+            className="absolute left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/45 active:scale-95 md:left-3 md:h-16 md:w-16"
           >
-            <span
-              aria-hidden="true"
-              className="text-7xl leading-none text-white drop-shadow-[0_0_8px_rgba(0,0,0,1)] md:text-[10rem]"
-            >
-              ‹
-            </span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 md:h-8 md:w-8" fill="none">
+              <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
           <button
             type="button"
             onClick={goNext}
             aria-label="Next featured circle"
-            className="absolute -right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-transparent text-black transition hover:text-black md:-right-6 md:h-24 md:w-24"
+            className="absolute right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/45 active:scale-95 md:right-3 md:h-16 md:w-16"
           >
-            <span
-              aria-hidden="true"
-              className="text-7xl leading-none text-white drop-shadow-[0_0_8px_rgba(0,0,0,1)] md:text-[10rem]"
-            >
-              ›
-            </span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 md:h-8 md:w-8" fill="none">
+              <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </>
       ) : null}

@@ -5,6 +5,7 @@ import { useBooks } from "../../hooks/useBooks";
 import { useCircleCover } from "../../hooks/useCircleCover";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import CircleCard from "../features/browse/CircleCard";
+import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
 import WelcomeSection from "./WelcomeSection";
 
 type CirclePageProps = {
@@ -29,6 +30,8 @@ type EpisodeMeta = {
 
 type NextDotCardProps = {
   episode: number;
+  totalDots: number;
+  completedDots: number;
   title: string;
   typeName?: string;
   durationLabel?: string;
@@ -37,36 +40,46 @@ type NextDotCardProps = {
 
 const NextDotCard: React.FC<NextDotCardProps> = ({
   episode,
+  totalDots,
+  completedDots,
   title,
   typeName,
   durationLabel,
   onPlay,
 }) => (
-  <section className="relative mb-8 overflow-hidden rounded-[28px] bg-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
-    <div className="px-5 pb-4 pt-5 pr-32 md:px-7 md:pb-5 md:pt-6 md:pr-40">
-      <div className="flex items-center gap-3 text-xl font-medium md:text-2xl">
-        <span className="text-xl md:text-xl" aria-hidden="true">
+  <section className="relative mb-8 overflow-hidden rounded-[30px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
+    <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
+      <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
+        <span className="text-xl text-[#FAC304]" aria-hidden="true">
           ★
         </span>
         <span>Today&apos;s Mission</span>
       </div>
       <div className="mt-5 flex items-center gap-4">
         <div className="flex min-w-0 items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-black md:h-14 md:w-14 md:text-2xl">
-            {episode}
-          </div>
+          <CircleDotsSymbol
+            totalDots={totalDots}
+            completedDots={completedDots}
+            currentDot={episode}
+            label={episode}
+            size={56}
+            ringColor="#ffffff"
+            inactiveDotFill="#ffffff"
+            inactiveDotStroke="#ffffff"
+            completedDotFill="#FAC304"
+            completedDotStroke="#FAC304"
+            labelColor="#ffffff"
+            className="shrink-0 md:h-[68px] md:w-[68px]"
+          />
           <div className="min-w-0">
-            <div className="font-display text-3xl font-bold leading-[0.95] tracking-[-0.02em] md:text-4xl">
+            <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
               {title}
             </div>
-            {typeName ? (
-              <div className="mt-2 text-lg font-medium md:text-2xl">
-                {typeName}
-              </div>
-            ) : null}
-            {durationLabel ? (
-              <div className="mt-1 text-lg md:text-2xl">{durationLabel}</div>
-            ) : null}
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-white/72 md:text-lg">
+              {typeName ? <span>{typeName}</span> : null}
+              {typeName && durationLabel ? <span aria-hidden="true">&bull;</span> : null}
+              {durationLabel ? <span>{durationLabel}</span> : null}
+            </div>
           </div>
         </div>
       </div>
@@ -75,12 +88,12 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
       type="button"
       onClick={onPlay}
       aria-label={`Play ${title}`}
-      className="absolute right-5 top-1/2 flex h-20 w-20 -translate-y-1/2 items-center justify-center rounded-full bg-[#f25a57] text-white shadow-[0_0_0_8px_rgba(242,90,87,0.22)] transition hover:scale-[1.02] md:right-7 md:h-28 md:w-28"
+      className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_0_0_8px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
     >
       <svg
         aria-hidden="true"
         viewBox="0 0 16 16"
-        className="ml-1 h-9 w-9 md:h-12 md:w-12"
+        className="ml-1 h-8 w-8 md:h-10 md:w-10"
         fill="currentColor"
       >
         <path d="M4 2.5v11l9-5.5-9-5.5z" />
@@ -662,9 +675,11 @@ const CirclePage: React.FC<CirclePageProps> = ({
     return "Not started";
   };
 
+  const completedDotCount = completedDots.length;
+
   return (
-    <div className="min-h-screen w-full flex flex-col bg-library">
-      <div className="w-full bg-library">
+    <div className="min-h-screen w-full flex flex-col bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)]">
+      <div className="w-full bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)]">
         <WelcomeSection userName={userName} />
       </div>
       <header
@@ -683,12 +698,12 @@ const CirclePage: React.FC<CirclePageProps> = ({
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(244,238,224,0)_0%,rgba(27,29,22,0.08)_42%,rgba(12,14,12,0.86)_100%)]" />
         <div className="relative z-20 flex h-full flex-col px-6 py-6">
           <div className="flex items-start">
             <button
               onClick={onBack}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 transition-colors duration-200 ease-in-out hover:bg-white"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-white/14 text-white backdrop-blur-md transition-colors duration-200 ease-in-out hover:bg-white/22"
               aria-label="Back"
               type="button"
               style={{ flexShrink: 0 }}
@@ -702,7 +717,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
               >
                 <path
                   d="M15.8327 10L4.16602 10.0003L9.99935 4.16699L4.16602 10.0003L9.99935 15.8337"
-                  stroke="black"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -712,7 +727,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
           </div>
           <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
             <h1
-              className="font-display text-left text-6xl font-extrabold md:text-6xl"
+              className="font-display text-left text-5xl font-bold leading-[1.02] md:text-5xl"
               style={{ textShadow: "0 6px 14px rgba(0,0,0,1)" }}
             >
               {book.title}
@@ -721,10 +736,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
       </header>
 
-      <section className="relative z-10 -mt-16 bg-library px-6 pb-24 pt-8">
+      <section className="relative z-10 -mt-16 bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)] px-6 pb-24 pt-8">
         <div className="flex items-center justify-between">
           {isLoading && (
-            <span className="text-sm text-gray-500 md:text-base">
+            <span className="text-sm text-black/45 md:text-base">
               Loading...
             </span>
           )}
@@ -733,13 +748,15 @@ const CirclePage: React.FC<CirclePageProps> = ({
           <div className="mt-3 text-sm text-red-600">{loadError}</div>
         )}
         {!episodeCount && (
-          <div className="mt-4 text-sm text-gray-500">
+          <div className="mt-4 text-sm text-black/45">
             No episodes available yet.
           </div>
         )}
         {nextEpisode ? (
           <NextDotCard
             episode={nextEpisode.episode}
+            totalDots={episodeCount}
+            completedDots={completedDotCount}
             title={nextEpisode.title || `Dot ${nextEpisode.episode}`}
             typeName={typeNamesByEpisode[nextEpisode.episode] || undefined}
             durationLabel={
@@ -783,59 +800,73 @@ const CirclePage: React.FC<CirclePageProps> = ({
               : hasStarted
                 ? "Resume"
                 : "Play";
-            const dotCircleClass = isCompleted
-              ? "border-[#f25a57] bg-[#f25a57] text-white"
-              : "border-black bg-white text-black";
             return (
               <React.Fragment key={episode.episode}>
-                <div className="flex w-full min-h-[88px] items-start justify-between px-1 py-0 md:min-h-[120px]">
+                <div
+                  className={`flex w-full items-start justify-between rounded-[22px] px-4 py-4 transition md:px-5 md:py-5 ${
+                    isCurrent
+                      ? "bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                      : "bg-white/78 text-black"
+                  }`}
+                >
                   <div className="flex items-start gap-4">
-                    <div className="flex w-8 shrink-0 flex-col items-center pt-4 md:w-12 md:pt-6">
+                    <CircleDotsSymbol
+                      totalDots={episodeCount}
+                      completedDots={completedDotCount}
+                      currentDot={episode.episode}
+                      label={episode.episode}
+                      size={52}
+                      ringColor={isCurrent ? "#ffffff" : "#0a1024"}
+                      inactiveDotFill={isCurrent ? "#ffffff" : "#0a1024"}
+                      inactiveDotStroke={isCurrent ? "#ffffff" : "#0a1024"}
+                      completedDotFill="#FAC304"
+                      completedDotStroke="#FAC304"
+                      labelColor={isCurrent ? "#ffffff" : "#0a1024"}
+                      className="shrink-0 md:h-[60px] md:w-[60px]"
+                    />
+                    <div className="py-1">
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold aspect-square md:h-12 md:w-12 md:text-lg ${dotCircleClass}`}
-                      >
-                        {episode.episode}
-                      </div>
-                    </div>
-                    <div className="py-4 md:py-6">
-                      <div
-                        className={`text-base font-semibold md:text-2xl ${
-                          isCurrent ? "text-black/80" : "text-black"
+                        className={`font-display text-base font-bold leading-tight md:text-xl ${
+                          isCurrent ? "text-white" : "text-black"
                         }`}
                       >
                         {title}
                       </div>
-                      {typeName && (
-                        <div className="text-sm text-gray-500 md:text-lg">
-                          {typeName}
-                        </div>
-                      )}
-                      {durationLabel ? (
-                        <div className="text-sm text-gray-600 md:text-lg">
-                          {durationLabel}
-                        </div>
-                      ) : null}
-                      {isCompleted ? (
-                        <div className="text-sm font-semibold text-green-600 md:text-lg">
-                          Completed
-                        </div>
-                      ) : isCurrent ? (
-                        <div className="text-sm font-semibold text-black/55 md:text-lg">
-                          Current mission
-                        </div>
-                      ) : null}
+                      <div
+                        className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
+                          isCurrent ? "text-white/60" : "text-black/50"
+                        }`}
+                      >
+                        {typeName ? <span>{typeName}</span> : null}
+                        {typeName && durationLabel ? (
+                          <span aria-hidden="true">·</span>
+                        ) : null}
+                        {durationLabel ? <span>{durationLabel}</span> : null}
+                        {isCurrent ? (
+                          <span className="font-semibold text-[#FAC304]">
+                            {typeName || durationLabel ? "· " : ""}
+                            Current mission ✦
+                          </span>
+                        ) : null}
+                        {isCompleted ? (
+                          <span className="font-semibold text-[#b07b00]">
+                            {typeName || durationLabel ? "· " : ""}
+                            Completed
+                          </span>
+                        ) : null}
+                      </div>
                       {showRowButton ? (
                         <div className="mt-3">
                           <button
                             type="button"
                             onClick={() => handlePlay(episode.episode)}
                             disabled={isUpdating}
-                            className="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800 hover:bg-gray-300 disabled:cursor-not-allowed md:px-5 md:py-2 md:text-lg"
+                            className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-95 disabled:cursor-not-allowed md:px-5 md:text-base"
                           >
                             <svg
                               aria-hidden="true"
                               viewBox="0 0 16 16"
-                              className="h-4 w-4 md:h-5 md:w-5"
+                              className="h-4 w-4"
                               fill="currentColor"
                             >
                               <path d="M4 2.5v11l9-5.5-9-5.5z" />
@@ -849,7 +880,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   <div className="flex items-center gap-3" />
                 </div>
                 {index < episodes.length - 1 && (
-                  <div className="h-px w-full bg-black/10" />
+                  <div className="my-3 h-px w-full bg-black/8" />
                 )}
               </React.Fragment>
             );

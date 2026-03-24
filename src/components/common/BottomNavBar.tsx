@@ -16,15 +16,9 @@ interface BottomNavBarProps {
 }
 
 const defaultNavItems = [
-  { label: "CIRCLES", componentName: "library", icon: <CirclesIcon /> },
-  // { label: "Home", componentName: "home", icon: <HomeIcon /> },
-  { label: "TOMO", componentName: "progress", icon: <TomoIcon /> },
-  // {
-  //   label: "TOMO",
-  //   componentName: "progress",
-  //   icon: <img src={tomoIcon} alt="" className="w-6 h-6 object-contain" />,
-  // },
-  { label: "PARENTS", componentName: "rewards", icon: <ParentsIcon /> },
+  { label: "Circles", componentName: "library", icon: <CirclesIcon /> },
+  { label: "Tomo", componentName: "progress", icon: <TomoIcon /> },
+  { label: "Parents", componentName: "rewards", icon: <ParentsIcon /> },
   // { label: "SETTINGS", componentName: "settings", icon: <SettingsIcon /> },
 ];
 

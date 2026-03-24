@@ -5,7 +5,7 @@
 ---
 
 ## Surface
-Full light surface. Background: `#FFFFFF` / `bg-library`. Black text.
+Full light surface. Default background is `#FFFFFF` / `bg-library`, but hero-aligned browse/library variants may use the warm paper gradient `#F4ECDF → #EFE6D8`. Black text.
 
 ## FeaturedHero
 - Height: `h-[62vh] min-h-[300px]`
@@ -29,6 +29,7 @@ Full light surface. Background: `#FFFFFF` / `bg-library`. Black text.
 - Title: `text-sm font-semibold text-gray-900` (mobile) → `text-xl` (md+)
 - Meta: `text-xs font-medium text-gray-500` (mobile) → `text-base` (md+)
 - Hover: `group-hover:scale-[1.03]` on cover image, `duration-300`
+- `LibraryPage` is a BrowsePage variant with `showContinueRow={false}`, so it inherits this page system directly
 
 ## Progress Dots (on cards)
 - Dot size: `h-2.5 w-2.5` (mobile) → `h-3.5 w-3.5` (md+)
@@ -36,6 +37,11 @@ Full light surface. Background: `#FFFFFF` / `bg-library`. Black text.
 - Filled: `bg-black border-2 border-black/40`
 - Paused/current: `border-[2.5px] border-black bg-transparent`
 - Empty: `border-2 border-black/40 bg-transparent`
+
+## CurrentCircleHero Notes
+- Uses the warm editorial hero treatment rather than the neutral white browse surface
+- Collapsed hero keeps play as the primary CTA and chevron as the expand control
+- Expanded hero uses the warm paper panel and may include a quiet `Explore circle` chip after the dot list
 
 ## CategoryChips
 - Horizontal scroll row above browse content

@@ -35,21 +35,24 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
       </h2>
     </div>
     {items.length > 0 ? (
-      <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {items.map((item) => (
-          <CircleCard
-            key={item.book.id}
-            book={item.book}
-            badge={item.badge}
-            meta={item.meta}
-            kicker={item.kicker}
-            totalDots={item.totalDots}
-            completedDots={item.completedDots}
-            highlightCompleted={item.highlightCompleted}
-            pausedDotIndex={item.pausedDotIndex}
-            onSelect={() => onSelect(item)}
-          />
-        ))}
+      <div className="relative">
+        <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {items.map((item) => (
+            <CircleCard
+              key={item.book.id}
+              book={item.book}
+              badge={item.badge}
+              meta={item.meta}
+              kicker={item.kicker}
+              totalDots={item.totalDots}
+              completedDots={item.completedDots}
+              highlightCompleted={item.highlightCompleted}
+              pausedDotIndex={item.pausedDotIndex}
+              onSelect={() => onSelect(item)}
+            />
+          ))}
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#fffdf8] to-transparent" />
       </div>
     ) : (
       <div className="rounded-2xl border border-dashed border-black/10 bg-white/60 px-4 py-6 text-sm font-medium text-gray-500 md:text-lg">
