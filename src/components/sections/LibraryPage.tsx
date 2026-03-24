@@ -6,18 +6,26 @@ type LibraryPageProps = {
   userName: string;
   studentId: string;
   onOpenCircle: (book: Book, chapter: number) => void;
+  onPlayEpisode: (
+    book: Book,
+    episode: number,
+    dotTitle?: string,
+    dotTypeSlug?: string,
+  ) => void;
 };
 
 const LibraryPage: React.FC<LibraryPageProps> = ({
   userName,
   studentId,
   onOpenCircle,
+  onPlayEpisode,
 }) => {
   return (
     <BrowsePage
       userName={userName}
       studentId={studentId}
       onOpenCircle={onOpenCircle}
+      onPlayEpisode={onPlayEpisode}
       showContinueRow={false}
     />
   );

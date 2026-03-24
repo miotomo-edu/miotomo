@@ -10,6 +10,12 @@ type BrowsePageProps = {
   userName: string;
   studentId: string;
   onOpenCircle: (book: Book, chapter: number) => void;
+  onPlayEpisode: (
+    book: Book,
+    episode: number,
+    dotTitle?: string,
+    dotTypeSlug?: string,
+  ) => void;
   showContinueRow?: boolean;
 };
 
@@ -102,6 +108,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   userName,
   studentId,
   onOpenCircle,
+  onPlayEpisode,
   showContinueRow = true,
 }) => {
   const { data, isLoading, error } = useBrowseCircles(studentId);
@@ -456,10 +463,12 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
           <CategoryChips />
           {currentCircleItem ? (
             <CurrentCircleHero
+              studentId={studentId}
               item={currentCircleItem}
-              onSelect={(book) =>
-                onOpenCircle(book, Math.max(currentCircleItem.nextChapter || 1, 1))
+              onOpenCircle={(book, chapter) =>
+                onOpenCircle(book, Math.max(chapter || 1, 1))
               }
+              onPlay={onPlayEpisode}
             />
           ) : null}
         </div>
