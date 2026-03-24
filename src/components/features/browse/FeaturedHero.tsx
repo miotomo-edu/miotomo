@@ -87,7 +87,7 @@ const FeaturedHeroSlide: React.FC<{
             })}
           </div>
         ) : null}
-        <div className="mt-2 text-3xl font-bold leading-tight md:text-5xl">
+        <div className="font-display mt-2 text-3xl font-extrabold leading-tight md:text-5xl">
           {item.book.title}
         </div>
       </div>

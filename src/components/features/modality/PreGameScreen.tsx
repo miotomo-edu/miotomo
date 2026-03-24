@@ -35,7 +35,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
 
       <div className="relative z-10 flex h-full w-full flex-1 flex-col items-center justify-between px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
         <div className="flex w-full flex-1 flex-col items-center justify-center gap-5">
-          <h1 className="max-w-2xl text-3xl font-extrabold tracking-tight text-[#f7f0e6] drop-shadow-[0_6px_24px_rgba(0,0,0,1)] sm:text-5xl md:text-6xl">
+          <h1 className="font-display max-w-2xl text-3xl font-extrabold tracking-tight text-[#f7f0e6] drop-shadow-[0_6px_24px_rgba(0,0,0,1)] sm:text-5xl md:text-6xl">
             {title}
           </h1>
           {description ? (

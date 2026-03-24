@@ -456,7 +456,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#fffdf8]">
       <div className="space-y-10 px-5 pb-24 pt-0">
         <div className="space-y-0">
           <WelcomeSection userName={userName} />

@@ -263,7 +263,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   return (
     <section className="px-4">
-      <h1 className="mb-7 text-3xl font-bold leading-none md:text-5xl">
+      <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
         Continue talking
       </h1>
       <div className="relative overflow-hidden rounded-[34px] bg-[#efe6da] shadow-[0_28px_90px_rgba(25,26,20,0.18)] ring-1 ring-black/10">
@@ -318,7 +318,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               <div className="flex items-end justify-between gap-4">
                 <div className="min-w-0">
                   <h1
-                    className="max-w-[14ch] text-left text-5xl font-bold leading-[1.02] text-white md:text-5xl"
+                    className="font-display max-w-[14ch] text-left text-5xl font-bold leading-[1.02] text-white md:text-5xl"
                     style={{ textShadow: "rgb(0, 0, 0) 0px 6px 14px" }}
                   >
                     {item.book.title}

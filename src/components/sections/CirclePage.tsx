@@ -56,7 +56,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
             {episode}
           </div>
           <div className="min-w-0">
-            <div className="text-3xl font-bold leading-[0.95] tracking-[-0.03em] md:text-4xl">
+            <div className="font-display text-3xl font-bold leading-[0.95] tracking-[-0.02em] md:text-4xl">
               {title}
             </div>
             {typeName ? (
@@ -712,7 +712,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
           </div>
           <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
             <h1
-              className="text-left text-6xl font-bold md:text-6xl"
+              className="font-display text-left text-6xl font-extrabold md:text-6xl"
               style={{ textShadow: "0 6px 14px rgba(0,0,0,1)" }}
             >
               {book.title}
