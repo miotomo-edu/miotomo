@@ -340,6 +340,7 @@ const App = ({ transportType, region = "" }) => {
             userName={userName}
             studentId={studentId}
             onOpenCircle={openCirclePage}
+            onPlayEpisode={handlePlayEpisode}
           />
         );
       case "library":
@@ -348,6 +349,7 @@ const App = ({ transportType, region = "" }) => {
             userName={userName}
             studentId={studentId}
             onOpenCircle={openCirclePage}
+            onPlayEpisode={handlePlayEpisode}
           />
         );
       case "circle":
@@ -357,6 +359,7 @@ const App = ({ transportType, region = "" }) => {
               userName={userName}
               studentId={studentId}
               onOpenCircle={openCirclePage}
+              onPlayEpisode={handlePlayEpisode}
             />
           );
         }
