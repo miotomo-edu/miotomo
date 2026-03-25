@@ -3,6 +3,7 @@ import type { Book } from "../../sections/LibrarySection";
 import { useCircleCover } from "../../../hooks/useCircleCover";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import { useBooks } from "../../../hooks/useBooks";
+import CircleDotsSymbol from "./CircleDotsSymbol";
 
 type CurrentCircleHeroProps = {
   studentId: string;
@@ -17,6 +18,7 @@ type CurrentCircleHeroProps = {
     nextChapter?: number;
   };
   onOpenCircle: (book: Book, chapter: number) => void;
+  showOpenCircle?: boolean;
   onPlay: (
     book: Book,
     episode: number,
@@ -60,6 +62,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   studentId,
   item,
   onOpenCircle,
+  showOpenCircle = false,
   onPlay,
 }) => {
   const coverUrl = useCircleCover(item.book.thumbnailUrl);
@@ -263,7 +266,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   return (
     <section className="px-4">
-      <h1 className="mb-7 text-3xl font-bold leading-none md:text-5xl">
+      <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
         Continue talking
       </h1>
       <div className="relative overflow-hidden rounded-[34px] bg-[#efe6da] shadow-[0_28px_90px_rgba(25,26,20,0.18)] ring-1 ring-black/10">
@@ -280,13 +283,13 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(244,238,224,0)_0%,rgba(27,29,22,0.08)_42%,rgba(12,14,12,0.86)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0)_38%)]" />
 
-          <div className="absolute inset-0 z-10 flex items-center justify-center px-5 py-5 md:px-7 md:py-7">
+          <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-5 py-5 md:px-7 md:py-7">
             <button
               type="button"
               onClick={handleHeroPlay}
               disabled={isUpdating}
               aria-label={`Play ${activeDotTitle}`}
-              className="group flex h-28 w-28 items-center justify-center rounded-full bg-white/92 text-black shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 hover:scale-[1.03] hover:bg-white disabled:cursor-not-allowed md:h-36 md:w-36"
+              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-white/92 text-black shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 hover:scale-[1.03] hover:bg-white disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
             >
               <svg
                 aria-hidden="true"
@@ -300,17 +303,19 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           </div>
 
           <div className="relative z-20 flex h-full min-h-[560px] flex-col justify-between p-5 text-white md:min-h-[700px] md:p-7">
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() =>
-                  onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
-                }
-                className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-md transition hover:bg-white/22"
-              >
-                Open circle
-              </button>
-            </div>
+            {showOpenCircle ? (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
+                  }
+                  className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-md transition hover:bg-white/22"
+                >
+                  Open circle
+                </button>
+              </div>
+            ) : null}
 
             <div className="flex-1" />
 
@@ -318,64 +323,44 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               <div className="flex items-end justify-between gap-4">
                 <div className="min-w-0">
                   <h1
-                    className="max-w-[14ch] text-left text-5xl font-bold leading-[1.02] text-white md:text-5xl"
+                    className="font-display max-w-[14ch] text-left text-5xl font-bold leading-[1.02] text-white md:text-5xl"
                     style={{ textShadow: "rgb(0, 0, 0) 0px 6px 14px" }}
                   >
                     {item.book.title}
                   </h1>
                   <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-[2rem]">
-                    <span className="h-3 w-3 rounded-full bg-white/90" />
-                    <span className="truncate">{`E${activeEpisodeNumber}: ${activeDotTitle}`}</span>
+                    <span className="h-3 w-3 rounded-full bg-[#FAC304]" />
+                    <span className="truncate">{`Dot ${activeEpisodeNumber} · ${activeDotTitle}`}</span>
                   </div>
-                  {totalDots > 0 ? (
-                    <div className="mt-5 flex flex-wrap gap-2 md:gap-2.5">
-                      {Array.from({ length: totalDots }).map((_, index) => {
-                        const isFilled = index < completedDots;
-                        const isCurrent =
-                          index + 1 === highlightedDot && !isFilled;
-                        return (
-                          <span
-                            key={`${item.book.id}-hero-dot-${index}`}
-                            className={`h-3 w-3 rounded-full transition md:h-4 md:w-4 ${
-                              isCurrent
-                                ? "border-[2.5px] border-white bg-transparent"
-                                : isFilled
-                                  ? "bg-white"
-                                  : "border border-white/55 bg-white/20"
-                            }`}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : null}
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsExpanded((current) => !current)}
-                  aria-expanded={isExpanded}
-                  aria-label={
-                    isExpanded ? "Collapse dot list" : "Expand dot list"
-                  }
-                  className="mb-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-white/90 bg-black/18 text-white backdrop-blur-sm transition duration-300 hover:scale-[1.04] hover:bg-black/30 md:h-20 md:w-20"
-                >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 20 20"
-                    className={`h-9 w-9 transition-transform duration-300 ${
-                      isExpanded ? "rotate-180" : ""
-                    }`}
-                    fill="none"
+                {totalDots > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded((current) => !current)}
+                    aria-expanded={isExpanded}
+                    aria-label={
+                      isExpanded ? "Hide dots" : `See all ${totalDots} dots`
+                    }
+                    className="mb-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-white/70 bg-black/20 text-white backdrop-blur-sm transition duration-300 hover:bg-black/35 active:scale-95"
                   >
-                    <path
-                      d="M4.5 7.5L10 13l5.5-5.5"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 20 20"
+                      className={`h-6 w-6 transition-transform duration-300 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                    >
+                      <path
+                        d="M4.5 7.5L10 13l5.5-5.5"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -388,19 +373,6 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
         >
           <div className="overflow-hidden">
             <div className="border-t border-black/10 bg-[linear-gradient(180deg,#f7f1e8_0%,#efe7da_100%)] px-5 pb-6 pt-5 text-black md:px-7 md:pb-8 md:pt-6">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <button
-                  type="button"
-                  onClick={() =>
-                    onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
-                  }
-                  aria-label={`Open information for ${item.book.title}`}
-                  className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#cfc4b5] font-['Georgia',_serif] text-lg font-bold text-[#221f1b] transition hover:bg-[#c3b7a7] md:h-12 md:w-12 md:text-xl"
-                >
-                  i
-                </button>
-              </div>
-
               {isLoadingEpisodes ? (
                 <div className="rounded-[24px] border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
                   Loading dots...
@@ -446,52 +418,47 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     return (
                       <div
                         key={`${item.book.id}-episode-${episode.episode}`}
-                        className={`flex items-start gap-4 rounded-[26px] border px-4 py-4 transition md:px-5 md:py-5 ${
+                        className={`flex items-center gap-4 rounded-[22px] border px-4 py-4 transition md:px-5 md:py-5 ${
                           isCurrent
-                            ? "border-black/15 bg-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.14)]"
+                            ? "border-black/15 bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
                             : "border-black/10 bg-white/78 text-black"
                         }`}
                       >
-                        <div
-                          className={`mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-semibold md:h-12 md:w-12 md:text-base ${
-                            isCurrent
-                              ? "border-white/35 bg-white/12 text-white"
-                              : isCompleted
-                                ? "border-[#f25a57] bg-[#f25a57] text-white"
-                                : "border-black/20 bg-[#f8f3eb] text-black"
-                          }`}
-                        >
-                          {episode.episode}
-                        </div>
+                        <CircleDotsSymbol
+                          totalDots={totalDots}
+                          completedDots={completedDots}
+                          currentDot={episode.episode}
+                          label={episode.episode}
+                          size={52}
+                          ringColor={isCurrent ? "#ffffff" : "#0a1024"}
+                          inactiveDotFill={isCurrent ? "#ffffff" : "#0a1024"}
+                          inactiveDotStroke={isCurrent ? "#ffffff" : "#0a1024"}
+                          completedDotFill="#FAC304"
+                          completedDotStroke="#FAC304"
+                          labelColor={isCurrent ? "#ffffff" : "#0a1024"}
+                          className="shrink-0 md:h-[60px] md:w-[60px]"
+                        />
 
                         <div className="min-w-0 flex-1">
-                          <div className="text-lg font-semibold leading-tight md:text-2xl">
+                          <div className="font-display text-2xl font-bold leading-tight">
                             {episode.title || `Dot ${episode.episode}`}
                           </div>
                           <div
-                            className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-base md:text-lg ${
-                              isCurrent ? "text-white/72" : "text-black/55"
+                            className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
+                              isCurrent ? "text-white/60" : "text-black/50"
                             }`}
                           >
                             {episode.typeName ? <span>{episode.typeName}</span> : null}
-                            {episode.typeName && durationLabel ? (
-                              <span aria-hidden="true">&bull;</span>
-                            ) : null}
+                            {episode.typeName && durationLabel ? <span aria-hidden="true">·</span> : null}
                             {durationLabel ? <span>{durationLabel}</span> : null}
-                            {(episode.typeName || durationLabel) && isCompleted ? (
-                              <span aria-hidden="true">&bull;</span>
-                            ) : null}
-                            {isCompleted ? <span>Completed</span> : null}
-                            {(episode.typeName || durationLabel) &&
-                            !isCompleted &&
-                            isCurrent ? (
-                              <span aria-hidden="true">&bull;</span>
-                            ) : null}
-                            {!isCompleted && isCurrent ? (
-                              <span>Current mission</span>
+                            {isCurrent ? (
+                              <span className="font-semibold text-[#FAC304]">
+                                {episode.typeName || durationLabel ? "· " : ""}Current mission ✦
+                              </span>
                             ) : null}
                           </div>
                         </div>
+
                         {showRowButton ? (
                           isCurrent ? (
                             <button
@@ -505,12 +472,12 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               }
                               disabled={isUpdating}
                               aria-label={`Play ${episode.title || `Dot ${episode.episode}`}`}
-                              className="shrink-0 flex h-16 w-16 items-center justify-center rounded-full bg-[#f25a57] text-white shadow-[0_0_0_8px_rgba(242,90,87,0.22)] transition hover:scale-[1.02] disabled:cursor-not-allowed md:h-20 md:w-20"
+                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_0_0_6px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:h-16 md:w-16"
                             >
                               <svg
                                 aria-hidden="true"
                                 viewBox="0 0 16 16"
-                                className="ml-1 h-7 w-7 md:h-9 md:w-9"
+                                className="ml-1 h-6 w-6 md:h-7 md:w-7"
                                 fill="currentColor"
                               >
                                 <path d="M4 2.5v11l9-5.5-9-5.5z" />
@@ -527,15 +494,26 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                                 )
                               }
                               disabled={isUpdating}
-                              className="shrink-0 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/85 disabled:cursor-not-allowed md:px-5 md:text-base"
+                              className="shrink-0 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-95 disabled:cursor-not-allowed md:px-5 md:text-base"
                             >
-                              {playLabel}
+                              Play again!
                             </button>
                           )
                         ) : null}
                       </div>
                     );
                   })}
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
+                      }
+                      className="inline-flex items-center rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-semibold text-black/70 shadow-[0_6px_18px_rgba(0,0,0,0.04)] backdrop-blur-sm transition hover:border-black/20 hover:bg-white hover:text-black"
+                    >
+                      Explore circle
+                    </button>
+                  </div>
                 </div>
               ) : null}
             </div>

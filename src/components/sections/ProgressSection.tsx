@@ -134,7 +134,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
   // -------- Render --------
   return (
     <section className="py-6 px-4 pb-24 bg-[#EAB7AF]">
-      <h1 className="mb-6 text-3xl font-extrabold text-gray-900">Progress</h1>
+      <h1 className="font-display mb-6 text-3xl font-extrabold text-gray-900">Progress</h1>
       {/* Pills */}
       <div className="mb-4 flex items-center justify-between text-sm font-bold uppercase text-gray-900">
         <div className="flex gap-4">

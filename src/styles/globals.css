@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @config "../../tailwind.config.cjs";
 
+:root {
+  --font-display: "Baloo 2", "Nunito", sans-serif;
+}
+
 html,
 body {
   margin: 0;
@@ -65,7 +69,7 @@ body {
 }
 
 .bg-library {
-  background: #fff;
+  background: #fffdf8;
 }
 
 @keyframes fadeInSoft {

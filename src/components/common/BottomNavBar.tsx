@@ -16,15 +16,9 @@ interface BottomNavBarProps {
 }
 
 const defaultNavItems = [
-  { label: "CIRCLES", componentName: "library", icon: <CirclesIcon /> },
-  // { label: "Home", componentName: "home", icon: <HomeIcon /> },
-  { label: "TOMO", componentName: "progress", icon: <TomoIcon /> },
-  // {
-  //   label: "TOMO",
-  //   componentName: "progress",
-  //   icon: <img src={tomoIcon} alt="" className="w-6 h-6 object-contain" />,
-  // },
-  { label: "PARENTS", componentName: "rewards", icon: <ParentsIcon /> },
+  { label: "Circles", componentName: "library", icon: <CirclesIcon /> },
+  { label: "Tomo", componentName: "progress", icon: <TomoIcon /> },
+  { label: "Parents", componentName: "rewards", icon: <ParentsIcon /> },
   // { label: "SETTINGS", componentName: "settings", icon: <SettingsIcon /> },
 ];
 
@@ -68,24 +62,28 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             onClick={() => handleButtonClick(item.componentName)}
             className="flex flex-col items-center justify-center cursor-pointer p-2"
             type="button"
+            aria-current={isActive ? "page" : undefined}
           >
             <span
-              className="mb-1 flex items-center justify-center"
-              style={{
-                color: isActive ? "#fff" : "#fff",
-              }}
+              className="mb-1 flex items-center justify-center transition-colors duration-150"
+              style={{ color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)" }}
             >
               {icon}
             </span>
             <span
-              className="text-xs"
+              className="text-xs transition-colors duration-150"
               style={{
-                color: isActive ? "#fff" : "#fff",
-                fontWeight: isActive ? 800 : 400,
+                color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                fontWeight: isActive ? 700 : 400,
               }}
             >
               {item.label}
             </span>
+            <span
+              className="mt-1 block h-1 w-1 rounded-full transition-all duration-150"
+              style={{ backgroundColor: isActive ? "#FAC304" : "transparent" }}
+              aria-hidden="true"
+            />
           </button>
         );
       })}

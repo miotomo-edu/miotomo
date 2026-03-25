@@ -4,9 +4,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        favorit: ["var(--font-favorit)", "Arial", "sans serif"],
-        inter: ["var(--font-inter)", "Arial", "sans serif"],
-        fira: ["var(--font-fira)", "monospace"],
+        display: ["var(--font-display)", "Nunito", "sans-serif"],
       },
       colors: {
         gray: {
@@ -21,14 +19,19 @@ module.exports = {
           900: "#101014",
           1000: "#0B0B0C",
         },
-        blue: {
-          link: "#79AFFA",
+        blue: { link: "#79AFFA" },
+        green: { spring: "#13EF93" },
+        pink: { blush: "#F8CBC4" },
+        cta: "#f25a57",
+        character: {
+          tomo:   "#F2D47C",
+          gramma: "#92B1D1",
+          argoo:  "#E49C88",
+          wordie: "#92949E",
+          echo:   "#97BBA0",
         },
-        green: {
-          spring: "#13EF93",
-        },
-        userBubble: "#F4F7F4",
-        assistantBubble: "#FAC304",
+        userBubble:       "#F4F7F4",
+        assistantBubble:  "#FAC304",
         assistantBubble20: "#FAC30433",
       },
     },

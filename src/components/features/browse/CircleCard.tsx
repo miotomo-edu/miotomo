@@ -14,6 +14,13 @@ type CircleCardProps = {
   onSelect: () => void;
 };
 
+const badgeStyle = (badge: string): string => {
+  if (badge === "NEW") return "bg-emerald-500 text-white";
+  if (badge === "REPLAY") return "bg-sky-500 text-white";
+  if (badge === "Continue") return "bg-amber-400 text-black";
+  return "bg-black/80 text-white";
+};
+
 const CircleCard: React.FC<CircleCardProps> = ({
   book,
   badge,
@@ -47,7 +54,9 @@ const CircleCard: React.FC<CircleCardProps> = ({
           </div>
         )}
         {badge ? (
-          <span className="absolute left-2 top-2 rounded-full bg-black/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white md:text-xs md:px-3 md:py-1">
+          <span
+            className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide md:px-3 md:py-1 md:text-xs ${badgeStyle(badge)}`}
+          >
             {badge}
           </span>
         ) : null}
@@ -58,29 +67,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
             {kicker}
           </div>
         ) : null}
-        {typeof totalDots === "number" && totalDots > 0 ? (
-          <div className="my-3 flex flex-wrap gap-1 md:gap-1.5">
-            {Array.from({ length: totalDots }).map((_, index) => {
-              const isFilled = index < completedDots;
-              const isPausedDot =
-                typeof pausedDotIndex === "number" &&
-                pausedDotIndex > 0 &&
-                index + 1 === pausedDotIndex &&
-                !isFilled;
-              return (
-                <span
-                  key={`${book.id}-dot-${index}`}
-                  className={`h-2.5 w-2.5 rounded-full md:h-3.5 md:w-3.5 ${
-                    isPausedDot
-                      ? "border-[2.5px] border-black"
-                      : "border-2 border-black/40"
-                  } ${isFilled ? "bg-black" : "bg-transparent"}`}
-                />
-              );
-            })}
-          </div>
-        ) : null}
-        <div className="text-sm font-semibold text-gray-900 md:text-xl">
+        <div className="font-display text-sm font-semibold text-gray-900 md:text-xl">
           {book.title}
         </div>
         {meta ? (
