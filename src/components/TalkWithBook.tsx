@@ -85,6 +85,7 @@ const resolveDiscussionBackground = ({
 export const TalkWithBook = ({
   botConfig,
   onNavigate,
+  onShowDotCompletion,
   selectedBook,
   chapter,
   dotTitle,
@@ -629,6 +630,11 @@ export const TalkWithBook = ({
     setPhase,
     updateListeningProgress,
   ]);
+
+  const handleShowDotCompletion = useCallback(async () => {
+    await disconnectHere();
+    onShowDotCompletion?.();
+  }, [disconnectHere, onShowDotCompletion]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {
@@ -2452,6 +2458,16 @@ export const TalkWithBook = ({
               </button>
             )}
           </>
+        )}
+
+        {onShowDotCompletion && (
+          <button
+            type="button"
+            onClick={handleShowDotCompletion}
+            className="text-sm font-medium text-white/72 underline-offset-4 transition hover:text-white md:text-base"
+          >
+            Next
+          </button>
         )}
 
         {isCelebrating && !isConnected && (

@@ -39,6 +39,7 @@ type CircleDotRow = {
 };
 
 export type BrowseCircle = LocalBook & {
+  demo?: boolean | null;
   catalog?: CatalogRow | null;
 };
 
@@ -59,7 +60,7 @@ export function useBrowseCircles(studentId?: string) {
       const [booksResult, catalogResult, progressResult, dotsResult] = await Promise.all([
         supabase
           .from("books")
-          .select("id, title, author, cover, chapters, section_type")
+          .select("id, title, author, cover, chapters, section_type, demo")
           .eq("type", "circle"),
         supabase.from("circles_catalog").select("*"),
         studentId
@@ -103,6 +104,7 @@ export function useBrowseCircles(studentId?: string) {
         };
         return {
           ...localBook,
+          demo: Boolean(book.demo),
           catalog: catalogById.get(book.id) ?? null,
         };
       });
