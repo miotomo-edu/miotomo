@@ -10,6 +10,8 @@ import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
 import HomePage from "./sections/HomePage";
 import LibraryPage from "./sections/LibraryPage";
+import PostOnboardingCircleIntroPage from "./sections/PostOnboardingCircleIntroPage";
+import DotCompletionPage from "./sections/DotCompletionPage";
 import RewardsSection from "./sections/RewardsSection";
 import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
@@ -32,7 +34,6 @@ const normalizeDotTypeSlug = (value) => {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
   if (!normalized) return null;
-  if (normalized === "mediaton") return "mediation";
   return normalized;
 };
 
@@ -52,6 +53,7 @@ const App = ({ transportType, region = "" }) => {
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [selectedDotTitle, setSelectedDotTitle] = useState("");
   const [selectedDotTypeSlug, setSelectedDotTypeSlug] = useState(null);
+  const [completedDotChapter, setCompletedDotChapter] = useState(null);
   const mainRef = useRef(null);
   const scrollPositionsRef = useRef({});
   const [userName, setUserName] = useState("");
@@ -153,6 +155,25 @@ const App = ({ transportType, region = "" }) => {
   }, [activeComponent, fetchActiveConversations]);
 
   useEffect(() => {
+    const shouldClearSelection =
+      activeComponent === "landing" ||
+      activeComponent === "onboarding" ||
+      activeComponent === "first-circle-intro" ||
+      activeComponent === "home" ||
+      activeComponent === "library" ||
+      activeComponent === "progress" ||
+      activeComponent === "rewards" ||
+      activeComponent === "settings";
+
+    if (!shouldClearSelection) return;
+
+    setSelectedBook(null);
+    setSelectedChapter(1);
+    setSelectedDotTitle("");
+    setSelectedDotTypeSlug(null);
+  }, [activeComponent]);
+
+  useEffect(() => {
     if (!isAnalyzing) {
       fetchActiveConversations();
     }
@@ -212,6 +233,25 @@ const App = ({ transportType, region = "" }) => {
       setActiveComponent("interactive");
     },
     [normalizeChapterValue, currentCharacter],
+  );
+
+  const handleShowDotCompletion = useCallback(() => {
+    if (!selectedBook) return;
+    setCompletedDotChapter(selectedChapter);
+    setActiveComponent("dot-complete");
+  }, [selectedBook, selectedChapter]);
+
+  const handlePreviewNextDotFromCompletion = useCallback(
+    (book, chapterValue) => {
+      if (!book) return;
+      const resolvedChapter = normalizeChapterValue(book, chapterValue);
+      setSelectedBook(book);
+      setSelectedChapter(resolvedChapter);
+      setSelectedDotTypeSlug(null);
+      setCircleReturnComponent("library");
+      setActiveComponent("circle");
+    },
+    [normalizeChapterValue],
   );
 
   const updatedBotConfig = useMemo(
@@ -332,7 +372,15 @@ const App = ({ transportType, region = "" }) => {
         );
       case "onboarding":
         return (
-          <OnboardingFlow onFinish={() => setActiveComponent("library")} />
+          <OnboardingFlow onFinish={() => setActiveComponent("first-circle-intro")} />
+        );
+      case "first-circle-intro":
+        return (
+          <PostOnboardingCircleIntroPage
+            userName={userName}
+            studentId={studentId}
+            onPlayEpisode={handlePlayEpisode}
+          />
         );
       case "home":
         return (
@@ -380,6 +428,25 @@ const App = ({ transportType, region = "" }) => {
         return (
           <ProgressSection conversationId={latestConversationId || undefined} />
         );
+      case "dot-complete":
+        if (!selectedBook) {
+          return (
+            <LibraryPage
+              userName={userName}
+              studentId={studentId}
+              onOpenCircle={openCirclePage}
+              onPlayEpisode={handlePlayEpisode}
+            />
+          );
+        }
+        return (
+          <DotCompletionPage
+            book={selectedBook}
+            userName={userName}
+            completedEpisode={completedDotChapter || selectedChapter || 1}
+            onPreviewNextDot={handlePreviewNextDotFromCompletion}
+          />
+        );
       case "rewards":
         return <RewardsSection />;
       case "settings":
@@ -412,6 +479,7 @@ const App = ({ transportType, region = "" }) => {
               onDisconnectRequest={disconnectRef}
               connectionManagedExternally={shouldShowConnectionManager}
               onRequestSessionStart={() => setShouldStartSession(true)}
+              onShowDotCompletion={handleShowDotCompletion}
             />
           </VoiceBotProvider>
         );
@@ -453,42 +521,45 @@ const App = ({ transportType, region = "" }) => {
     );
   }
 
+  const mainBackgroundClass =
+    activeComponent === "rewards"
+      ? "bg-[#2F2C2F]"
+      : activeComponent === "progress"
+        ? "bg-[#EAB7AF]"
+      : activeComponent === "interactive"
+          ? "bg-black"
+          : activeComponent === "dot-complete"
+            ? "bg-white"
+          : activeComponent === "library" ||
+                activeComponent === "home" ||
+                activeComponent === "circle"
+            ? "bg-library"
+            : activeComponent === "first-circle-intro"
+              ? "bg-[#F4ECDF]"
+              : "";
+
   return (
     <div
       className={`app-mobile-shell ${characterBgClass}`}
       style={appShellStyle}
     >
-      {(() => {
-        const mainBackgroundClass =
-          activeComponent === "rewards"
-            ? "bg-[#2F2C2F]"
-            : activeComponent === "progress"
-              ? "bg-[#EAB7AF]"
-              : activeComponent === "interactive"
-                ? "bg-black"
-                : activeComponent === "library" ||
-                    activeComponent === "home" ||
-                    activeComponent === "circle"
-                  ? "bg-library"
-                  : "";
-        return (
-          <Layout
-            mainRef={mainRef}
-            disableScroll={isInteractiveView}
-            withBottomNav={
-              activeComponent !== "landing" && activeComponent !== "onboarding"
-            }
-            fullHeight={activeComponent === "rewards"}
-            mainClassName={mainBackgroundClass}
-          >
-            {activeComponent === "landing" ? (
-              renderComponent()
-            ) : (
-              <div className="h-full min-h-0">{renderComponent()}</div>
-            )}
-          </Layout>
-        );
-      })()}
+        <Layout
+          mainRef={mainRef}
+          disableScroll={isInteractiveView}
+          withBottomNav={
+            activeComponent !== "landing" &&
+            activeComponent !== "onboarding" &&
+            activeComponent !== "first-circle-intro"
+          }
+          fullHeight={activeComponent === "rewards"}
+          mainClassName={mainBackgroundClass}
+      >
+        {activeComponent === "landing" ? (
+          renderComponent()
+        ) : (
+          <div className="h-full min-h-0">{renderComponent()}</div>
+        )}
+      </Layout>
 
       {/* 🔌 Only pre-connect when on interactive screen */}
       {shouldShowConnectionManager && (
@@ -505,10 +576,17 @@ const App = ({ transportType, region = "" }) => {
         />
       )}
 
-      {activeComponent !== "landing" && activeComponent !== "onboarding" && (
+      {activeComponent !== "landing" &&
+      activeComponent !== "onboarding" &&
+        activeComponent !== "first-circle-intro" && (
         <BottomNavBar
           onItemClick={handleNavigationClick}
-          activeComponentName={activeComponent}
+          activeComponentName={
+            activeComponent === "first-circle-intro" ||
+            activeComponent === "dot-complete"
+              ? "library"
+              : activeComponent
+          }
           className={isInteractiveView ? "backdrop-blur-sm" : ""}
         />
       )}

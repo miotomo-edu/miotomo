@@ -106,7 +106,6 @@ const normalizeDotTypeSlug = (value: string | null | undefined) => {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
   if (!normalized) return null;
-  if (normalized === "mediaton") return "mediation";
   return normalized;
 };
 
