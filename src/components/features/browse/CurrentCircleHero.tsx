@@ -440,7 +440,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                         />
 
                         <div className="min-w-0 flex-1">
-                          <div className="font-display text-base font-bold leading-tight md:text-xl">
+                          <div className="font-display text-2xl font-bold leading-tight">
                             {episode.title || `Dot ${episode.episode}`}
                           </div>
                           <div

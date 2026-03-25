@@ -826,7 +826,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                     />
                     <div className="py-1">
                       <div
-                        className={`font-display text-base font-bold leading-tight md:text-xl ${
+                        className={`font-display text-2xl font-bold leading-tight ${
                           isCurrent ? "text-white" : "text-black"
                         }`}
                       >
