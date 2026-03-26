@@ -27,6 +27,11 @@ const discussionBackgroundAssets = import.meta.glob(
   { eager: true, import: "default" },
 );
 
+const introDiscussionVideoUrl = new URL(
+  "../assets/img/discussion/71151c97-3aa1-4911-b14a-cfe8e2383b86/0326/0326.mov",
+  import.meta.url,
+).href;
+
 const normalizeDiscussionCharacterSlug = (value) => {
   if (typeof value !== "string") return "";
   return value
@@ -108,6 +113,7 @@ export const TalkWithBook = ({
   const hadConversationRef = useRef(false);
   const hasSubmittedSummaryRef = useRef(false);
   const introAudioRef = useRef(null);
+  const introVideoRef = useRef<HTMLVideoElement | null>(null);
   const introMetaRef = useRef(null);
   const introStateRef = useRef({
     metadataReceived: false,
@@ -1164,6 +1170,14 @@ export const TalkWithBook = ({
         ? Math.min(duration, Math.max(0, rawValue))
         : Math.max(0, rawValue);
     audio.currentTime = clamped;
+    const introVideo = introVideoRef.current;
+    if (introVideo) {
+      try {
+        introVideo.currentTime = clamped;
+      } catch (error) {
+        console.warn("Failed to seek intro video:", error);
+      }
+    }
     setIntroCurrentSeconds(clamped);
     if (typeof duration === "number") {
       setIntroRemainingSeconds(Math.max(0, Math.ceil(duration - clamped)));
@@ -2293,21 +2307,56 @@ export const TalkWithBook = ({
     sessionPhase === "intro_playing" ||
     sessionPhase === "intro_paused" ||
     sessionPhase === "disconnecting";
+  const shouldShowIntroVideo =
+    sessionPhase === "intro_playing" || sessionPhase === "intro_paused";
+
+  useEffect(() => {
+    const introVideo = introVideoRef.current;
+    if (!introVideo) return;
+
+    if (sessionPhase === "intro_playing") {
+      const maybePlayPromise = introVideo.play();
+      if (maybePlayPromise?.catch) {
+        maybePlayPromise.catch(() => undefined);
+      }
+      return;
+    }
+
+    introVideo.pause();
+    if (sessionPhase !== "intro_paused") {
+      try {
+        introVideo.currentTime = 0;
+      } catch (error) {
+        console.warn("Failed to reset intro video:", error);
+      }
+    }
+  }, [sessionPhase]);
 
   return (
     <div
-      className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass} bg-black text-white`}
+      className={`relative inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass} bg-black text-white`}
       style={talkBackgroundStyle}
       ref={backgroundRef}
     >
+      {shouldShowIntroVideo ? (
+        <video
+          ref={introVideoRef}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          src={introDiscussionVideoUrl}
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
+      ) : null}
       <div
-        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none"
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent"
         style={{
           top: gradientTop ? `${gradientTop}px` : "44vh",
           height: gradientHeight ? `${gradientHeight}px` : "11vh",
         }}
       />
-      <div className="flex-none">
+      <div className="relative z-10 flex-none">
         <BookTitle
           book={selectedBook}
           chapter={chapter}
@@ -2321,17 +2370,17 @@ export const TalkWithBook = ({
         />
       </div>
 
-      <div className="flex-1 px-6 pt-4 overflow-hidden text-white">
+      <div className="relative z-10 flex-1 overflow-hidden px-6 pt-4 text-white">
         <div className="h-full w-full">{renderedServerContent}</div>
       </div>
 
       <div
         ref={logsRef}
-        className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
+        className="absolute top-0 right-0 z-10 mt-4 p-2 text-xs whitespace-pre-line"
       />
 
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
-      <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
+      <div className="absolute inset-x-0 bottom-28 z-10 flex flex-col items-center gap-3 px-4">
         {shouldShowMic && (
           <div className="flex justify-center">
             <AnimationManager
@@ -2482,7 +2531,7 @@ export const TalkWithBook = ({
       </div>
 
       {showActivityBadge && (
-        <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
+        <div className="absolute inset-x-0 bottom-24 z-10 flex justify-center px-4">
           <div className="flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 shadow-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
             {activityLabel}
