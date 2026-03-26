@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import createAccountImage from "../../../assets/img/onboarding/tell-us-more.png";
 
 function TellUsMore({ onBack, onFinish }) {
@@ -14,19 +14,19 @@ function TellUsMore({ onBack, onFinish }) {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   return (
-    <div className="relative flex h-full min-h-full w-full flex-col bg-white px-6 text-left text-white">
+    <div className="flex min-h-screen w-full flex-col bg-white text-left text-black">
       <div
-        className="absolute inset-0 bg-white"
+        className="h-[40vh] min-h-[260px] w-full bg-white md:h-[46vh]"
         style={{
           backgroundImage: `url(${createAccountImage})`,
           backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundSize: "contain",
+          backgroundPosition: "top center",
         }}
       />
       <button
         onClick={onBack}
-        className="absolute left-6 top-6 z-30 w-10 h-10 flex items-center justify-center rounded-full bg-white/80 transition-colors duration-200 ease-in-out hover:bg-white"
+        className="absolute left-6 top-6 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 transition-colors duration-200 ease-in-out hover:bg-white"
         aria-label="Back"
         type="button"
       >
@@ -46,16 +46,15 @@ function TellUsMore({ onBack, onFinish }) {
           />
         </svg>
       </button>
-      <div className="relative z-10 mx-auto mt-auto w-full max-w-sm pt-[60vh] pb-10 text-left md:pt-0">
-        <div className="rounded-[2rem] bg-black/55 px-5 py-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-[2px]">
-          <h1 className="mb-6 text-2xl font-bold text-white">
+      <div className="flex-1 px-6 pb-10 pt-6">
+        <div className="mx-auto w-full max-w-sm text-left">
+          <h1 className="mb-6 font-display text-3xl font-bold leading-tight text-black">
             Tell us about your child
           </h1>
 
           <div className="space-y-4">
-          {/* Child Name */}
             <div>
-              <label className="mb-1 block text-xs font-light text-white/80">
+              <label className="mb-1 block text-sm font-medium text-black/60">
                 Child's Name
               </label>
               <input
@@ -63,19 +62,18 @@ function TellUsMore({ onBack, onFinish }) {
                 placeholder="First name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full rounded-xl border-2 border-black bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+                className="w-full rounded-xl border-2 border-black/20 bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
               />
             </div>
-          {/* Age */}
             <div className="relative">
-              <label className="mb-1 block text-xs font-light text-white/80">
+              <label className="mb-1 block text-sm font-medium text-black/60">
                 Age
               </label>
               <select
                 name="age"
                 value={form.age}
                 onChange={handleChange}
-                className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+                className="w-full appearance-none rounded-xl border-2 border-black/20 bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
               >
                 <option value="">Select age</option>
                 {[6, 7, 8, 9, 10, 11, 12].map((age) => (
@@ -84,10 +82,8 @@ function TellUsMore({ onBack, onFinish }) {
                   </option>
                 ))}
               </select>
-
-              {/* outlined V arrow */}
               <svg
-                className="absolute right-4 top-[46px] h-3 w-3 pointer-events-none"
+                className="pointer-events-none absolute right-4 top-[46px] h-3 w-3"
                 viewBox="0 0 12 8"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -101,16 +97,15 @@ function TellUsMore({ onBack, onFinish }) {
                 />
               </svg>
             </div>
-          {/* Year */}
             <div className="relative">
-              <label className="mb-1 block text-xs font-light text-white/80">
+              <label className="mb-1 block text-sm font-medium text-black/60">
                 Level of English
               </label>
               <select
                 name="year"
                 value={form.year}
                 onChange={handleChange}
-                className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+                className="w-full appearance-none rounded-xl border-2 border-black/20 bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
               >
                 <option value="">Grade</option>
                 {[1, 2, 3, 4, 5, 6].map((y) => (
@@ -135,16 +130,15 @@ function TellUsMore({ onBack, onFinish }) {
                 />
               </svg>
             </div>
-          {/* Country */}
             <div className="relative">
-              <label className="mb-1 block text-xs font-light text-white/80">
+              <label className="mb-1 block text-sm font-medium text-black/60">
                 Country
               </label>
               <select
                 name="country"
                 value={form.country}
                 onChange={handleChange}
-                className="w-full appearance-none rounded-xl border-2 border-black bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+                className="w-full appearance-none rounded-xl border-2 border-black/20 bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
               >
                 <option value="">Select country</option>
                 <option value="Italy">Italy</option>
@@ -170,10 +164,9 @@ function TellUsMore({ onBack, onFinish }) {
             </div>
           </div>
 
-          {/* Finish Button */}
           <button
             onClick={onFinish}
-            className="mt-8 w-full rounded-full bg-white py-4 text-lg font-semibold text-black"
+            className="mt-8 w-full rounded-full bg-black py-4 text-lg font-semibold text-white"
           >
             Finish
           </button>

@@ -9,6 +9,7 @@ import type { Book } from "./LibrarySection";
 type BrowsePageProps = {
   userName: string;
   studentId: string;
+  collapseHeroSignal?: number;
   onOpenCircle: (book: Book, chapter: number) => void;
   onPlayEpisode: (
     book: Book,
@@ -107,6 +108,7 @@ const scoreSort = (a: Book, b: Book, scores: Record<string, number>) =>
 const BrowsePage: React.FC<BrowsePageProps> = ({
   userName,
   studentId,
+  collapseHeroSignal = 0,
   onOpenCircle,
   onPlayEpisode,
   showContinueRow = true,
@@ -456,14 +458,15 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#fffdf8]">
-      <div className="space-y-10 px-5 pb-24 pt-0">
+    <div className="min-h-screen bg-white">
+      <div className="space-y-10 px-4 pb-24 pt-0">
         <div className="space-y-0">
           <WelcomeSection userName={userName} />
           <CategoryChips />
           {currentCircleItem ? (
             <CurrentCircleHero
               studentId={studentId}
+              collapseSignal={collapseHeroSignal}
               item={currentCircleItem}
               onOpenCircle={(book, chapter) =>
                 onOpenCircle(book, Math.max(chapter || 1, 1))

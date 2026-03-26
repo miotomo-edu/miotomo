@@ -5,7 +5,7 @@
 ---
 
 ## Surface
-Full light surface. Default background is `#FFFFFF` / `bg-library`, but hero-aligned browse/library variants may use the warm paper gradient `#F4ECDF → #EFE6D8`. Black text.
+Full light surface. Default background is pure white `#FFFFFF` / `bg-library`. Black text.
 
 ## FeaturedHero
 - Height: `h-[62vh] min-h-[300px]`

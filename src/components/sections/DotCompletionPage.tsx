@@ -87,9 +87,9 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
   }, [remainingDots]);
 
   return (
-    <div className="h-full min-h-full bg-white px-4 pb-28 pt-6 text-[#020617] md:px-7 md:pb-24 md:pt-6 lg:px-10">
-      <div className="flex h-full min-h-full w-full flex-col">
-        <section className="flex min-h-full flex-1 flex-col py-2 md:h-full md:min-h-0 md:grid md:grid-cols-[minmax(0,0.66fr)_minmax(0,0.34fr)] md:grid-rows-[auto_minmax(0,1fr)_auto] md:items-start md:gap-x-8 md:gap-y-5 lg:gap-x-12 lg:gap-y-8">
+    <div className="h-full min-h-0 bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-6 text-[#020617] md:px-7 md:pb-24 md:pt-6 lg:px-10">
+      <div className="flex h-full min-h-0 w-full flex-col">
+        <section className="flex h-full min-h-0 flex-1 flex-col py-2 md:h-full md:min-h-0 md:grid md:grid-cols-[minmax(0,0.66fr)_minmax(0,0.34fr)] md:grid-rows-[auto_minmax(0,1fr)_auto] md:items-start md:gap-x-8 md:gap-y-5 lg:gap-x-12 lg:gap-y-8">
           <div className="flex flex-col md:col-start-1 md:row-start-1 md:w-full md:max-w-[42rem]">
             <div>
               <div className="flex items-center gap-3 md:gap-4">
@@ -122,7 +122,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 </p>
               </div>
 
-              <div className="relative mt-6 flex min-h-[330px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_30%,rgba(250,195,4,0.14),rgba(250,195,4,0)_46%)] px-2 py-5 md:hidden">
+              <div className="relative mt-0 flex flex-1 min-h-0 items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_30%,rgba(250,195,4,0.14),rgba(250,195,4,0)_46%)] px-2 py-2 md:hidden">
                 {burstPositions.map((position, index) => (
                   <div key={`mobile-decor-${index}`}>
                     {index < 2 ? <FireworkBurst className={position} /> : null}
@@ -134,7 +134,10 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 ))}
 
                 {sparklePositions.map((position, index) => (
-                  <Sparkle key={`mobile-sparkle-${index}`} className={position} />
+                  <Sparkle
+                    key={`mobile-sparkle-${index}`}
+                    className={position}
+                  />
                 ))}
 
                 <div className="absolute inset-x-[8%] bottom-[12%] h-16 rounded-[50%] bg-[radial-gradient(circle,rgba(2,6,23,0.12),rgba(2,6,23,0)_72%)] blur-xl" />
@@ -142,11 +145,10 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 <img
                   src={tomoCelebrating}
                   alt="Tomo celebrating"
-                  className="relative z-10 mx-auto block w-full max-w-[300px]"
+                  className="relative z-10 mx-auto block h-auto max-h-full w-auto max-w-full object-contain"
                 />
               </div>
             </div>
-
           </div>
 
           <div className="relative mt-8 hidden items-center justify-center overflow-hidden md:col-[1/3] md:row-start-2 md:mt-0 md:flex md:h-full md:min-h-0 md:w-full md:px-4 md:py-2 lg:py-4">
@@ -173,7 +175,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
             />
           </div>
 
-          <div className="mt-8 md:col-start-1 md:row-start-3 md:mt-0 md:w-full md:max-w-[42rem]">
+          <div className="mt-0 shrink-0 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:col-start-1 md:row-start-3 md:mt-0 md:w-full md:max-w-[42rem] md:pb-0">
             <div className="flex items-center gap-3 md:gap-4">
               <CircleDotsSymbol
                 totalDots={Math.max(totalDots, 1)}
@@ -201,7 +203,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
               </p>
             </div>
 
-            <div className="mt-8 md:mt-5 lg:mt-10">
+            <div className="mt-5 hidden md:block md:mt-5 lg:mt-10">
               <button
                 type="button"
                 onClick={() =>
@@ -218,6 +220,21 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
             </div>
           </div>
         </section>
+      </div>
+      <div className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 md:hidden">
+        <button
+          type="button"
+          onClick={() =>
+            nextEpisode
+              ? onPreviewNextDot(book, nextEpisode)
+              : onPreviewNextDot(book, completedEpisode)
+          }
+          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-[1.02] active:scale-[0.99]"
+        >
+          {nextEpisode
+            ? `Take a peek at Dot ${nextEpisode}`
+            : "See your Circle"}
+        </button>
       </div>
     </div>
   );

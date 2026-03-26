@@ -52,7 +52,7 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
             />
           ))}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#fffdf8] to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent" />
       </div>
     ) : (
       <div className="rounded-2xl border border-dashed border-black/10 bg-white/60 px-4 py-6 text-sm font-medium text-gray-500 md:text-lg">

@@ -165,7 +165,7 @@ Never add arbitrary drop shadows. Use `ring-*` for card outlines and the specifi
 The app has two distinct visual surfaces that must not be mixed on the same screen:
 
 ### Light Surface (Library / Browse)
-- Background: `#FFFFFF` / `bg-library` for neutral browse layouts
+- Background: pure white `#FFFFFF` / `bg-library` for neutral browse layouts
 - Warm variant: `#F4ECDF → #EFE6D8` for hero-aligned browse / circle-detail surfaces
 - Text: `text-gray-900` (#0F172A)
 - Cards: white with `ring-1 ring-black/10`

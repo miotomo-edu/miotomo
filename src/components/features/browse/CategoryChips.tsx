@@ -4,7 +4,7 @@ const CHIPS = ["History", "Science", "Imagination"];
 
 const CategoryChips: React.FC = () => {
   return (
-    <section className="px-4 pb-7">
+    <section className="pb-7">
       <div className="flex flex-wrap gap-2.5">
         {CHIPS.map((label) => (
           <button

@@ -4,9 +4,12 @@ import { useCircleCover } from "../../../hooks/useCircleCover";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import { useBooks } from "../../../hooks/useBooks";
 import CircleDotsSymbol from "./CircleDotsSymbol";
+import { VocabularyIcon } from "../../common/icons/VocabularyIcon";
+import { StarIcon } from "../../common/icons/StarIcon";
 
 type CurrentCircleHeroProps = {
   studentId: string;
+  collapseSignal?: number;
   item: {
     book: Book;
     badge?: string;
@@ -39,7 +42,20 @@ type EpisodeMeta = {
   typeName?: string;
   typeSlug?: string;
   duration?: number;
+  vocabulary?: boolean;
   status?: EpisodeStatus;
+};
+
+type DotTag = {
+  icon:
+    | "listen"
+    | "talk"
+    | "vocabulary"
+    | "teach"
+    | "debate"
+    | "spelling"
+    | "generic";
+  label: string;
 };
 
 const normalizeDotTypeSlug = (value: string | null | undefined) => {
@@ -57,8 +73,200 @@ const formatDuration = (value: number) => {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
 
+const LineTagIcon: React.FC<{
+  icon: DotTag["icon"];
+  className?: string;
+}> = ({ icon, className }) => {
+  const sharedProps = {
+    className,
+    "aria-hidden": true,
+  };
+
+  switch (icon) {
+    case "talk":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" {...sharedProps}>
+          <path
+            d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.5 21.5l4.5-.838A9.96 9.96 0 0 0 12 22"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case "vocabulary":
+      return <VocabularyIcon {...sharedProps} />;
+    case "generic":
+      return <StarIcon {...sharedProps} />;
+    case "listen":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" {...sharedProps}>
+          <path
+            d="M4 13a8 8 0 0 1 16 0"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <rect
+            x="3.5"
+            y="12"
+            width="4"
+            height="7"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.7"
+          />
+          <rect
+            x="16.5"
+            y="12"
+            width="4"
+            height="7"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.7"
+          />
+        </svg>
+      );
+    case "teach":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" {...sharedProps}>
+          <path
+            d="M11.5 4.5h8v8"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6.75 9.2a2.2 2.2 0 1 0 0-4.4a2.2 2.2 0 0 0 0 4.4Z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M4.9 18.8v-5.1c0-1.6 1.1-2.8 2.6-2.8c1 0 1.8.3 2.5 1l1.9 1.8h2.7l2.4-3"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7.5 13.2v5.6M10 18.8v-4.3"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    case "debate":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" {...sharedProps}>
+          <line
+            x1="19.7344"
+            y1="3.5142"
+            x2="2.7639"
+            y2="20.4848"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <line
+            x1="5.6353"
+            y1="13.8105"
+            x2="9.4386"
+            y2="17.6138"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <line
+            x1="2.7642"
+            y1="3.5156"
+            x2="19.7348"
+            y2="20.4861"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <line
+            x1="13.0605"
+            y1="17.6147"
+            x2="16.8638"
+            y2="13.8114"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    case "spelling":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" {...sharedProps}>
+          <path
+            d="M5 18.5h4l8.5-8.5a1.8 1.8 0 0 0-4-4L5 14.5v4Z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12.5 7.5l4 4"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
+
+const getDotTags = (
+  typeSlug?: string,
+  typeName?: string,
+  vocabulary?: boolean,
+): DotTag[] => {
+  switch (typeSlug) {
+    case "teachtime":
+      return [
+        {
+          icon: "teach",
+          label: (typeName || "Teach time with Tomo").toUpperCase(),
+        },
+      ];
+    case "debating":
+      return [
+        { icon: "debate", label: (typeName || "Take a side").toUpperCase() },
+      ];
+    case "vocabulary":
+      return [{ icon: "vocabulary", label: "VOCABULARY" }];
+    case "spelling":
+      return [{ icon: "spelling", label: "SPELLING" }];
+    case "storytelling":
+    case "mediation":
+    case "talktime":
+    default:
+      if (
+        typeName &&
+        !["storytelling", "mediation", "talktime"].includes(typeSlug || "")
+      ) {
+        return [{ icon: "generic", label: typeName.toUpperCase() }];
+      }
+      return [
+        { icon: "listen", label: "LISTEN" },
+        { icon: "talk", label: "TALK TIME" },
+        ...(vocabulary ? [{ icon: "vocabulary", label: "VOCABULARY" }] : []),
+      ];
+  }
+};
+
 const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   studentId,
+  collapseSignal = 0,
   item,
   onOpenCircle,
   showOpenCircle = false,
@@ -71,12 +279,19 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   const [episodesError, setEpisodesError] = useState<string | null>(null);
   const { updateBookProgress, isUpdating } = useBooks(studentId);
 
-  const totalDots = Math.max(Number(item.totalDots) || 0, Number(item.book.chapters) || 0);
+  const totalDots = Math.max(
+    Number(item.totalDots) || 0,
+    Number(item.book.chapters) || 0,
+  );
   const completedDots = Math.max(Number(item.completedDots) || 0, 0);
   const progressDot =
     typeof item.currentDot === "number" && item.currentDot > 0
       ? item.currentDot
       : null;
+
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [collapseSignal]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -90,7 +305,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
         const [dotsResult, progressResult] = await Promise.all([
           supabase
             .from("circles_dots")
-            .select("episode, title, duration, type, created_at")
+            .select("episode, title, duration, type, vocabulary, created_at")
             .eq("circle_id", item.book.id)
             .order("created_at", { ascending: false }),
           studentId
@@ -114,6 +329,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
             title: string | null;
             duration: number | null;
             typeId: number | null;
+            vocabulary: boolean;
           }
         >();
 
@@ -130,6 +346,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               ? Number(row.duration)
               : null,
             typeId: Number.isFinite(Number(row.type)) ? Number(row.type) : null,
+            vocabulary: Boolean(row.vocabulary),
           });
         });
 
@@ -137,7 +354,9 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           new Set(
             Array.from(episodeEntries.values())
               .map((entry) => entry.typeId)
-              .filter((value): value is number => Number.isFinite(value) && value > 0),
+              .filter(
+                (value): value is number => Number.isFinite(value) && value > 0,
+              ),
           ),
         );
 
@@ -185,7 +404,9 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           (_, index) => {
             const episode = index + 1;
             const entry = episodeEntries.get(episode);
-            const typeEntry = entry?.typeId ? typeMap.get(entry.typeId) : undefined;
+            const typeEntry = entry?.typeId
+              ? typeMap.get(entry.typeId)
+              : undefined;
 
             return {
               episode,
@@ -193,6 +414,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               typeName: typeEntry?.name,
               typeSlug: typeEntry?.slug,
               duration: entry?.duration ?? undefined,
+              vocabulary: entry?.vocabulary ?? false,
               status: statusMap.get(episode),
             };
           },
@@ -230,7 +452,8 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   const activeEpisode = useMemo(() => {
     return (
-      episodes.find((episode) => episode.episode === activeEpisodeNumber) ?? null
+      episodes.find((episode) => episode.episode === activeEpisodeNumber) ??
+      null
     );
   }, [activeEpisodeNumber, episodes]);
 
@@ -264,7 +487,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   };
 
   return (
-    <section className="px-4">
+    <section>
       <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
         Continue talking
       </h1>
@@ -288,7 +511,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               onClick={handleHeroPlay}
               disabled={isUpdating}
               aria-label={`Play ${activeDotTitle}`}
-              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-white/92 text-black shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 hover:scale-[1.03] hover:bg-white disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full border-4 border-stone-800 bg-black text-white shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
             >
               <svg
                 aria-hidden="true"
@@ -322,13 +545,13 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               <div className="flex items-end justify-between gap-4">
                 <div className="min-w-0">
                   <h1
-                    className="font-display max-w-[14ch] text-left text-5xl font-bold leading-[1.02] text-white md:text-5xl"
+                    className="font-display max-w-[14ch] text-left text-3xl font-bold leading-[1.08] text-white md:text-5xl"
                     style={{ textShadow: "rgb(0, 0, 0) 0px 6px 14px" }}
                   >
                     {item.book.title}
                   </h1>
                   <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-[2rem]">
-                    <span className="h-3 w-3 rounded-full bg-[#FAC304]" />
+                    <span className="h-3 w-3 shrink-0 rounded-full bg-[#FAC304]" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber} · ${activeDotTitle}`}</span>
                   </div>
                 </div>
@@ -409,10 +632,16 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     const showRowButton = isCompleted || isCurrent;
                     const durationLabel =
                       episode.typeSlug !== "teachtime" &&
+                      episode.typeSlug !== "debating" &&
                       Number.isFinite(episode.duration) &&
                       (episode.duration ?? 0) > 0
                         ? formatDuration(episode.duration as number)
                         : null;
+                    const tags = getDotTags(
+                      episode.typeSlug,
+                      episode.typeName,
+                      episode.vocabulary,
+                    );
 
                     return (
                       <div
@@ -435,10 +664,15 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                           completedDotFill="#FAC304"
                           completedDotStroke="#FAC304"
                           labelColor={isCurrent ? "#ffffff" : "#0a1024"}
-                          className="shrink-0 md:h-[60px] md:w-[60px]"
+                          className="shrink-0 self-start md:h-[60px] md:w-[60px]"
                         />
 
                         <div className="min-w-0 flex-1">
+                          {isCurrent ? (
+                            <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-[#FAC304]">
+                              Today's mission
+                            </div>
+                          ) : null}
                           <div className="font-display text-2xl font-bold leading-tight">
                             {episode.title || `Dot ${episode.episode}`}
                           </div>
@@ -447,15 +681,65 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               isCurrent ? "text-white/60" : "text-black/50"
                             }`}
                           >
-                            {episode.typeName ? <span>{episode.typeName}</span> : null}
-                            {episode.typeName && durationLabel ? <span aria-hidden="true">·</span> : null}
-                            {durationLabel ? <span>{durationLabel}</span> : null}
-                            {isCurrent ? (
-                              <span className="font-semibold text-[#FAC304]">
-                                {episode.typeName || durationLabel ? "· " : ""}Current mission ✦
+                            {tags.map((tag) => (
+                              <span
+                                key={`${episode.episode}-${tag.label}`}
+                                className="inline-flex items-center gap-1.5 text-[0.72rem] font-medium uppercase tracking-[0.06em]"
+                              >
+                                <LineTagIcon
+                                  icon={tag.icon}
+                                  className={`h-[1.05em] w-[1.05em] shrink-0 ${
+                                    isCurrent ? "text-white/85" : "text-black"
+                                  }`}
+                                />
+                                <span>{tag.label}</span>
                               </span>
-                            ) : null}
+                            ))}
                           </div>
+                          {durationLabel || isCurrent ? (
+                            <div
+                              className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
+                                isCurrent ? "text-white/60" : "text-black/50"
+                              }`}
+                            >
+                              {durationLabel ? (
+                                <span
+                                  className={`inline-flex items-center gap-1.5 ${
+                                    isCurrent ? "text-white/85" : "text-black"
+                                  }`}
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    viewBox="0 0 24 24"
+                                    className="h-[0.95em] w-[0.95em] shrink-0"
+                                    fill="none"
+                                  >
+                                    <circle
+                                      cx="12"
+                                      cy="13"
+                                      r="7"
+                                      stroke="currentColor"
+                                      strokeWidth="1.7"
+                                    />
+                                    <path
+                                      d="M12 13V9.8M12 13L14.5 14.6"
+                                      stroke="currentColor"
+                                      strokeWidth="1.7"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M9.7 3.5h4.6"
+                                      stroke="currentColor"
+                                      strokeWidth="1.7"
+                                      strokeLinecap="round"
+                                    />
+                                  </svg>
+                                  <span>{durationLabel}</span>
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
 
                         {showRowButton ? (
@@ -506,7 +790,10 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     <button
                       type="button"
                       onClick={() =>
-                        onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
+                        onOpenCircle(
+                          item.book,
+                          Math.max(activeEpisodeNumber, 1),
+                        )
                       }
                       className="inline-flex items-center rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-semibold text-black/70 shadow-[0_6px_18px_rgba(0,0,0,0.04)] backdrop-blur-sm transition hover:border-black/20 hover:bg-white hover:text-black"
                     >

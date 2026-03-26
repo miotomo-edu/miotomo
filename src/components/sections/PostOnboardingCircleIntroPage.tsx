@@ -351,7 +351,7 @@ const PostOnboardingCircleIntroPage: React.FC<
 
   if (isLoadingBrowse || isLoadingDots) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)] px-6 py-8 text-black/60">
+      <div className="min-h-screen bg-white px-6 py-8 text-black/60">
         Loading your first circle...
       </div>
     );
@@ -359,16 +359,16 @@ const PostOnboardingCircleIntroPage: React.FC<
 
   if (!book) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)] px-6 py-8 text-black/60">
+      <div className="min-h-screen bg-white px-6 py-8 text-black/60">
         Demo circle not available.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)] px-6 pb-28 pt-6 text-black">
+    <div className="min-h-screen bg-white px-6 pb-28 pt-6 text-black">
       <div className="flex w-full flex-col gap-6">
-        <section className="overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,#020617_0%,#0b1020_100%)] px-5 py-6 text-white shadow-[0_18px_44px_rgba(0,0,0,0.16)]">
+        <section className="overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,#020617_0%,#0b1020_100%)] px-5 py-6 text-white">
           <div className="flex items-start gap-4">
             <CircleDotsSymbol
               totalDots={Math.max(totalDots, 1)}
@@ -441,7 +441,7 @@ const PostOnboardingCircleIntroPage: React.FC<
               return (
                 <div
                   key={`${book.id}-dot-${dot.episode}`}
-                  className="w-full rounded-[22px] border border-black/25 bg-white/80 px-4 py-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.05)]"
+                  className="w-full rounded-[22px] border border-black bg-[#F2F2F2] px-4 py-4 text-left"
                 >
                   <div className="flex items-start gap-4">
                     <CircleDotsSymbol
@@ -465,7 +465,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                             key={`${dot.episode}-${tag.label}`}
                             className="inline-flex items-center gap-1.5"
                           >
-                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0" />
+                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
                             <span>{tag.label}</span>
                           </span>
                         ))}
@@ -503,7 +503,7 @@ const PostOnboardingCircleIntroPage: React.FC<
             return (
               <div
                 key={`${book.id}-dot-${dot.episode}`}
-                className="w-full rounded-[22px] bg-white/78 px-4 py-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                className="w-full rounded-[22px] bg-[#F2F2F2] px-4 py-4 text-left"
               >
                 <div className="flex items-start gap-4">
                   <CircleDotsSymbol
@@ -527,7 +527,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                           key={`${dot.episode}-${tag.label}`}
                           className="inline-flex items-center gap-1.5"
                         >
-                          <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0" />
+                          <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
                           <span>{tag.label}</span>
                         </span>
                       ))}

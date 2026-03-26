@@ -13,7 +13,7 @@ body {
   overflow-y: hidden;
   height: 100%;
   width: 100%;
-  background: #000;
+  background: #fff;
   font-family: "Nunito", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
@@ -31,6 +31,7 @@ body {
   overflow: hidden;
   position: relative;
   width: 100%;
+  background: #fff;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   display: flex;
@@ -69,7 +70,7 @@ body {
 }
 
 .bg-library {
-  background: #fffdf8;
+  background: #fff;
 }
 
 @keyframes fadeInSoft {

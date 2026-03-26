@@ -5,6 +5,7 @@ import type { Book } from "./LibrarySection";
 type LibraryPageProps = {
   userName: string;
   studentId: string;
+  collapseHeroSignal?: number;
   onOpenCircle: (book: Book, chapter: number) => void;
   onPlayEpisode: (
     book: Book,
@@ -17,6 +18,7 @@ type LibraryPageProps = {
 const LibraryPage: React.FC<LibraryPageProps> = ({
   userName,
   studentId,
+  collapseHeroSignal = 0,
   onOpenCircle,
   onPlayEpisode,
 }) => {
@@ -24,6 +26,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
     <BrowsePage
       userName={userName}
       studentId={studentId}
+      collapseHeroSignal={collapseHeroSignal}
       onOpenCircle={onOpenCircle}
       onPlayEpisode={onPlayEpisode}
       showContinueRow={false}

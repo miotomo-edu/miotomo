@@ -61,6 +61,7 @@ const App = ({ transportType, region = "" }) => {
   const [circleReturnComponent, setCircleReturnComponent] = useState("library");
   const [shouldStartSession, setShouldStartSession] = useState(false);
   const [latestConversationId, setLatestConversationId] = useState(null);
+  const [libraryHeroCollapseSignal, setLibraryHeroCollapseSignal] = useState(0);
 
   // Used to trigger disconnect from BottomNavBar or when leaving interactive
   const disconnectRef = useRef(null);
@@ -304,6 +305,9 @@ const App = ({ transportType, region = "" }) => {
   };
 
   const handleNavigationClick = async (componentName) => {
+    if (componentName === "library" && activeComponent === "library") {
+      setLibraryHeroCollapseSignal((prev) => prev + 1);
+    }
     // CRITICAL: When leaving the talk screen, ensure full disconnect
     if (activeComponent === "interactive" && disconnectRef.current) {
       console.log("🔌 Triggering disconnect from navigation");
@@ -396,6 +400,7 @@ const App = ({ transportType, region = "" }) => {
           <LibraryPage
             userName={userName}
             studentId={studentId}
+            collapseHeroSignal={libraryHeroCollapseSignal}
             onOpenCircle={openCirclePage}
             onPlayEpisode={handlePlayEpisode}
           />
@@ -406,6 +411,7 @@ const App = ({ transportType, region = "" }) => {
             <LibraryPage
               userName={userName}
               studentId={studentId}
+              collapseHeroSignal={libraryHeroCollapseSignal}
               onOpenCircle={openCirclePage}
               onPlayEpisode={handlePlayEpisode}
             />
@@ -434,6 +440,7 @@ const App = ({ transportType, region = "" }) => {
             <LibraryPage
               userName={userName}
               studentId={studentId}
+              collapseHeroSignal={libraryHeroCollapseSignal}
               onOpenCircle={openCirclePage}
               onPlayEpisode={handlePlayEpisode}
             />
@@ -537,7 +544,7 @@ const App = ({ transportType, region = "" }) => {
                 activeComponent === "circle"
             ? "bg-library"
             : activeComponent === "first-circle-intro"
-              ? "bg-[#F4ECDF]"
+              ? "bg-white"
               : "";
 
   return (

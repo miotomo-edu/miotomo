@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import createAccountImage from "../../../assets/img/onboarding/create-account.png";
 
 function CreateAccount({ onNext, onFinish }) {
@@ -7,26 +7,26 @@ function CreateAccount({ onNext, onFinish }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div
-      className="relative flex min-h-screen w-full flex-col bg-white px-6 text-left text-white"
-      style={{
-        backgroundImage: `url(${createAccountImage})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      {/* Bottom content */}
-      <div className="relative z-10 mx-auto mt-auto w-full max-w-sm pt-[50vh] pb-8 text-left md:pt-0 md:pb-10">
-        <div className="rounded-[2rem] bg-black/55 px-5 py-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-[2px]">
-          <h1 className="mb-6 text-2xl font-bold text-white">
+    <div className="flex min-h-screen w-full flex-col bg-white text-left text-black">
+      <div
+        className="h-[40vh] min-h-[260px] w-full bg-white md:h-[46vh]"
+        style={{
+          backgroundImage: `url(${createAccountImage})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "contain",
+          backgroundPosition: "top center",
+        }}
+      />
+
+      <div className="flex-1 px-6 pb-8 pt-6 md:pb-10">
+        <div className="mx-auto w-full max-w-sm text-left">
+          <h1 className="mb-6 font-display text-3xl font-bold leading-tight text-black">
             Create child account
           </h1>
 
           <div className="space-y-4">
-          {/* Email */}
             <div>
-              <label className="mb-1 block text-xs font-light text-white/80">
+              <label className="mb-1 block text-sm font-medium text-black/60">
                 Email
               </label>
               <input
@@ -34,13 +34,12 @@ function CreateAccount({ onNext, onFinish }) {
                 placeholder="parent@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border-2 border-black bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+                className="w-full rounded-xl border-2 border-black/20 bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
               />
             </div>
 
-            {/* Password */}
             <div>
-              <label className="mb-1 block text-xs font-light text-white/80">
+              <label className="mb-1 block text-sm font-medium text-black/60">
                 Password
               </label>
               <div className="relative">
@@ -49,12 +48,12 @@ function CreateAccount({ onNext, onFinish }) {
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border-2 border-black bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+                  className="w-full rounded-xl border-2 border-black/20 bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                 >
                   <svg
                     aria-hidden="true"
@@ -81,20 +80,18 @@ function CreateAccount({ onNext, onFinish }) {
               </div>
             </div>
 
-            {/* Next button */}
             <button
               onClick={onNext}
-              className="mt-6 w-full rounded-full bg-white py-4 text-lg font-semibold text-black"
+              className="mt-6 w-full rounded-full bg-black py-4 text-lg font-semibold text-white"
             >
               Next
             </button>
 
-            {/* Already have account line */}
-            <p className="mt-4 text-center text-sm text-white/80">
+            <p className="mt-4 text-center text-sm text-black/70">
               Already have an account?{" "}
               <button
                 onClick={onFinish}
-                className="font-semibold text-white underline hover:no-underline"
+                className="font-semibold text-black underline hover:no-underline"
               >
                 Sign in
               </button>

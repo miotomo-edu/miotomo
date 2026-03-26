@@ -9,7 +9,7 @@ interface WelcomeSectionProps {
 }
 
 const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
-  <section className="px-4 pb-4 pt-6">
+  <section className="pb-4 pt-6">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
         <div className="relative flex-shrink-0">
