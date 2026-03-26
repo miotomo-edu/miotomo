@@ -7,16 +7,15 @@ function CreateAccount({ onNext, onFinish }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="relative flex h-full min-h-full w-full flex-col bg-white px-6 text-left text-white">
-      <div
-        className="absolute inset-0 bg-white"
-        style={{
-          backgroundImage: `url(${createAccountImage})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "auto 100%",
-          backgroundPosition: "right center",
-        }}
-      />
+    <div
+      className="relative flex min-h-screen w-full flex-col bg-white px-6 text-left text-white"
+      style={{
+        backgroundImage: `url(${createAccountImage})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Bottom content */}
       <div className="relative z-10 mx-auto mt-auto w-full max-w-sm pt-[50vh] pb-8 text-left md:pt-0 md:pb-10">
         <div className="rounded-[2rem] bg-black/55 px-5 py-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-[2px]">

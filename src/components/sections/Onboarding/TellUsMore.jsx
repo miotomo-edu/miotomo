@@ -20,8 +20,8 @@ function TellUsMore({ onBack, onFinish }) {
         style={{
           backgroundImage: `url(${createAccountImage})`,
           backgroundRepeat: "no-repeat",
-          backgroundSize: "auto 100%",
-          backgroundPosition: "right center",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
       <button

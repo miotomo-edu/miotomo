@@ -11,7 +11,7 @@ function OnboardingFlow({ onFinish }) {
   const handleDotClick = (index) => setStep(index);
 
   return (
-    <div className="flex h-full min-h-full w-full flex-col justify-between bg-black text-white">
+    <div className="flex h-full min-h-full w-full flex-col justify-between bg-white text-white">
       {/* Dynamic section content */}
       <div className="flex min-h-0 flex-1 items-stretch overflow-y-auto">
         {step === 0 ? (
