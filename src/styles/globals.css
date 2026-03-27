@@ -51,12 +51,12 @@ body {
 }
 
 .safe-area-top {
-  padding-top: 1rem;
+  padding-top: 0;
 }
 
 @supports (padding-top: env(safe-area-inset-top)) {
   .safe-area-top {
-    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
   }
 }
 
@@ -329,6 +329,9 @@ body {
     left: 0;
     bottom: 0;
     width: 100vw;
+    height: calc(4rem + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
     z-index: 50;
   }
 
