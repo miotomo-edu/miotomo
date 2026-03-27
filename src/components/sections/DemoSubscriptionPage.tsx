@@ -167,7 +167,7 @@ const DemoSubscriptionPage: React.FC<DemoSubscriptionPageProps> = ({
           onClick={onContinue}
           className="inline-flex w-full items-center justify-center text-sm font-semibold text-[#020617]/58 underline-offset-4 transition hover:text-[#020617]"
         >
-          Skip for now
+          Remind me later
         </button>
       </div>
     </div>
