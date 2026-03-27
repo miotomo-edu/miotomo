@@ -28,9 +28,23 @@ const discussionBackgroundAssets = import.meta.glob(
 );
 
 const introDiscussionVideoUrl = new URL(
-  "../assets/img/discussion/71151c97-3aa1-4911-b14a-cfe8e2383b86/0326/0326.mov",
+  "../assets/img/discussion/71151c97-3aa1-4911-b14a-cfe8e2383b86/lucius_marcus.mov",
   import.meta.url,
 ).href;
+
+const INTRO_VIDEO_SPEAKER_SEGMENTS: Record<
+  string,
+  { start: number; end: number }
+> = {
+  lucius: { start: 0, end: 2.1 },
+  marcus: { start: 6, end: 8 },
+};
+
+const normalizeSpeakerKey = (value: string | null | undefined) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+};
 
 const normalizeDiscussionCharacterSlug = (value) => {
   if (typeof value !== "string") return "";
@@ -114,6 +128,17 @@ export const TalkWithBook = ({
   const hasSubmittedSummaryRef = useRef(false);
   const introAudioRef = useRef(null);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
+  const introScriptUtterancesRef = useRef<
+    Array<{
+      speaker: string;
+      startSeconds: number;
+      endSeconds: number;
+      lineNumber: number | null;
+      text: string;
+    }>
+  >([]);
+  const lastIntroScriptLineRef = useRef<string | null>(null);
+  const lastIntroVideoSpeakerRef = useRef<string | null>(null);
   const introMetaRef = useRef(null);
   const introStateRef = useRef({
     metadataReceived: false,
@@ -421,6 +446,63 @@ export const TalkWithBook = ({
     },
     [updateDotProgressSafe],
   );
+
+  const logIntroScriptSpeakerAtTime = useCallback((seconds: number) => {
+    const utterances = introScriptUtterancesRef.current;
+    if (!utterances.length || !Number.isFinite(seconds) || seconds < 0) {
+      lastIntroScriptLineRef.current = null;
+      return null;
+    }
+
+    const activeUtterance =
+      utterances.find(
+        (utterance) =>
+          seconds >= utterance.startSeconds && seconds <= utterance.endSeconds,
+      ) ?? null;
+
+    if (!activeUtterance) {
+      lastIntroScriptLineRef.current = null;
+      return null;
+    }
+
+    const lineKey = `${activeUtterance.lineNumber ?? "na"}:${activeUtterance.speaker}`;
+    if (lastIntroScriptLineRef.current === lineKey) {
+      return activeUtterance.speaker;
+    }
+    lastIntroScriptLineRef.current = lineKey;
+
+    console.log(`[Intro Script] ${activeUtterance.speaker} speaking`, {
+      line: activeUtterance.lineNumber,
+      start_seconds: activeUtterance.startSeconds,
+      end_seconds: activeUtterance.endSeconds,
+      text: activeUtterance.text,
+    });
+    return activeUtterance.speaker;
+  }, []);
+
+  const syncIntroVideoSegmentForSpeaker = useCallback((speaker: string) => {
+    const introVideo = introVideoRef.current;
+    if (!introVideo) return;
+    const speakerKey = normalizeSpeakerKey(speaker);
+    if (!speakerKey) return;
+    const segment = INTRO_VIDEO_SPEAKER_SEGMENTS[speakerKey];
+    if (!segment) return;
+
+    const isSpeakerChanged = lastIntroVideoSpeakerRef.current !== speakerKey;
+    lastIntroVideoSpeakerRef.current = speakerKey;
+
+    if (
+      isSpeakerChanged ||
+      introVideo.currentTime < segment.start ||
+      introVideo.currentTime >= segment.end - 0.03
+    ) {
+      try {
+        introVideo.currentTime = segment.start;
+      } catch (error) {
+        console.warn("Failed to sync intro video segment:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     listeningSyncCallbackRef.current = maybeSyncListeningElapsed;
@@ -1156,33 +1238,41 @@ export const TalkWithBook = ({
     [syncMic],
   );
 
-  const handleIntroSeek = useCallback((event) => {
-    const audio = introAudioRef.current;
-    if (!audio) return;
-    const rawValue = Number(event.target.value);
-    if (!Number.isFinite(rawValue)) return;
-    const duration =
-      typeof introDurationRef.current === "number"
-        ? introDurationRef.current
-        : audio.duration || null;
-    const clamped =
-      typeof duration === "number"
-        ? Math.min(duration, Math.max(0, rawValue))
-        : Math.max(0, rawValue);
-    audio.currentTime = clamped;
-    const introVideo = introVideoRef.current;
-    if (introVideo) {
-      try {
-        introVideo.currentTime = clamped;
-      } catch (error) {
-        console.warn("Failed to seek intro video:", error);
+  const handleIntroSeek = useCallback(
+    (event) => {
+      const audio = introAudioRef.current;
+      if (!audio) return;
+      const rawValue = Number(event.target.value);
+      if (!Number.isFinite(rawValue)) return;
+      const duration =
+        typeof introDurationRef.current === "number"
+          ? introDurationRef.current
+          : audio.duration || null;
+      const clamped =
+        typeof duration === "number"
+          ? Math.min(duration, Math.max(0, rawValue))
+          : Math.max(0, rawValue);
+      audio.currentTime = clamped;
+      const activeSpeaker = logIntroScriptSpeakerAtTime(clamped);
+      const introVideo = introVideoRef.current;
+      if (introVideo) {
+        if (activeSpeaker) {
+          syncIntroVideoSegmentForSpeaker(activeSpeaker);
+        } else {
+          try {
+            introVideo.currentTime = clamped;
+          } catch (error) {
+            console.warn("Failed to seek intro video:", error);
+          }
+        }
       }
-    }
-    setIntroCurrentSeconds(clamped);
-    if (typeof duration === "number") {
-      setIntroRemainingSeconds(Math.max(0, Math.ceil(duration - clamped)));
-    }
-  }, []);
+      setIntroCurrentSeconds(clamped);
+      if (typeof duration === "number") {
+        setIntroRemainingSeconds(Math.max(0, Math.ceil(duration - clamped)));
+      }
+    },
+    [logIntroScriptSpeakerAtTime, syncIntroVideoSegmentForSpeaker],
+  );
 
   const toggleIntroPlayback = useCallback(() => {
     const audio = introAudioRef.current;
@@ -1298,6 +1388,10 @@ export const TalkWithBook = ({
     const handleTimeUpdate = () => {
       const isActiveIntro = introActiveRef.current;
       const position = audio.currentTime ?? 0;
+      const activeSpeaker = logIntroScriptSpeakerAtTime(position);
+      if (activeSpeaker) {
+        syncIntroVideoSegmentForSpeaker(activeSpeaker);
+      }
       if (isActiveIntro) {
         const didComplete =
           introHandlersRef.current.maybeCompleteOnDuration?.(position) ?? false;
@@ -1338,7 +1432,11 @@ export const TalkWithBook = ({
       stopIntroAudio({ unload: true });
       introAudioRef.current = null;
     };
-  }, [stopIntroAudio]);
+  }, [
+    stopIntroAudio,
+    logIntroScriptSpeakerAtTime,
+    syncIntroVideoSegmentForSpeaker,
+  ]);
 
   useEffect(() => {
     if (
@@ -1531,6 +1629,96 @@ export const TalkWithBook = ({
       isCancelled = true;
     };
   }, [handleIntroMetadata, selectedBook?.id, chapter]);
+
+  useEffect(() => {
+    introScriptUtterancesRef.current = [];
+    lastIntroScriptLineRef.current = null;
+    lastIntroVideoSpeakerRef.current = null;
+    if (!selectedBook?.id) return;
+    const rawEpisode = Number(chapter);
+    if (!Number.isFinite(rawEpisode) || rawEpisode <= 0) return;
+
+    let cancelled = false;
+    const loadIntroScript = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("circles_scripts")
+          .select("utterances")
+          .eq("circle_id", selectedBook.id)
+          .eq("episode", rawEpisode)
+          .maybeSingle();
+
+        if (cancelled) return;
+        if (error) {
+          console.warn("Failed to load intro script:", error);
+          return;
+        }
+
+        const utterancesRaw = Array.isArray(data?.utterances)
+          ? data.utterances
+          : [];
+        const parsed = utterancesRaw
+          .map((entry) => {
+            const record = entry as Record<string, unknown>;
+            const directStartSeconds = Number(record?.start_seconds);
+            const fallbackStartMs = Number(record?.start_ms);
+            const startSeconds = Number.isFinite(directStartSeconds)
+              ? directStartSeconds
+              : Number.isFinite(fallbackStartMs)
+                ? fallbackStartMs / 1000
+                : 0;
+            const directEndSeconds = Number(record?.end_seconds);
+            const fallbackEndMs = Number(record?.end_ms);
+            const endSeconds = Number.isFinite(directEndSeconds)
+              ? directEndSeconds
+              : Number.isFinite(fallbackEndMs)
+                ? fallbackEndMs / 1000
+                : 0;
+            const speakerRaw = record?.speaker;
+            const textRaw = record?.text;
+            const lineRaw = Number(record?.line_number);
+            if (
+              !Number.isFinite(startSeconds) ||
+              !Number.isFinite(endSeconds) ||
+              endSeconds <= startSeconds
+            ) {
+              return null;
+            }
+            return {
+              speaker:
+                typeof speakerRaw === "string" && speakerRaw.trim().length > 0
+                  ? speakerRaw.trim()
+                  : "Unknown",
+              text:
+                typeof textRaw === "string" && textRaw.trim().length > 0
+                  ? textRaw.trim()
+                  : "",
+              startSeconds,
+              endSeconds,
+              lineNumber: Number.isFinite(lineRaw) ? lineRaw : null,
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.startSeconds - b.startSeconds) as Array<{
+          speaker: string;
+          startSeconds: number;
+          endSeconds: number;
+          lineNumber: number | null;
+          text: string;
+        }>;
+
+        introScriptUtterancesRef.current = parsed;
+      } catch (err) {
+        if (cancelled) return;
+        console.warn("Failed to load intro script:", err);
+      }
+    };
+
+    loadIntroScript();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBook?.id, chapter]);
 
   useEffect(() => {
     if (!studentId || !selectedBook?.id) return;
@@ -2109,7 +2297,8 @@ export const TalkWithBook = ({
       return "listening.png";
     }
     if (activityState === "talking") {
-      const speakerSlug = normalizeDiscussionCharacterSlug(talkingCharacterName);
+      const speakerSlug =
+        normalizeDiscussionCharacterSlug(talkingCharacterName);
       if (speakerSlug) {
         return `${speakerSlug}_talking.png`;
       }
@@ -2315,6 +2504,12 @@ export const TalkWithBook = ({
     if (!introVideo) return;
 
     if (sessionPhase === "intro_playing") {
+      const activeSpeaker = logIntroScriptSpeakerAtTime(
+        introAudioRef.current?.currentTime ?? 0,
+      );
+      if (activeSpeaker) {
+        syncIntroVideoSegmentForSpeaker(activeSpeaker);
+      }
       const maybePlayPromise = introVideo.play();
       if (maybePlayPromise?.catch) {
         maybePlayPromise.catch(() => undefined);
@@ -2326,11 +2521,16 @@ export const TalkWithBook = ({
     if (sessionPhase !== "intro_paused") {
       try {
         introVideo.currentTime = 0;
+        lastIntroVideoSpeakerRef.current = null;
       } catch (error) {
         console.warn("Failed to reset intro video:", error);
       }
     }
-  }, [sessionPhase]);
+  }, [
+    sessionPhase,
+    logIntroScriptSpeakerAtTime,
+    syncIntroVideoSegmentForSpeaker,
+  ]);
 
   return (
     <div
@@ -2344,7 +2544,6 @@ export const TalkWithBook = ({
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           src={introDiscussionVideoUrl}
           muted
-          loop
           playsInline
           preload="auto"
         />
