@@ -498,9 +498,7 @@ const App = ({ transportType, region = "" }) => {
               onDisconnectRequest={disconnectRef}
               connectionManagedExternally={shouldShowConnectionManager}
               onRequestSessionStart={() => setShouldStartSession(true)}
-              onShowDotCompletion={
-                isDemoSession ? handleShowDotCompletion : undefined
-              }
+              onShowDotCompletion={handleShowDotCompletion}
             />
           </VoiceBotProvider>
         );
