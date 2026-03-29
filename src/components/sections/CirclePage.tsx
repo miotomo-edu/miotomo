@@ -996,8 +996,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const completedDotCount = completedDots.length;
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)]">
-      <div className="w-full bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)]">
+    <div className="min-h-screen w-full flex flex-col bg-white">
+      <div className="w-full bg-white px-6">
         <WelcomeSection userName={userName} />
       </div>
       <header
@@ -1054,7 +1054,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
       </header>
 
-      <section className="relative z-10 -mt-16 bg-[linear-gradient(180deg,#f4ecdf_0%,#efe6d8_100%)] px-6 pb-24 pt-8">
+      <section className="relative z-10 -mt-16 bg-white px-6 pb-24 pt-8">
         <div className="flex items-center justify-between">
           {isLoading && (
             <span className="text-sm text-black/45 md:text-base">
