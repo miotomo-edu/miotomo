@@ -18,7 +18,7 @@ interface BottomNavBarProps {
 const defaultNavItems = [
   { label: "Circles", componentName: "library", icon: <CirclesIcon /> },
   { label: "Tomo", componentName: "progress", icon: <TomoIcon /> },
-  { label: "Parents", componentName: "rewards", icon: <ParentsIcon /> },
+  { label: "Parents", componentName: "parents", icon: <ParentsIcon /> },
   // { label: "SETTINGS", componentName: "settings", icon: <SettingsIcon /> },
 ];
 

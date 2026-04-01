@@ -632,9 +632,33 @@ export const TalkWithBook = ({
   ]);
 
   const handleShowDotCompletion = useCallback(async () => {
+    const episode = getEpisodeNumber();
+    let openVocabularyGame = false;
+
+    if (selectedBook?.id && episode) {
+      try {
+        const { data, error } = await supabase
+          .from("circles_dots")
+          .select("vocabulary")
+          .eq("circle_id", selectedBook.id)
+          .eq("episode", episode)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.warn("Failed to load dot vocabulary flag:", error);
+        } else {
+          openVocabularyGame = Boolean(data?.vocabulary);
+        }
+      } catch (err) {
+        console.warn("Failed to resolve dot vocabulary flag:", err);
+      }
+    }
+
     await disconnectHere();
-    onShowDotCompletion?.();
-  }, [disconnectHere, onShowDotCompletion]);
+    onShowDotCompletion?.({ openVocabularyGame });
+  }, [disconnectHere, getEpisodeNumber, onShowDotCompletion, selectedBook?.id]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {

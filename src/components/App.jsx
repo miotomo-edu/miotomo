@@ -14,6 +14,7 @@ import PostOnboardingCircleIntroPage from "./sections/PostOnboardingCircleIntroP
 import DotCompletionPage from "./sections/DotCompletionPage";
 import DemoSubscriptionPage from "./sections/DemoSubscriptionPage";
 import RewardsSection from "./sections/RewardsSection";
+import ParentsSection from "./sections/ParentsSection";
 import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
 import CirclePage from "./sections/CirclePage";
@@ -165,7 +166,7 @@ const App = ({ transportType, region = "" }) => {
       activeComponent === "home" ||
       activeComponent === "library" ||
       activeComponent === "progress" ||
-      activeComponent === "rewards" ||
+      activeComponent === "parents" ||
       activeComponent === "settings";
 
     if (!shouldClearSelection) return;
@@ -242,9 +243,13 @@ const App = ({ transportType, region = "" }) => {
     [normalizeChapterValue, currentCharacter, activeComponent],
   );
 
-  const handleShowDotCompletion = useCallback(() => {
+  const handleShowDotCompletion = useCallback((options = {}) => {
     if (!selectedBook) return;
     setCompletedDotChapter(selectedChapter);
+    if (options.openVocabularyGame) {
+      setActiveComponent("vocabulary-game");
+      return;
+    }
     setActiveComponent(isDemoSession ? "demo-subscribe" : "dot-complete");
   }, [selectedBook, selectedChapter, isDemoSession]);
 
@@ -466,8 +471,10 @@ const App = ({ transportType, region = "" }) => {
             onContinue={() => setActiveComponent("library")}
           />
         );
-      case "rewards":
-        return <RewardsSection />;
+      case "vocabulary-game":
+        return <RewardsSection onComplete={() => handleShowDotCompletion()} />;
+      case "parents":
+        return <ParentsSection />;
       case "settings":
         return <SettingsSection />;
       case "map":
@@ -541,8 +548,10 @@ const App = ({ transportType, region = "" }) => {
   }
 
   const mainBackgroundClass =
-    activeComponent === "rewards"
+    activeComponent === "vocabulary-game"
       ? "bg-[#2F2C2F]"
+      : activeComponent === "parents"
+        ? "bg-[#F6EFE2]"
       : activeComponent === "progress"
         ? "bg-[#EAB7AF]"
         : activeComponent === "onboarding"
@@ -575,7 +584,10 @@ const App = ({ transportType, region = "" }) => {
           activeComponent !== "first-circle-intro" &&
           activeComponent !== "demo-subscribe"
         }
-        fullHeight={activeComponent === "rewards"}
+        fullHeight={
+          activeComponent === "vocabulary-game" ||
+          activeComponent === "parents"
+        }
         mainClassName={mainBackgroundClass}
       >
         {activeComponent === "landing" ? (

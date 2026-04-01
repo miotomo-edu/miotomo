@@ -84,7 +84,13 @@ const getLetterClass = (status: LetterStatus, filled: boolean) => {
   return "text-[#efe6d6]";
 };
 
-const VisualSpellingGame: React.FC = () => {
+type VisualSpellingGameProps = {
+  onComplete?: () => void;
+};
+
+const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
+  onComplete,
+}) => {
   const [words, setWords] = useState<string[]>([]);
   const [audioUrl, setAudioUrl] = useState<string>("");
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -112,6 +118,8 @@ const VisualSpellingGame: React.FC = () => {
   const [displayedQuote, setDisplayedQuote] = useState("");
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showIntro, setShowIntro] = useState(true);
+  const [showCompletionScreen, setShowCompletionScreen] = useState(false);
+  const [showEndScreen, setShowEndScreen] = useState(false);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
@@ -184,7 +192,9 @@ const VisualSpellingGame: React.FC = () => {
       }
 
       const wordList = Array.isArray(data?.words)
-        ? data.words.filter((word) => typeof word === "string" && word.length)
+        ? data.words
+            .filter((word) => typeof word === "string" && word.length)
+            .slice(0, 1)
         : [];
       const audio = typeof data?.audio === "string" ? data.audio : "";
 
@@ -421,6 +431,7 @@ const VisualSpellingGame: React.FC = () => {
   const correctCount = wordResults.filter(
     (result) => result === "correct",
   ).length;
+  const isLastWordComplete = isLastWord && (isCorrectSolved || isFailedRound);
 
   const keyRotations = useMemo(() => {
     const entries: Record<string, number> = {};
@@ -444,6 +455,19 @@ const VisualSpellingGame: React.FC = () => {
         handleReset(nextIndex);
       }
     : handleSubmit;
+
+  useEffect(() => {
+    if (!isLastWordComplete) return;
+    setShowCompletionScreen(true);
+  }, [isLastWordComplete]);
+
+  const handleContinue = () => {
+    if (typeof onComplete === "function") {
+      onComplete();
+      return;
+    }
+    setShowEndScreen(true);
+  };
 
   if (showIntro) {
     return (
@@ -484,6 +508,53 @@ const VisualSpellingGame: React.FC = () => {
         <span className="text-sm uppercase tracking-[0.2em] text-white/60">
           No spelling words available.
         </span>
+      </div>
+    );
+  }
+
+  if (showEndScreen) {
+    return (
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-6 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
+        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d8cdbd]">
+          Flow Complete
+        </div>
+        <h1 className="text-4xl font-bold md:text-5xl">
+          You reached the end of the test flow.
+        </h1>
+        <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
+          The next step after spelling can be wired from here.
+        </p>
+      </div>
+    );
+  }
+
+  if (showCompletionScreen) {
+    return (
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
+        <div className="flex max-w-2xl flex-col items-center gap-5">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d8cdbd]">
+            Spelling Complete
+          </div>
+          <h1 className="text-4xl font-bold md:text-5xl">
+            {isCorrectSolved ? "You spelled it right." : "You finished the spelling round."}
+          </h1>
+          <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
+            {isCorrectSolved
+              ? "Nice listening and nice spelling."
+              : `The word was ${targetWord}.`}
+          </p>
+          <div className="text-sm uppercase tracking-[0.18em] text-[#c59a41] md:text-base">
+            Score: {correctCount} / {words.length}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-8 py-4 text-lg font-bold uppercase tracking-[0.12em] text-[#2a2629] transition hover:brightness-105 md:px-10 md:py-5 md:text-xl"
+        >
+          Continue
+        </button>
       </div>
     );
   }
@@ -650,7 +721,7 @@ const VisualSpellingGame: React.FC = () => {
         )}
       </div>
 
-      {isRoundComplete && (
+      {isRoundComplete && !isLastWord && (
         <p className="text-center text-xs uppercase tracking-[0.2em] text-[#c6b9aa]">
           Ready for the next word
         </p>
@@ -808,7 +879,7 @@ const VisualSpellingGame: React.FC = () => {
           })}
         </div>
       </div>
-      {(isCorrectSolved || isFailedRound) && (
+      {(isCorrectSolved || isFailedRound) && !isLastWord && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 px-6">
           <div className="w-full max-w-xs rounded-2xl border border-[#6b6256] bg-[#2f2b2d] p-6 text-center text-[#efe6d6] shadow-2xl">
             {isCorrectSolved ? (
@@ -830,19 +901,13 @@ const VisualSpellingGame: React.FC = () => {
                 </p>
               </>
             )}
-            {isLastWord ? (
-              <p className="mt-5 text-sm font-semibold text-white">
-                Congratulations! You got {correctCount} on {words.length} right
-              </p>
-            ) : (
-              <button
-                type="button"
-                onClick={submitHandler}
-                className="mt-5 w-full rounded-full bg-[#efe6d6] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[#2a2629]"
-              >
-                Next
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={submitHandler}
+              className="mt-5 w-full rounded-full bg-[#efe6d6] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[#2a2629]"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

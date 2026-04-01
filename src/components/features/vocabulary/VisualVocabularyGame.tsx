@@ -4,6 +4,7 @@ import tomoSpellingIcon from "../../../assets/img/tomo-spelling.png";
 import vocabularyBackground from "../../../assets/img/vocabulary_bg.png";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
+import VisualSpellingGame from "../spelling/VisualSpellingGame";
 
 type Attempt = {
   text: string;
@@ -19,6 +20,10 @@ type VocabItem = {
   feedbackTextMap: Record<string, string>;
   definition: string;
   language?: string | null;
+};
+
+type VisualVocabularyGameProps = {
+  onComplete?: () => void;
 };
 
 const TEST_CIRCLE_ID = "ff7f12ca-78e4-4987-9d2c-63a68694a1b1";
@@ -51,7 +56,9 @@ const parseFeedbackTextMap = (value: unknown) => {
   return null;
 };
 
-const VisualVocabularyGame: React.FC = () => {
+const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
+  onComplete,
+}) => {
   const [items, setItems] = useState<VocabItem[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [targetWord, setTargetWord] = useState("");
@@ -81,6 +88,7 @@ const VisualVocabularyGame: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasListened, setHasListened] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [showSpellingGame, setShowSpellingGame] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const sentChunkCountRef = useRef(0);
@@ -133,7 +141,8 @@ const VisualVocabularyGame: React.FC = () => {
         .eq("circle_id", TEST_CIRCLE_ID)
         .eq("dot", TEST_DOT)
         .order("index", { ascending: true })
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(1);
 
       if (!error) {
         console.log("Vocab items response", data);
@@ -530,6 +539,12 @@ const VisualVocabularyGame: React.FC = () => {
     }
     return `What is the meaning of “${rawTargetWord}”?`;
   })();
+  const showCompletionScreen =
+    phase === "feedback" && isLastWord && isCorrectSolved;
+
+  if (showSpellingGame) {
+    return <VisualSpellingGame onComplete={onComplete} />;
+  }
 
   if (showIntro) {
     return (
@@ -570,6 +585,35 @@ const VisualVocabularyGame: React.FC = () => {
         <span className="text-sm uppercase tracking-[0.2em] text-white/60">
           No vocab words available.
         </span>
+      </div>
+    );
+  }
+
+  if (showCompletionScreen) {
+    return (
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
+        <div className="flex max-w-2xl flex-col items-center gap-5">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d8cdbd]">
+            Vocabulary Complete
+          </div>
+          <h1 className="text-4xl font-bold md:text-5xl">
+            Nice work. You got the word right.
+          </h1>
+          <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
+            Next up: spelling the word you just learned.
+          </p>
+          <div className="text-sm uppercase tracking-[0.18em] text-[#c59a41] md:text-base">
+            Score: {correctCount} / {items.length}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowSpellingGame(true)}
+          className="rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-8 py-4 text-lg font-bold uppercase tracking-[0.12em] text-[#2a2629] transition hover:brightness-105 md:px-10 md:py-5 md:text-xl"
+        >
+          Move On To Spelling
+        </button>
       </div>
     );
   }
@@ -825,12 +869,6 @@ const VisualVocabularyGame: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {phase === "feedback" && isLastWord && (
-        <div className="mt-6 text-center text-sm text-[#d8cdbd]">
-          Congratulations! You got {correctCount} on {items.length} right
-        </div>
-      )}
     </div>
   );
 };
