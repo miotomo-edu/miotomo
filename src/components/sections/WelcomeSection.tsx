@@ -16,11 +16,11 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
           <img
             src={userAvatar}
             alt="Avatar"
-            className="rounded-full object-cover ring-4 ring-[#FAC304]/60"
+            className="rounded-full object-cover ring-4 ring-brand-primary/60"
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
           />
           <span
-            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#FAC304] text-xs font-bold shadow-sm"
+            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-bold shadow-sm"
             aria-label="Star"
           >
             ★

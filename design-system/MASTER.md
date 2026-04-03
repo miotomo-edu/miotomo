@@ -430,7 +430,7 @@ Captured by navigating the live app at `localhost:3000` on a 430×932 mobile vie
 
 6. ✅ **DONE — Stale character tokens removed** — `character.gramma/argoo/wordie/echo` deleted; `character.tomo` renamed to `tomo`. `brand`, `surface`, and shadow tokens added.
 
-7. **`#FAC304` (brand primary gold) is not a named Tailwind token** — it's hardcoded as raw hex in 30+ places. Add it as `brand.primary` per §2.4 and migrate all uses.
+7. ✅ **DONE — `#FAC304` migrated to `brand-primary` token** — all Tailwind class usages replaced; inline styles and SVG props retain hex (Tailwind tokens don't apply there).
 
 8. **Shadow values are all one-offs** — no two components use the same shadow. Migrate to the 7 named shadow tokens in §6.
 
@@ -465,7 +465,7 @@ Do these in order. Each step is independent — you can stop at any point.
 | ~~3~~ | ✅ Delete stale character tokens from `tailwind.config.cjs` | Cleanliness |
 | ~~4~~ | ✅ Add `brand`, `surface`, `tomo` tokens to `tailwind.config.cjs` | Foundation |
 | ~~5~~ | ✅ Add named shadow tokens to `tailwind.config.cjs` | Foundation |
-| 6 | Migrate `#FAC304` hardcodes to `bg-brand-primary` / `text-brand-primary` | Consistency |
+| ~~6~~ | ✅ Migrate `#FAC304` hardcodes to `bg-brand-primary` / `text-brand-primary` | Consistency |
 | 7 | Migrate typography to 8-step scale | Visual consistency |
 | 8 | Migrate border radius to 6-step scale | Visual consistency |
 | 9 | Migrate shadows to named tokens | Visual consistency |

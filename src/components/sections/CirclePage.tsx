@@ -262,7 +262,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
     <section className="relative mb-8 overflow-hidden rounded-[30px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
       <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
         <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
-          <span className="text-xl text-[#FAC304]" aria-hidden="true">
+          <span className="text-xl text-brand-primary" aria-hidden="true">
             ★
           </span>
           <span>Today&apos;s Mission</span>
@@ -284,7 +284,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
               className="shrink-0 self-start md:h-[68px] md:w-[68px]"
             />
             <div className="min-w-0">
-              <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-[#FAC304]">
+              <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-brand-primary">
                 Today's mission
               </div>
               <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
@@ -344,7 +344,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
         type="button"
         onClick={onPlay}
         aria-label={`Play ${title}`}
-        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_0_0_8px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
+        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_0_0_8px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
       >
         <svg
           aria-hidden="true"

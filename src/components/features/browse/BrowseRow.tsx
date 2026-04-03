@@ -29,7 +29,7 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
 }) => (
   <section className="space-y-3">
     <div className="flex items-center gap-2.5">
-      <span className="inline-block h-5 w-1.5 flex-shrink-0 rounded-full bg-[#FAC304]" aria-hidden="true" />
+      <span className="inline-block h-5 w-1.5 flex-shrink-0 rounded-full bg-brand-primary" aria-hidden="true" />
       <h2 className="font-display text-lg font-bold text-gray-900 md:text-3xl">
         {title}
       </h2>

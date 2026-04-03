@@ -385,13 +385,13 @@ const PostOnboardingCircleIntroPage: React.FC<
             />
             <div className="min-w-0">
               <h1 className="font-display text-[2rem] font-bold leading-[1.02] tracking-[-0.03em] text-white">
-                <span className="text-[#FAC304]">{readerPossessive}</span>{" "}
+                <span className="text-brand-primary">{readerPossessive}</span>{" "}
                 first circle starts here
               </h1>
               <p className="mt-4 text-lg leading-8 text-white/88">
-                A <span className="font-semibold text-[#FAC304]">Circle</span> is
+                A <span className="font-semibold text-brand-primary">Circle</span> is
                 a big topic. Each Circle has smaller episodes called{" "}
-                <span className="font-semibold text-[#FAC304]">Dots</span>.
+                <span className="font-semibold text-brand-primary">Dots</span>.
                 Complete every Dot and then teach Tomo about the topic.
               </p>
             </div>

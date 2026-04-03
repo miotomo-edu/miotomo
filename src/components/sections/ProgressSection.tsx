@@ -62,7 +62,7 @@ const CardSection: React.FC<CardSectionProps> = ({
 }) => (
   <div className="space-y-2.5">
     <div className="flex items-center gap-2.5">
-      <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-[#FAC304]" aria-hidden="true" />
+      <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-brand-primary" aria-hidden="true" />
       <h2 className="font-display text-lg font-bold text-gray-900">{title}</h2>
     </div>
     <div className={contentClassName}>{children}</div>
@@ -134,7 +134,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
             onClick={() => setView("week")}
             className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide transition ${
               view === "week"
-                ? "bg-[#FAC304] text-black"
+                ? "bg-brand-primary text-black"
                 : "text-gray-500 hover:text-gray-900"
             }`}
           >
@@ -150,7 +150,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                 onClick={() => setView(v as any)}
                 className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide transition ${
                   isActive
-                    ? "bg-[#FAC304] text-black"
+                    ? "bg-brand-primary text-black"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
@@ -173,7 +173,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                   key={`${letter}-${index}`}
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
                     isToday
-                      ? "bg-[#FAC304] text-black shadow-[0_2px_8px_rgba(250,195,4,0.35)]"
+                      ? "bg-brand-primary text-black shadow-[0_2px_8px_rgba(250,195,4,0.35)]"
                       : "bg-white/60 text-gray-500 ring-1 ring-black/[0.08]"
                   }`}
                 >
@@ -196,7 +196,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                         className="flex items-center justify-between rounded-[22px] bg-white px-4 py-3 ring-1 ring-black/[0.08]"
                       >
                         <div className="flex items-center gap-5">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAC304]">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary">
                             <img
                               src={iconMap[i] ?? bookSquareIcon}
                               alt=""
@@ -231,7 +231,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                         </div>
                         <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-black/[0.08]">
                           <div
-                            className="h-2 rounded-full bg-[#FAC304]"
+                            className="h-2 rounded-full bg-brand-primary"
                             style={{ width: `${p.value}%` }}
                           />
                         </div>
@@ -269,7 +269,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                       "Think more about characters journey",
                     ].map((text, index) => (
                       <li key={text} className="flex items-start gap-3">
-                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#FAC304] text-xs font-bold text-black">
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs font-bold text-black">
                           {index + 1}
                         </span>
                         <span>{text}</span>
@@ -288,13 +288,13 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="font-display text-4xl font-bold text-[#FAC304]">{week.streak}</span>
+                      <span className="font-display text-4xl font-bold text-brand-primary">{week.streak}</span>
                       <div>
                         <div className="text-sm font-bold text-white">Day Streak</div>
                         <div className="text-xs text-white/60">Amazing work this week!</div>
                       </div>
                     </div>
-                    <StarIcon className="h-6 w-6 text-[#FAC304]" aria-hidden="true" />
+                    <StarIcon className="h-6 w-6 text-brand-primary" aria-hidden="true" />
                   </div>
                 </CardSection>
 
@@ -339,7 +339,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                               <div className="flex items-center gap-2">
                                 <div className="h-2 w-20 overflow-hidden rounded-full bg-black/[0.08]">
                                   <div
-                                    className="h-2 rounded-full bg-[#FAC304]"
+                                    className="h-2 rounded-full bg-brand-primary"
                                     style={{ width: `${s.progress}%` }}
                                   />
                                 </div>
@@ -348,7 +348,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                                 </span>
                                 <span className="flex items-center gap-0.5">
                                   {Array.from({ length: s.stars }).map((_, k) => (
-                                    <StarIcon key={k} className="h-3.5 w-3.5 text-[#FAC304]" aria-hidden="true" />
+                                    <StarIcon key={k} className="h-3.5 w-3.5 text-brand-primary" aria-hidden="true" />
                                   ))}
                                 </span>
                               </div>

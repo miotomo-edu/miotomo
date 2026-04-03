@@ -50,17 +50,17 @@ const getFirstName = (value: string) => {
 
 const FireworkBurst: React.FC<{ className: string }> = ({ className }) => (
   <div className={`absolute h-12 w-12 ${className}`} aria-hidden="true">
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-[135deg] rounded-full bg-[#FAC304]" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-[135deg] rounded-full bg-brand-primary" />
   </div>
 );
 
 const Sparkle: React.FC<{ className: string }> = ({ className }) => (
   <div className={`absolute h-4 w-4 ${className}`} aria-hidden="true">
-    <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 rounded-full bg-[#FAC304]" />
+    <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 rounded-full bg-brand-primary" />
+    <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 rounded-full bg-brand-primary" />
   </div>
 );
 
@@ -118,7 +118,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 </h1>
                 <p className="mt-3 max-w-[20ch] text-xl leading-8 text-[#020617]/82 md:max-w-[22ch] md:text-[1.45rem] md:leading-[2.05rem] lg:max-w-[20ch] lg:text-[1.7rem] lg:leading-[2.5rem]">
                   {remainingMessage}
-                  <span className="ml-1 text-[#FAC304]">✦</span>
+                  <span className="ml-1 text-brand-primary">✦</span>
                 </p>
               </div>
 

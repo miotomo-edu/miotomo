@@ -511,7 +511,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               onClick={handleHeroPlay}
               disabled={isUpdating}
               aria-label={`Play ${activeDotTitle}`}
-              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
             >
               <svg
                 aria-hidden="true"
@@ -551,7 +551,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     {item.book.title}
                   </h1>
                   <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-[2rem]">
-                    <span className="h-3 w-3 shrink-0 rounded-full bg-[#FAC304]" />
+                    <span className="h-3 w-3 shrink-0 rounded-full bg-brand-primary" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber} · ${activeDotTitle}`}</span>
                   </div>
                 </div>
@@ -669,7 +669,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
                         <div className="min-w-0 flex-1">
                           {isCurrent ? (
-                            <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-[#FAC304]">
+                            <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-brand-primary">
                               Today's mission
                             </div>
                           ) : null}
@@ -755,7 +755,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               }
                               disabled={isUpdating}
                               aria-label={`Play ${episode.title || `Dot ${episode.episode}`}`}
-                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_0_0_6px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:h-16 md:w-16"
+                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_0_0_6px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:h-16 md:w-16"
                             >
                               <svg
                                 aria-hidden="true"
