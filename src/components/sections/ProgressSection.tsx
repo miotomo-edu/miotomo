@@ -2,8 +2,6 @@ import React, { ReactNode, useMemo, useState } from "react";
 import { StarIcon } from "../common/icons/StarIcon";
 import { useProgress } from "../../hooks/useProgress";
 import { useAnalytics } from "../../hooks/useAnalytics";
-import teacherIcon from "../../assets/img/progress/teacher.svg";
-import rankingIcon from "../../assets/img/progress/ranking.svg";
 import bookSquareIcon from "../../assets/img/progress/book-square.svg";
 import connectionIcon from "../../assets/img/progress/connection.svg";
 
@@ -53,23 +51,19 @@ type WeekData = {
 // ---------------- Component ----------------
 interface CardSectionProps {
   title: string;
-  icon?: ReactNode;
   children: ReactNode;
   contentClassName?: string;
 }
 
 const CardSection: React.FC<CardSectionProps> = ({
   title,
-  icon,
   children,
-  contentClassName = "rounded-xl bg-[#F8CBC4] p-4",
+  contentClassName = "rounded-2xl bg-white ring-1 ring-black/10 p-4",
 }) => (
-  <div className="space-y-2">
-    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-black">
-      <span className="flex items-center">
-        {icon ?? <img src={teacherIcon} alt="" className="h-8 w-8" />}
-      </span>
-      <span>{title}</span>
+  <div className="space-y-2.5">
+    <div className="flex items-center gap-2.5">
+      <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-[#FAC304]" aria-hidden="true" />
+      <h2 className="font-display text-lg font-bold text-gray-900">{title}</h2>
     </div>
     <div className={contentClassName}>{children}</div>
   </div>
@@ -109,9 +103,6 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
     return `Last ${weekday}'s`;
   }, [data?.metrics?.created_at, data?.utterances?.created_at]);
 
-  const uppercaseLabel =
-    conversationDayLabel?.toUpperCase?.() ?? conversationDayLabel;
-
   if (error) {
     return <div className="p-6 text-red-500">Error: {error.message}</div>;
   }
@@ -134,36 +125,36 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
 
   // -------- Render --------
   return (
-    <section className="py-6 px-4 pb-24 bg-[#EAB7AF]">
-      <h1 className="font-display mb-6 text-3xl font-extrabold text-gray-900">Progress</h1>
+    <section className="min-h-screen bg-[#efe6da] px-4 pb-24 pt-6">
+      <h1 className="font-display mb-5 text-3xl font-bold text-gray-900">Progress</h1>
       {/* Pills */}
-      <div className="mb-4 flex items-center justify-between text-sm font-bold uppercase text-gray-900">
-        <div className="flex gap-4">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex gap-2">
           <button
             onClick={() => setView("week")}
-            className={`pb-1 transition ${
+            className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide transition ${
               view === "week"
-                ? "border-b-2 border-gray-900"
-                : "border-b-2 border-transparent"
+                ? "bg-[#FAC304] text-black"
+                : "text-gray-500 hover:text-gray-900"
             }`}
           >
-            THIS WEEK
+            This Week
           </button>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           {["month", "year"].map((v) => {
             const isActive = view === v;
             return (
               <button
                 key={v}
                 onClick={() => setView(v as any)}
-                className={`pb-1 transition ${
+                className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide transition ${
                   isActive
-                    ? "border-b-2 border-gray-900"
-                    : "border-b-2 border-transparent"
+                    ? "bg-[#FAC304] text-black"
+                    : "text-gray-500 hover:text-gray-900"
                 }`}
               >
-                {v.toUpperCase()}
+                {v}
               </button>
             );
           })}
@@ -180,10 +171,10 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
               return (
                 <span
                   key={`${letter}-${index}`}
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
                     isToday
-                      ? "bg-[#F18C7C] text-white border border-white"
-                      : "bg-white/20 text-gray-900"
+                      ? "bg-[#FAC304] text-black shadow-[0_2px_8px_rgba(250,195,4,0.35)]"
+                      : "bg-white/60 text-gray-500 ring-1 ring-black/[0.08]"
                   }`}
                 >
                   {letter}
@@ -195,20 +186,19 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
             {today && (
               <>
                 <CardSection
-                  title={`${uppercaseLabel} SUPERPOWER`}
-                  icon={<img src={rankingIcon} alt="" className="h-8 w-8" />}
-                  contentClassName="space-y-3 bg-transparent p-0"
+                  title={`${conversationDayLabel} Superpower`}
+                  contentClassName="space-y-3 p-0"
                 >
                   <div className="space-y-3">
                     {today.superpower.skills.map((s, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded-2xl bg-white/20 px-4 py-3"
+                        className="flex items-center justify-between rounded-[22px] bg-white px-4 py-3 ring-1 ring-black/[0.08]"
                       >
                         <div className="flex items-center gap-5">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F18C7C]">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAC304]">
                             <img
-                              src={iconMap[i] ?? teacherIcon}
+                              src={iconMap[i] ?? bookSquareIcon}
                               alt=""
                               className="h-6 w-6"
                             />
@@ -218,7 +208,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                           </span>
                         </div>
                         {s.score && (
-                          <span className="text-green-700 text-sm font-bold">
+                          <span className="text-xs font-semibold uppercase tracking-wide text-[#b07b00]">
                             {s.score}
                           </span>
                         )}
@@ -227,7 +217,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                   </div>
                 </CardSection>
 
-                <CardSection title="LEARNING GROWTH">
+                <CardSection title="Learning Growth">
                   <div className="space-y-4">
                     {today.progress.map((p, i) => (
                       <div key={i}>
@@ -235,18 +225,18 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                           <span className="text-sm text-gray-700">
                             {p.label}
                           </span>
-                          <span className="text-green-600 text-sm font-semibold">
+                          <span className="text-sm font-semibold text-[#b07b00]">
                             {p.value}%
                           </span>
                         </div>
-                        <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-white/30">
+                        <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-black/[0.08]">
                           <div
-                            className="h-2 rounded-full bg-[#F18C7C]"
+                            className="h-2 rounded-full bg-[#FAC304]"
                             style={{ width: `${p.value}%` }}
                           />
                         </div>
                         {p.trend && (
-                          <div className="text-xs text-green-700">{p.trend}</div>
+                          <div className="text-xs text-black/50">{p.trend}</div>
                         )}
                       </div>
                     ))}
@@ -254,12 +244,12 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                 </CardSection>
 
                 {today.newSkills.length > 0 && (
-                  <CardSection title="NEW SKILLS UNLOCKED">
+                  <CardSection title="New Skills Unlocked">
                     <div className="space-y-3">
                       {today.newSkills.map((s, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 rounded-lg bg-white/60 p-2"
+                          className="flex items-center gap-2 rounded-[22px] bg-white px-4 py-3 ring-1 ring-black/[0.08]"
                         >
                           <span>{s.emoji}</span>
                           <span className="text-sm">
@@ -271,7 +261,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                   </CardSection>
                 )}
 
-                <CardSection title="AREA OF GROWTH">
+                <CardSection title="Area of Growth">
                   <ol className="space-y-3 text-sm text-gray-800">
                     {[
                       "Give longer answers to a question",
@@ -279,7 +269,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                       "Think more about characters journey",
                     ].map((text, index) => (
                       <li key={text} className="flex items-start gap-3">
-                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/40 font-semibold text-gray-700">
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#FAC304] text-xs font-bold text-black">
                           {index + 1}
                         </span>
                         <span>{text}</span>
@@ -292,73 +282,80 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
 
             {week && (
               <>
-                <CardSection title="WEEKLY STREAK">
+                <CardSection
+                  title="Weekly Streak"
+                  contentClassName="rounded-2xl bg-[linear-gradient(135deg,#1a1a1a_0%,#2d2a1f_100%)] p-4 text-white"
+                >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold">{week.streak}</span>
-                      <span className="font-semibold">Day Streak!</span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-display text-4xl font-bold text-[#FAC304]">{week.streak}</span>
+                      <div>
+                        <div className="text-sm font-bold text-white">Day Streak</div>
+                        <div className="text-xs text-white/60">Amazing work this week!</div>
+                      </div>
                     </div>
-                    <span className="flex items-center gap-1 text-sm text-gray-700">
-                      Amazing work this week!
-                      <StarIcon className="h-4 w-4 text-[#FAC304]" aria-hidden="true" />
-                    </span>
+                    <StarIcon className="h-6 w-6 text-[#FAC304]" aria-hidden="true" />
                   </div>
                 </CardSection>
 
                 {week.categories.map((cat, i) => {
                   const isOpen = expanded === cat.name;
                   return (
-                    <CardSection key={i} title={cat.name.toUpperCase()}>
-                      <div
-                        className={`rounded-xl border-2 ${
-                          isOpen ? "border-gray-300" : "border-transparent"
-                        }`}
+                    <CardSection
+                      key={i}
+                      title={cat.name}
+                      contentClassName="overflow-hidden rounded-2xl ring-1 ring-black/10"
+                    >
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between bg-white px-4 py-3"
+                        onClick={() =>
+                          setExpanded(isOpen ? null : (cat.name as string))
+                        }
                       >
-                        <div
-                          className="flex cursor-pointer items-center justify-between p-4"
-                          onClick={() =>
-                            setExpanded(isOpen ? null : (cat.name as string))
-                          }
+                        <span className="text-sm font-semibold text-gray-700">
+                          {isOpen ? "Hide progress" : "View progress"}
+                        </span>
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 20 20"
+                          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                          fill="none"
                         >
-                          <span className="text-sm font-semibold text-gray-700">
-                            {isOpen ? "Hide progress" : "View progress"}
-                          </span>
-                          <span className="text-gray-700">
-                            {isOpen ? "▲" : "▼"}
-                          </span>
-                        </div>
-                        {isOpen && (
-                          <div className="space-y-3 p-4">
-                            {cat.subskills.map((s, j) => (
-                              <div
-                                key={j}
-                                className="flex items-center justify-between rounded-lg bg-white/60 p-2"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span>{s.icon}</span>
-                                  <span className="text-sm">{s.title}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="h-2 w-20 overflow-hidden rounded-full bg-white/60">
-                                    <div
-                                      className="h-2 bg-gradient-to-r from-blue-500 to-sky-400"
-                                      style={{ width: `${s.progress}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs">
-                                    {s.progress}%
-                                  </span>
-                                  <span className="flex items-center gap-0.5">
-                                    {Array.from({ length: s.stars }).map((_, k) => (
-                                      <StarIcon key={k} className="h-3.5 w-3.5 text-[#FAC304]" aria-hidden="true" />
-                                    ))}
-                                  </span>
-                                </div>
+                          <path d="M5 7.5l5 5 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                      {isOpen && (
+                        <div className="space-y-2 border-t border-black/[0.06] bg-white px-4 pb-4 pt-3">
+                          {cat.subskills.map((s, j) => (
+                            <div
+                              key={j}
+                              className="flex items-center justify-between rounded-[22px] bg-white/60 px-3 py-2.5 ring-1 ring-black/[0.06]"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span>{s.icon}</span>
+                                <span className="text-sm">{s.title}</span>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-20 overflow-hidden rounded-full bg-black/[0.08]">
+                                  <div
+                                    className="h-2 rounded-full bg-[#FAC304]"
+                                    style={{ width: `${s.progress}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs">
+                                  {s.progress}%
+                                </span>
+                                <span className="flex items-center gap-0.5">
+                                  {Array.from({ length: s.stars }).map((_, k) => (
+                                    <StarIcon key={k} className="h-3.5 w-3.5 text-[#FAC304]" aria-hidden="true" />
+                                  ))}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardSection>
                   );
                 })}
@@ -369,7 +366,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
       )}
       {view === "month" && (
         <div className="space-y-6">
-          <CardSection title="MONTHLY SUMMARY">
+          <CardSection title="Monthly Summary">
             <p className="text-sm text-gray-800">
               Monthly insights will appear here soon.
             </p>
@@ -379,7 +376,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
 
       {view === "year" && (
         <div className="space-y-6">
-          <CardSection title="YEARLY SUMMARY">
+          <CardSection title="Yearly Summary">
             <p className="text-sm text-gray-800">
               Yearly insights will appear here soon.
             </p>
