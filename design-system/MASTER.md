@@ -428,7 +428,7 @@ Captured by navigating the live app at `localhost:3000` on a 430×932 mobile vie
 
 5. **Border radius inconsistency** — values span 3px → 34px with no semantic meaning. Migrate to the 6-step scale in §5.
 
-6. **Stale character tokens in Tailwind config** — `character.gramma`, `character.argoo`, `character.wordie`, `character.echo` reference removed characters. Delete them from `tailwind.config.cjs`. Only `character.tomo` (rename to `tomo`) should remain.
+6. ✅ **DONE — Stale character tokens removed** — `character.gramma/argoo/wordie/echo` deleted; `character.tomo` renamed to `tomo`. `brand`, `surface`, and shadow tokens added.
 
 7. **`#FAC304` (brand primary gold) is not a named Tailwind token** — it's hardcoded as raw hex in 30+ places. Add it as `brand.primary` per §2.4 and migrate all uses.
 
@@ -462,9 +462,9 @@ Do these in order. Each step is independent — you can stop at any point.
 |------|--------|--------|
 | ~~1~~ | ✅ Add `prefers-reduced-motion` block to `globals.css` | Accessibility |
 | ~~2~~ | ✅ Add `:focus-visible` outline to `globals.css` | Accessibility |
-| 3 | Delete stale character tokens from `tailwind.config.cjs` | Cleanliness |
-| 4 | Add `brand`, `surface`, `tomo` tokens to `tailwind.config.cjs` | Foundation |
-| 5 | Add named shadow tokens to `tailwind.config.cjs` | Foundation |
+| ~~3~~ | ✅ Delete stale character tokens from `tailwind.config.cjs` | Cleanliness |
+| ~~4~~ | ✅ Add `brand`, `surface`, `tomo` tokens to `tailwind.config.cjs` | Foundation |
+| ~~5~~ | ✅ Add named shadow tokens to `tailwind.config.cjs` | Foundation |
 | 6 | Migrate `#FAC304` hardcodes to `bg-brand-primary` / `text-brand-primary` | Consistency |
 | 7 | Migrate typography to 8-step scale | Visual consistency |
 | 8 | Migrate border radius to 6-step scale | Visual consistency |
