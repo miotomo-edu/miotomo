@@ -369,7 +369,7 @@ Active dot: h-1 w-1 rounded-full bg-[#FAC304]
 | Circle page | `#EFE6DA` | `#111111` | Warm cream |
 | TalkWithBook | `#000000` | `#EFE6D6` | Full dark, interactive |
 | Parents | `#F6EFE2` | `#111111` | Warm cream |
-| Progress | `#EAB7AF` | `#111111` | Dusty rose |
+| Progress | `#EFE6DA` | `#111111` | Warm cream (matches Circle page) |
 | Onboarding | `#FFFFFF` | `#111111` | Clean white |
 | Post-onboarding | `#F4ECDF` | `#111111` | Warm cream |
 
@@ -382,34 +382,33 @@ Captured by navigating the live app at `localhost:3000` on a 430×932 mobile vie
 ### Home / Circles Screen
 - ✅ Tomo avatar with gold star badge — warm, inviting, well-executed
 - ✅ Gold accent bar before section headings (`Continue talking`, `New`, `Nature Wonders`) — consistent and branded
-- ⚠️ **Two chip styles co-exist**: `History / Science / Imagination` are filled black; `All ▾` is outlined white. These should follow one active/inactive state system — not two separate visual treatments
-- ⚠️ **Play button on home hero is dark/black** — the large play button on the "Continue talking" hero is a plain dark circle. On the Circle page "Today's Mission", the same play button is bright gold. Inconsistent across the same action
-- ⚠️ **"Continue talking" has no subtitle** — there is no episode title, progress indicator, or time estimate visible below the section heading. The section label alone provides little context
+- ✅ BY DESIGN: Two chip styles co-exist — filled black for active category, outlined for `All ▾`. Intentional active/inactive distinction.
+- ✅ Play button on home hero unified to gold `#FAC304` matching Circle page
+- ✅ BY DESIGN: "Continue talking" has no subtitle — intentional; the section heading is sufficient context
 - ✅ Beautiful illustrated artwork for Circle covers — distinctive and premium-feeling
 
 ### Circle Page
 - ✅ Hero image fills the top edge-to-edge — immersive and bold
-- ✅ "Today's Mission" dark featured card with gold play button — this is the best-looking component in the app; clear hierarchy, strong visual weight
-- ⚠️ **Dot icon inconsistency**: some dots show `LISTEN + TALK TIME + VOCABULARY` modalities; others show only `TAKE A SIDE` or `TEACH TIME WITH TOMO`. The icon treatment and label quantity varies per row, making the list feel uneven
-- ⚠️ **Episode list has no tap affordance** — the dot rows appear as static list items. There is no chevron, arrow, or hover state visible to indicate they are tappable
+- ✅ "Today's Mission" dark featured card with gold play button — clear hierarchy, strong visual weight
+- ✅ BY DESIGN: Dot modality icons vary per dot type — `LISTEN + TALK TIME + VOCABULARY` vs `TAKE A SIDE` vs `TEACH TIME WITH TOMO` reflects real content differences, not a bug
+- ✅ BY DESIGN: Only the current dot is tappable; dots unlock sequentially. Static appearance of locked dots is intentional.
 - ✅ Dot number indicators (circular node diagrams) are unique and memorable
 - ✅ Dark episode cards on the cream Circle page background create strong contrast
 
 ### Progress / Tomo Screen
-- ✅ Dusty rose background (`#EAB7AF`) is distinctive and well-separated from the white/cream content screens
-- ✅ Weekly day selector (M T W T F S S) is clean and readable; active day in coral is clear
-- ⚠️ **Emoji in UI**: `Amazing work this week! ⭐` uses a star emoji directly inline. This violates the design system rule against emoji as icons
-- ⚠️ **All three skill category icons are identical** — `COGNITIVE SKILLS`, `LANGUAGE & COMMUNICATION`, and `CREATIVE & REFLECTIVE` all use the same mortarboard/cap icon. This is visually undifferentiated; each category should have a distinct icon
-- ⚠️ **"View progress" collapse panels feel empty** — just a text label and a down-chevron on a large card. No count, preview, or visual hint of what's inside
-- ✅ Superpower cards (skill insight items) are well-formatted — icon + description reads clearly on the rose background
+- ✅ Restyled to warm cream (`#EFE6DA`) matching Library/Circle visual system
+- ✅ Weekly day selector uses gold active day circle with glow — consistent with brand
+- ✅ Star emoji replaced with `StarIcon` SVG component
+- ⚠️ **All three skill category icons are identical** — `Cognitive Skills`, `Language & Communication`, and `Creative & Reflective` all use the same icon. Each category should have a distinct icon.
+- ✅ Collapse panels upgraded: `<div>` → `<button>`, animated SVG chevron, white card surface
 
 ### Parents Screen
-- ⚠️ **Placeholder content is user-visible**: body text reads `"Wire the parent experience here."` — this is developer/draft text that should not be visible to end users
+- ✅ Placeholder developer text replaced with user-facing "Coming soon" copy
 
 ### Navigation Bar
 - ✅ Black bar, gold active icon+label, muted white inactive — clear and branded
 - ⚠️ **Tomo icon is text-rendered** (`o_o` face) rather than an SVG. This may render inconsistently across fonts and OS versions
-- ⚠️ **Only 3 nav items** — the design system notes a max of 5, but 3 items leaves a lot of empty space in the bar; consider whether this is intentional or if items are missing
+- BY DESIGN: ⚠️ **Only 3 nav items** — the design system notes a max of 5, but 3 items leaves a lot of empty space in the bar; consider whether this is intentional or if items are missing
 
 ---
 
@@ -417,15 +416,9 @@ Captured by navigating the live app at `localhost:3000` on a 430×932 mobile vie
 
 ### Critical (affects usability / accessibility)
 
-1. **No `prefers-reduced-motion` support** — `.mic-pulse`, `.animate-fade-in`, and hero animations fire regardless. Add the CSS block from §7.4 to `globals.css`.
+1. ✅ **DONE — `prefers-reduced-motion` support added** — block added to `globals.css`; `.mic-pulse`, `.animate-fade-in`, `.slow-spin` are suppressed and all transitions clamped to 0.01ms.
 
-2. **No focus rings on interactive elements** — the `tap-safe` class removes all tap highlighting but no visible focus outline is added back. Any keyboard or switch-access user sees no focus state. Add:
-   ```css
-   :focus-visible {
-     outline: 2px solid #FAC304;
-     outline-offset: 2px;
-   }
-   ```
+2. ✅ **DONE — `:focus-visible` outline added** — `2px solid #FAC304` ring in `globals.css` restores visible keyboard/switch-access focus state.
 
 3. **Icon-only buttons lack `aria-label`** — the mic button, play button, and navigation icons in `TalkWithBook.tsx` and `BottomNavBar.tsx` should have `aria-label` on every `<button>` that contains only an icon.
 
@@ -467,8 +460,8 @@ Do these in order. Each step is independent — you can stop at any point.
 
 | Step | Change | Impact |
 |------|--------|--------|
-| 1 | Add `prefers-reduced-motion` block to `globals.css` | Accessibility |
-| 2 | Add `:focus-visible` outline to `globals.css` | Accessibility |
+| ~~1~~ | ✅ Add `prefers-reduced-motion` block to `globals.css` | Accessibility |
+| ~~2~~ | ✅ Add `:focus-visible` outline to `globals.css` | Accessibility |
 | 3 | Delete stale character tokens from `tailwind.config.cjs` | Cleanliness |
 | 4 | Add `brand`, `surface`, `tomo` tokens to `tailwind.config.cjs` | Foundation |
 | 5 | Add named shadow tokens to `tailwind.config.cjs` | Foundation |
