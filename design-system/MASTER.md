@@ -399,7 +399,7 @@ Captured by navigating the live app at `localhost:3000` on a 430×932 mobile vie
 - ✅ Restyled to warm cream (`#EFE6DA`) matching Library/Circle visual system
 - ✅ Weekly day selector uses gold active day circle with glow — consistent with brand
 - ✅ Star emoji replaced with `StarIcon` SVG component
-- ⚠️ **All three skill category icons are identical** — `Cognitive Skills`, `Language & Communication`, and `Creative & Reflective` all use the same icon. Each category should have a distinct icon.
+- ✅ Distinct SVG icons added to each skill category (brain, speech bubble, star).
 - ✅ Collapse panels upgraded: `<div>` → `<button>`, animated SVG chevron, white card surface
 
 ### Parents Screen
@@ -468,8 +468,8 @@ Do these in order. Each step is independent — you can stop at any point.
 | ~~6~~ | ✅ Migrate `#FAC304` hardcodes to `bg-brand-primary` / `text-brand-primary` | Consistency |
 | ~~7~~ | ✅ Migrate typography to 8-step scale | Visual consistency |
 | ~~8~~ | ✅ Migrate border radius to 6-step scale | Visual consistency |
-| 9 | Migrate shadows to named tokens | Visual consistency |
-| 10 | Standardise button interaction pattern | Polish |
+| ~~9~~ | ✅ Migrate shadows to named tokens | Visual consistency |
+| ~~10~~ | ✅ Standardise button interaction pattern | Polish |
 
 ---
 

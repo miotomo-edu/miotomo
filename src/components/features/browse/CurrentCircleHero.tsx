@@ -491,7 +491,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
       <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
         Continue talking
       </h1>
-      <div className="relative overflow-hidden rounded-[32px] bg-[#efe6da] shadow-[0_28px_90px_rgba(25,26,20,0.18)] ring-1 ring-black/10">
+      <div className="relative overflow-hidden rounded-[32px] bg-[#efe6da] shadow-stage ring-1 ring-black/10">
         <div className="relative min-h-[560px] overflow-hidden md:min-h-[700px]">
           {coverUrl ? (
             <img
@@ -563,7 +563,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     aria-label={
                       isExpanded ? "Hide dots" : `See all ${totalDots} dots`
                     }
-                    className="mb-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-white/70 bg-black/20 text-white backdrop-blur-sm transition duration-300 hover:bg-black/35 active:scale-95"
+                    className="mb-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-white/70 bg-black/20 text-white backdrop-blur-sm transition duration-300 hover:bg-black/35 active:scale-[0.97]"
                   >
                     <svg
                       aria-hidden="true"
@@ -648,7 +648,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                         key={`${item.book.id}-episode-${episode.episode}`}
                         className={`flex items-center gap-4 rounded-3xl border px-4 py-4 transition md:px-5 md:py-5 ${
                           isCurrent
-                            ? "border-black/15 bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                            ? "border-black/15 bg-black text-white shadow-elevated"
                             : "border-black/10 bg-white/78 text-black"
                         }`}
                       >
@@ -755,7 +755,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               }
                               disabled={isUpdating}
                               aria-label={`Play ${episode.title || `Dot ${episode.episode}`}`}
-                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_0_0_6px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:h-16 md:w-16"
+                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed md:h-16 md:w-16"
                             >
                               <svg
                                 aria-hidden="true"
@@ -777,7 +777,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                                 )
                               }
                               disabled={isUpdating}
-                              className="shrink-0 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-95 disabled:cursor-not-allowed md:px-5 md:text-base"
+                              className="shrink-0 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
                             >
                               Play again!
                             </button>

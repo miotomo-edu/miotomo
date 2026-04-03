@@ -211,7 +211,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                     ? onPreviewNextDot(book, nextEpisode)
                     : onPreviewNextDot(book, completedEpisode)
                 }
-                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-[1.02] active:scale-[0.99] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
+                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
               >
                 {nextEpisode
                   ? `Take a peek at Dot ${nextEpisode}`
@@ -229,7 +229,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
               ? onPreviewNextDot(book, nextEpisode)
               : onPreviewNextDot(book, completedEpisode)
           }
-          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-[1.02] active:scale-[0.99]"
+          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97]"
         >
           {nextEpisode
             ? `Take a peek at Dot ${nextEpisode}`

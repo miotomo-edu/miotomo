@@ -36,7 +36,7 @@ const MapSection: React.FC<MapSectionProps> = ({
                 }
               }}
               disabled={character.disabled}
-              className={`absolute flex flex-col items-center justify-center ${character.bg} hover:brightness-105 rounded-full w-44 h-44 transition-all duration-200 border-4 focus:outline-none
+              className={`absolute flex flex-col items-center justify-center ${character.bg} hover:brightness-[1.03] rounded-full w-44 h-44 transition-all duration-200 border-4 focus:outline-none
                 ${character.disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
               `}
               style={{

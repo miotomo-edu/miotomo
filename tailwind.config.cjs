@@ -45,7 +45,7 @@ module.exports = {
         elevated:       "0 8px 24px rgba(0,0,0,0.14)",
         hero:           "0 14px 40px rgba(0,0,0,0.22)",
         stage:          "0 28px 90px rgba(25,26,20,0.18)",
-        "glow-gold":    "0 0 0 6px rgba(250,195,4,0.22)",
+        "glow-gold":    "0 0 0 8px rgba(250,195,4,0.22)",
         "glow-mic":     "0 0 16px 4px #f78ad7, 0 2px 8px rgba(0,0,0,0.08)",
         "inset-highlight": "inset 0 1px 0 rgba(255,255,255,0.45)",
       },

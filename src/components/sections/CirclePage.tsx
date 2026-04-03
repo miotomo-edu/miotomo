@@ -344,7 +344,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
         type="button"
         onClick={onPlay}
         aria-label={`Play ${title}`}
-        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_0_0_8px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
+        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
       >
         <svg
           aria-hidden="true"
@@ -1131,7 +1131,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                 <div
                   className={`flex w-full items-start justify-between rounded-3xl px-4 py-4 transition md:px-5 md:py-5 ${
                     isCurrent
-                      ? "bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                      ? "bg-black text-white shadow-elevated"
                       : "bg-white/78 text-black"
                   }`}
                 >
@@ -1228,7 +1228,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                             type="button"
                             onClick={() => handlePlay(episode.episode)}
                             disabled={isUpdating}
-                            className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-95 disabled:cursor-not-allowed md:px-5 md:text-base"
+                            className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
                           >
                             <svg
                               aria-hidden="true"

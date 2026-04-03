@@ -51,18 +51,21 @@ type WeekData = {
 // ---------------- Component ----------------
 interface CardSectionProps {
   title: string;
+  icon?: React.ReactNode;
   children: ReactNode;
   contentClassName?: string;
 }
 
 const CardSection: React.FC<CardSectionProps> = ({
   title,
+  icon,
   children,
   contentClassName = "rounded-2xl bg-white ring-1 ring-black/10 p-4",
 }) => (
   <div className="space-y-2.5">
     <div className="flex items-center gap-2.5">
       <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-brand-primary" aria-hidden="true" />
+      {icon}
       <h2 className="font-display text-lg font-bold text-gray-900">{title}</h2>
     </div>
     <div className={contentClassName}>{children}</div>
@@ -122,6 +125,26 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
   }
 
   const { today, week } = mapMetricsToProgress(data.metrics, data.utterances);
+
+  const categoryIcon = (name: string) => {
+    if (name === "Cognitive Skills") return (
+      <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c-1.5 0-2.8.8-3.5 2a4 4 0 0 0-4 4c0 2.2 1.8 4 4 4h7a3 3 0 0 0 0-6 3 3 0 0 0-3-4z" />
+        <path strokeLinecap="round" d="M10 13v4M8 17h4" />
+      </svg>
+    );
+    if (name === "Language & Communication") return (
+      <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6l-4 3V5z" />
+      </svg>
+    );
+    if (name === "Creative & Reflective") return (
+      <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 2l1.8 3.6L16 6.5l-3 2.9.7 4.1L10 11.4l-3.7 2.1.7-4.1L4 6.5l4.2-.9L10 2z" />
+      </svg>
+    );
+    return null;
+  };
 
   // -------- Render --------
   return (
@@ -304,6 +327,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                     <CardSection
                       key={i}
                       title={cat.name}
+                      icon={categoryIcon(cat.name)}
                       contentClassName="overflow-hidden rounded-2xl ring-1 ring-black/10"
                     >
                       <button

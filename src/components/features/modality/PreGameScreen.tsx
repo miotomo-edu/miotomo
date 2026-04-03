@@ -52,7 +52,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
           <button
             type="button"
             onClick={onStart}
-            className="w-full min-h-[3.25rem] rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-6 py-4 text-lg font-bold uppercase tracking-wide text-[#2a2629] shadow-[0_18px_40px_rgba(0,0,0,0.35)] transition hover:brightness-105 active:translate-y-0.5 sm:min-h-[3.5rem] sm:text-xl"
+            className="w-full min-h-[3.25rem] rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-6 py-4 text-lg font-bold uppercase tracking-wide text-[#2a2629] shadow-[0_18px_40px_rgba(0,0,0,0.35)] transition hover:brightness-[1.03] active:scale-[0.97] sm:min-h-[3.5rem] sm:text-xl"
           >
             {buttonLabel}
           </button>
