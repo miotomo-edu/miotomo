@@ -259,7 +259,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
   const tags = getDotTags(typeSlug, typeName, vocabulary);
 
   return (
-    <section className="relative mb-8 overflow-hidden rounded-[30px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
+    <section className="relative mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
       <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
         <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
           <span className="text-xl text-brand-primary" aria-hidden="true">
@@ -284,7 +284,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
               className="shrink-0 self-start md:h-[68px] md:w-[68px]"
             />
             <div className="min-w-0">
-              <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-brand-primary">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-brand-primary">
                 Today's mission
               </div>
               <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
@@ -294,7 +294,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
                 {tags.map((tag) => (
                   <span
                     key={`${episode}-${tag.label}`}
-                    className="inline-flex items-center gap-1.5 text-[0.72rem] font-medium uppercase tracking-[0.06em]"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.06em]"
                   >
                     <LineTagIcon
                       icon={tag.icon}
@@ -1129,7 +1129,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
             return (
               <React.Fragment key={episode.episode}>
                 <div
-                  className={`flex w-full items-start justify-between rounded-[22px] px-4 py-4 transition md:px-5 md:py-5 ${
+                  className={`flex w-full items-start justify-between rounded-3xl px-4 py-4 transition md:px-5 md:py-5 ${
                     isCurrent
                       ? "bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
                       : "bg-white/78 text-black"
@@ -1166,7 +1166,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                         {tags.map((tag) => (
                           <span
                             key={`${episode.episode}-${tag.label}`}
-                            className="inline-flex items-center gap-1.5 text-[0.72rem] font-medium uppercase tracking-[0.06em]"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.06em]"
                           >
                             <LineTagIcon
                               icon={tag.icon}

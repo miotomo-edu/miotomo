@@ -90,7 +90,7 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
   return (
     <div
-      className="relative h-[62vh] min-h-[300px] w-full overflow-hidden rounded-[28px] text-left shadow-lg"
+      className="relative h-[62vh] min-h-[300px] w-full overflow-hidden rounded-3xl text-left shadow-lg"
       role="region"
       aria-label="Featured circles"
     >

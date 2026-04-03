@@ -55,7 +55,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
         )}
         {badge ? (
           <span
-            className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide md:px-3 md:py-1 md:text-xs ${badgeStyle(badge)}`}
+            className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide md:px-3 md:py-1 md:text-xs ${badgeStyle(badge)}`}
           >
             {badge}
           </span>
@@ -63,7 +63,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
       </div>
       <div className="space-y-0.5">
         {kicker ? (
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-600 md:text-sm">
+          <div className="text-xs font-semibold uppercase tracking-wide text-gray-600 md:text-sm">
             {kicker}
           </div>
         ) : null}

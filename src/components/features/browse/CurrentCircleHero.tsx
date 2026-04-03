@@ -491,7 +491,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
       <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
         Continue talking
       </h1>
-      <div className="relative overflow-hidden rounded-[34px] bg-[#efe6da] shadow-[0_28px_90px_rgba(25,26,20,0.18)] ring-1 ring-black/10">
+      <div className="relative overflow-hidden rounded-[32px] bg-[#efe6da] shadow-[0_28px_90px_rgba(25,26,20,0.18)] ring-1 ring-black/10">
         <div className="relative min-h-[560px] overflow-hidden md:min-h-[700px]">
           {coverUrl ? (
             <img
@@ -550,7 +550,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   >
                     {item.book.title}
                   </h1>
-                  <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-[2rem]">
+                  <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-3xl">
                     <span className="h-3 w-3 shrink-0 rounded-full bg-brand-primary" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber} · ${activeDotTitle}`}</span>
                   </div>
@@ -596,19 +596,19 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           <div className="overflow-hidden">
             <div className="border-t border-black/10 bg-[linear-gradient(180deg,#f7f1e8_0%,#efe7da_100%)] px-5 pb-6 pt-5 text-black md:px-7 md:pb-8 md:pt-6">
               {isLoadingEpisodes ? (
-                <div className="rounded-[24px] border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
+                <div className="rounded-3xl border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
                   Loading dots...
                 </div>
               ) : null}
 
               {episodesError ? (
-                <div className="mb-4 rounded-[24px] border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+                <div className="mb-4 rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
                   {episodesError}
                 </div>
               ) : null}
 
               {!isLoadingEpisodes && episodes.length === 0 ? (
-                <div className="rounded-[24px] border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
+                <div className="rounded-3xl border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
                   No dots available yet.
                 </div>
               ) : null}
@@ -646,7 +646,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     return (
                       <div
                         key={`${item.book.id}-episode-${episode.episode}`}
-                        className={`flex items-center gap-4 rounded-[22px] border px-4 py-4 transition md:px-5 md:py-5 ${
+                        className={`flex items-center gap-4 rounded-3xl border px-4 py-4 transition md:px-5 md:py-5 ${
                           isCurrent
                             ? "border-black/15 bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
                             : "border-black/10 bg-white/78 text-black"
@@ -669,7 +669,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
                         <div className="min-w-0 flex-1">
                           {isCurrent ? (
-                            <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-brand-primary">
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-brand-primary">
                               Today's mission
                             </div>
                           ) : null}
@@ -684,7 +684,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                             {tags.map((tag) => (
                               <span
                                 key={`${episode.episode}-${tag.label}`}
-                                className="inline-flex items-center gap-1.5 text-[0.72rem] font-medium uppercase tracking-[0.06em]"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.06em]"
                               >
                                 <LineTagIcon
                                   icon={tag.icon}

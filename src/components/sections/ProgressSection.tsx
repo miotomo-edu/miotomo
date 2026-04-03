@@ -193,7 +193,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                     {today.superpower.skills.map((s, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded-[22px] bg-white px-4 py-3 ring-1 ring-black/[0.08]"
+                        className="flex items-center justify-between rounded-3xl bg-white px-4 py-3 ring-1 ring-black/[0.08]"
                       >
                         <div className="flex items-center gap-5">
                           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary">
@@ -249,7 +249,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                       {today.newSkills.map((s, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 rounded-[22px] bg-white px-4 py-3 ring-1 ring-black/[0.08]"
+                          className="flex items-center gap-2 rounded-3xl bg-white px-4 py-3 ring-1 ring-black/[0.08]"
                         >
                           <span>{s.emoji}</span>
                           <span className="text-sm">
@@ -330,7 +330,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                           {cat.subskills.map((s, j) => (
                             <div
                               key={j}
-                              className="flex items-center justify-between rounded-[22px] bg-white/60 px-3 py-2.5 ring-1 ring-black/[0.06]"
+                              className="flex items-center justify-between rounded-3xl bg-white/60 px-3 py-2.5 ring-1 ring-black/[0.06]"
                             >
                               <div className="flex items-center gap-2">
                                 <span>{s.icon}</span>

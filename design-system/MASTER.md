@@ -466,8 +466,8 @@ Do these in order. Each step is independent — you can stop at any point.
 | ~~4~~ | ✅ Add `brand`, `surface`, `tomo` tokens to `tailwind.config.cjs` | Foundation |
 | ~~5~~ | ✅ Add named shadow tokens to `tailwind.config.cjs` | Foundation |
 | ~~6~~ | ✅ Migrate `#FAC304` hardcodes to `bg-brand-primary` / `text-brand-primary` | Consistency |
-| 7 | Migrate typography to 8-step scale | Visual consistency |
-| 8 | Migrate border radius to 6-step scale | Visual consistency |
+| ~~7~~ | ✅ Migrate typography to 8-step scale | Visual consistency |
+| ~~8~~ | ✅ Migrate border radius to 6-step scale | Visual consistency |
 | 9 | Migrate shadows to named tokens | Visual consistency |
 | 10 | Standardise button interaction pattern | Polish |
 
