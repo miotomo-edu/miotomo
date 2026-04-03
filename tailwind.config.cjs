@@ -39,6 +39,9 @@ module.exports = {
         assistantBubble:   "#FAC304",
         assistantBubble20: "#FAC30433",
       },
+      letterSpacing: {
+        super: "0.2em",
+      },
       boxShadow: {
         xs:             "0 1px 3px rgba(0,0,0,0.08)",
         card:           "0 4px 12px rgba(0,0,0,0.10)",
