@@ -511,7 +511,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               onClick={handleHeroPlay}
               disabled={isUpdating}
               aria-label={`Play ${activeDotTitle}`}
-              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full border-4 border-stone-800 bg-black text-white shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
             >
               <svg
                 aria-hidden="true"

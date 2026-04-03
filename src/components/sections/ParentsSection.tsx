@@ -7,10 +7,9 @@ const ParentsSection: React.FC = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7B7264]">
           Parents
         </p>
-        <h1 className="mt-4 text-3xl font-bold">Parents page</h1>
+        <h1 className="mt-4 text-3xl font-bold">Coming soon</h1>
         <p className="mt-3 max-w-lg text-base leading-7 text-[#4F4A42]">
-          This tab is now separate from the vocabulary game. Wire the parent
-          experience here.
+          The parents dashboard is on its way.
         </p>
       </div>
     </div>

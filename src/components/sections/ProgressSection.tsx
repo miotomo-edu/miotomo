@@ -1,4 +1,5 @@
 import React, { ReactNode, useMemo, useState } from "react";
+import { StarIcon } from "../common/icons/StarIcon";
 import { useProgress } from "../../hooks/useProgress";
 import { useAnalytics } from "../../hooks/useAnalytics";
 import teacherIcon from "../../assets/img/progress/teacher.svg";
@@ -297,8 +298,9 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                       <span className="text-2xl font-bold">{week.streak}</span>
                       <span className="font-semibold">Day Streak!</span>
                     </div>
-                    <span className="text-sm text-gray-700">
-                      Amazing work this week! 🌟
+                    <span className="flex items-center gap-1 text-sm text-gray-700">
+                      Amazing work this week!
+                      <StarIcon className="h-4 w-4 text-[#FAC304]" aria-hidden="true" />
                     </span>
                   </div>
                 </CardSection>
@@ -346,8 +348,10 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                                   <span className="text-xs">
                                     {s.progress}%
                                   </span>
-                                  <span className="text-sm">
-                                    {"⭐".repeat(s.stars)}
+                                  <span className="flex items-center gap-0.5">
+                                    {Array.from({ length: s.stars }).map((_, k) => (
+                                      <StarIcon key={k} className="h-3.5 w-3.5 text-[#FAC304]" aria-hidden="true" />
+                                    ))}
                                   </span>
                                 </div>
                               </div>
