@@ -459,7 +459,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                       className="mt-1 shrink-0"
                     />
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium uppercase tracking-[0.06em] text-slate-500 md:text-base">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium uppercase tracking-wider text-slate-500 md:text-base">
                         {tags.map((tag) => (
                           <span
                             key={`${dot.episode}-${tag.label}`}
@@ -521,7 +521,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                     className="mt-1 shrink-0"
                   />
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium uppercase tracking-[0.06em] text-slate-500 md:text-base">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium uppercase tracking-wider text-slate-500 md:text-base">
                       {tags.map((tag) => (
                         <span
                           key={`${dot.episode}-${tag.label}`}

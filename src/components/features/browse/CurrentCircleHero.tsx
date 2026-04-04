@@ -532,7 +532,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   onClick={() =>
                     onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
                   }
-                  className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-md transition hover:bg-white/22"
+                  className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-super text-white backdrop-blur-md transition hover:bg-white/22"
                 >
                   Open circle
                 </button>
@@ -669,7 +669,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
                         <div className="min-w-0 flex-1">
                           {isCurrent ? (
-                            <div className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-brand-primary">
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-primary">
                               Today's mission
                             </div>
                           ) : null}
@@ -684,7 +684,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                             {tags.map((tag) => (
                               <span
                                 key={`${episode.episode}-${tag.label}`}
-                                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.06em]"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
                               >
                                 <LineTagIcon
                                   icon={tag.icon}

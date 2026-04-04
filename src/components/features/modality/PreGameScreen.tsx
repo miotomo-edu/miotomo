@@ -46,7 +46,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
         </div>
 
         <div className="w-full max-w-sm">
-          <p className="mb-3 text-xs uppercase tracking-[0.35em] text-[#efe6d6]/70 drop-shadow-[0_4px_10px_rgba(0,0,0,1)]">
+          <p className="mb-3 text-xs uppercase tracking-super text-[#efe6d6]/70 drop-shadow-[0_4px_10px_rgba(0,0,0,1)]">
             {subtitle}
           </p>
           <button

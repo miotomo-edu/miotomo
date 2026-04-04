@@ -55,7 +55,7 @@ const FeaturedHeroSlide: React.FC<{
       ) : null}
       <div className="absolute bottom-6 left-6 right-6 text-white">
         {effectiveKicker ? (
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 md:text-sm">
+          <div className="text-xs font-semibold uppercase tracking-super text-white/80 md:text-sm">
             {effectiveKicker}
           </div>
         ) : null}

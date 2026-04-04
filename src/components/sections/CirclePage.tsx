@@ -284,7 +284,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
               className="shrink-0 self-start md:h-[68px] md:w-[68px]"
             />
             <div className="min-w-0">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-brand-primary">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-primary">
                 Today's mission
               </div>
               <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
@@ -294,7 +294,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
                 {tags.map((tag) => (
                   <span
                     key={`${episode}-${tag.label}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.06em]"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
                   >
                     <LineTagIcon
                       icon={tag.icon}
@@ -1166,7 +1166,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                         {tags.map((tag) => (
                           <span
                             key={`${episode.episode}-${tag.label}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.06em]"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
                           >
                             <LineTagIcon
                               icon={tag.icon}
