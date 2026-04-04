@@ -21,6 +21,25 @@ type LibrarySectionProps = {
   onOpenCircle: (book: Book, chapter: number) => void;
 };
 
+const S: React.FC<{ className?: string }> = ({ className = "" }) => (
+  <div className={`animate-pulse rounded-xl bg-black/[0.07] ${className}`} />
+);
+
+const LibrarySkeleton: React.FC = () => (
+  <section className="px-4 py-6 pb-24">
+    <S className="mb-4 h-7 w-28" />
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <S className="aspect-[3/4] w-full rounded-3xl" />
+          <S className="h-3.5 w-3/4" />
+          <S className="h-3 w-1/2" />
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
 const LibrarySection: React.FC<LibrarySectionProps> = ({
   books,
   setBooks,
@@ -45,7 +64,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
     }
   };
 
-  if (isLoading) return <div>Loading books...</div>;
+  if (isLoading) return <LibrarySkeleton />;
   if (error) return <div>Error loading books.</div>;
 
   return (

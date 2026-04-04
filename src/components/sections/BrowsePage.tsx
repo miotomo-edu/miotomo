@@ -105,6 +105,54 @@ const isWithinWindow = (start?: string | null, end?: string | null) => {
 const scoreSort = (a: Book, b: Book, scores: Record<string, number>) =>
   (scores[b.id] ?? 0) - (scores[a.id] ?? 0);
 
+// -------- Skeleton --------
+const S: React.FC<{ className?: string }> = ({ className = "" }) => (
+  <div className={`animate-pulse rounded-xl bg-black/[0.07] ${className}`} />
+);
+
+const BrowseRowSkeleton: React.FC = () => (
+  <div className="space-y-3">
+    <div className="flex items-center gap-2.5">
+      <div className="h-5 w-1.5 rounded-full bg-black/[0.07]" />
+      <S className="h-5 w-32" />
+    </div>
+    <div className="flex gap-4 overflow-hidden">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="flex-shrink-0 space-y-2 w-40">
+          <S className="h-48 w-40 rounded-3xl" />
+          <S className="h-3.5 w-28" />
+          <S className="h-3 w-20" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const BrowsePageSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-white px-4 pb-24 pt-0">
+    {/* WelcomeSection */}
+    <div className="flex items-center gap-4 pb-4 pt-6">
+      <S className="h-16 w-16 rounded-full" />
+      <S className="h-8 w-40" />
+    </div>
+    {/* CategoryChips */}
+    <div className="flex gap-2 pb-2">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <S key={i} className="h-9 w-20 rounded-full" />
+      ))}
+    </div>
+    {/* Hero card */}
+    <div className="my-4 space-y-4">
+      <S className="h-64 w-full rounded-[32px]" />
+    </div>
+    {/* Browse rows */}
+    <div className="space-y-10">
+      <BrowseRowSkeleton />
+      <BrowseRowSkeleton />
+    </div>
+  </div>
+);
+
 const BrowsePage: React.FC<BrowsePageProps> = ({
   userName,
   studentId,
@@ -450,7 +498,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   );
 
   if (isLoading) {
-    return <div className="p-6 text-gray-600">Loading circles...</div>;
+    return <BrowsePageSkeleton />;
   }
 
   if (error) {
