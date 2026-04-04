@@ -2324,6 +2324,7 @@ export const TalkWithBook = ({
       style={talkBackgroundStyle}
       ref={backgroundRef}
     >
+      {/* Bottom scrim for audio controls */}
       <div
         className="absolute inset-x-0 top-0 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none"
         style={{
@@ -2331,6 +2332,8 @@ export const TalkWithBook = ({
           height: gradientHeight ? `${gradientHeight}px` : "11vh",
         }}
       />
+      {/* Top scrim — ensures header text is legible on any background image */}
+      <div className="absolute inset-x-0 top-0 h-52 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
