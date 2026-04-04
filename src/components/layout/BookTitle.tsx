@@ -68,12 +68,12 @@ const BookTitle = ({
     )}*/}
     <div>
       <h1
-        className={`text-3xl font-bold md:text-4xl ${isDark ? "text-white" : "text-black"}`}
+        className={`text-3xl font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-4xl ${isDark ? "text-white" : "text-black"}`}
       >
         {useSubtitleAsTitle && subtitle ? subtitle : book.title}
       </h1>
       <div
-        className={`text-base font-medium mt-1 capitalize md:text-2xl ${
+        className={`text-base font-medium mt-1 capitalize drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)] md:text-2xl ${
           isDark ? "text-white/70" : "text-gray-700"
         }`}
       >

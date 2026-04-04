@@ -2036,7 +2036,7 @@ export const TalkWithBook = ({
     if (isCelebrating) {
       return (
         <div className="flex h-full w-full flex-col items-center justify-center px-6 py-5 text-center text-white">
-          <span className="text-4xl font-extrabold tracking-wide">
+          <span className="font-display text-4xl font-extrabold tracking-tight">
             Well done on your mission
           </span>
         </div>
@@ -2337,7 +2337,7 @@ export const TalkWithBook = ({
           chapter={chapter}
           subtitle={dotTitle || undefined}
           useSubtitleAsTitle
-          darkBackButton
+          isDark
           onBack={() => {
             disconnectHere();
             onNavigate?.("circle");
@@ -2488,7 +2488,7 @@ export const TalkWithBook = ({
           <button
             type="button"
             onClick={handleShowDotCompletion}
-            className="text-sm font-medium text-white/72 underline-offset-4 transition hover:text-white md:text-base"
+            className="text-sm font-medium text-white/70 underline-offset-4 underline transition hover:text-white md:text-base"
           >
             Next
           </button>
@@ -2498,7 +2498,7 @@ export const TalkWithBook = ({
           <button
             type="button"
             onClick={() => onNavigate?.("progress")}
-            className="bg-white text-black font-bold py-2 px-4 rounded-lg w-full mt-2"
+            className="w-full rounded-full bg-brand-primary px-6 py-4 text-base font-bold text-black shadow-elevated transition hover:brightness-[1.03] active:scale-[0.97]"
           >
             See your progress
           </button>
@@ -2507,8 +2507,8 @@ export const TalkWithBook = ({
 
       {showActivityBadge && (
         <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
-          <div className="flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 shadow-sm">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
+          <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-card backdrop-blur-sm">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
             {activityLabel}
           </div>
         </div>
