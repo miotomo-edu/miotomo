@@ -65,7 +65,7 @@ const LibrarySection: React.FC<LibrarySectionProps> = ({
   };
 
   if (isLoading) return <LibrarySkeleton />;
-  if (error) return <div>Error loading books.</div>;
+  if (error) return <div>Error loading circles.</div>;
 
   return (
     <section className="py-6 px-4 pb-24">
