@@ -54,6 +54,9 @@ type DotTag = {
   label: string;
 };
 
+const getPrimaryActionLabel = (hasStarted?: boolean) =>
+  hasStarted ? "Keep going" : "Start here";
+
 const LineTagIcon: React.FC<{
   icon: DotTag["icon"];
   className?: string;
@@ -224,9 +227,9 @@ const getDotTags = (
         { icon: "debate", label: (typeName || "Take a side").toUpperCase() },
       ];
     case "vocabulary":
-      return [{ icon: "vocabulary", label: "VOCABULARY" }];
+      return [{ icon: "vocabulary", label: "WORD GAME" }];
     case "spelling":
-      return [{ icon: "spelling", label: "SPELLING" }];
+      return [{ icon: "spelling", label: "SPELLING GAME" }];
     case "storytelling":
     case "mediation":
     case "talktime":
@@ -238,9 +241,9 @@ const getDotTags = (
         return [{ icon: "generic", label: typeName.toUpperCase() }];
       }
       return [
-        { icon: "listen", label: "LISTEN" },
-        { icon: "talk", label: "TALK TIME" },
-        ...(vocabulary ? [{ icon: "vocabulary", label: "VOCABULARY" }] : []),
+        { icon: "listen", label: "LISTEN FIRST" },
+        { icon: "talk", label: "TALK WITH TOMO" },
+        ...(vocabulary ? [{ icon: "vocabulary", label: "WORD GAME" }] : []),
       ];
   }
 };
@@ -257,10 +260,12 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
   onPlay,
 }) => {
   const tags = getDotTags(typeSlug, typeName, vocabulary);
+  const primaryAction =
+    completedDots > 0 ? `Keep going with Dot ${episode}` : `Start Dot ${episode}`;
 
   return (
     <section className="relative mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
-      <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
+      <div className="px-5 pb-5 pt-5 md:px-7 md:pb-6 md:pt-6">
         <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
           <span className="text-xl text-brand-primary" aria-hidden="true">
             ★
@@ -340,21 +345,24 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
           </div>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={onPlay}
-        aria-label={`Play ${title}`}
-        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
-      >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 16 16"
-          className="ml-1 h-8 w-8 md:h-10 md:w-10"
-          fill="currentColor"
+      <div className="px-5 pb-5 md:px-7 md:pb-6">
+        <button
+          type="button"
+          onClick={onPlay}
+          aria-label={`Play ${title}`}
+          className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-brand-primary px-5 py-4 text-base font-semibold text-black shadow-glow-gold transition hover:scale-[1.01] md:w-auto"
         >
-          <path d="M4 2.5v11l9-5.5-9-5.5z" />
-        </svg>
-      </button>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="ml-0.5 h-5 w-5"
+            fill="currentColor"
+          >
+            <path d="M4 2.5v11l9-5.5-9-5.5z" />
+          </svg>
+          <span>{primaryAction}</span>
+        </button>
+      </div>
     </section>
   );
 };
@@ -445,6 +453,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const [headerOffset, setHeaderOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const { updateBookProgress, isUpdating } = useBooks(studentId);
   const coverUrl = useCircleCover(book.thumbnailUrl);
   const { data: browseData } = useBrowseCircles(studentId);
@@ -489,7 +498,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         if (isCancelled) return;
 
         if (error) {
-          setLoadError("Failed to load episodes.");
+          setLoadError("We couldn’t load this circle yet.");
           console.warn("Failed to load episodes:", error);
           return;
         }
@@ -599,7 +608,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         );
       } catch (err) {
         if (isCancelled) return;
-        setLoadError("Failed to load episodes.");
+        setLoadError("We couldn’t load this circle yet.");
         console.warn("Failed to load episodes:", err);
       } finally {
         if (!isCancelled) {
@@ -613,7 +622,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [book?.id]);
+  }, [book?.id, reloadKey]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -1050,24 +1059,55 @@ const CirclePage: React.FC<CirclePageProps> = ({
             >
               {book.title}
             </h1>
+            {nextEpisode ? (
+              <div className="rounded-full bg-black/55 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(0,0,0,0.28)] backdrop-blur-md">
+                {`${getPrimaryActionLabel(
+                  Boolean(
+                    dotStatusByEpisode[nextEpisode.episode]?.listening_status &&
+                      dotStatusByEpisode[nextEpisode.episode]
+                        ?.listening_status !== "not_started",
+                  ) ||
+                    Boolean(
+                      dotStatusByEpisode[nextEpisode.episode]?.talking_status &&
+                        dotStatusByEpisode[nextEpisode.episode]
+                          ?.talking_status !== "not_started",
+                    ),
+                )}: Dot ${nextEpisode.episode}`}
+              </div>
+            ) : null}
           </div>
         </div>
       </header>
 
       <section className="relative z-10 -mt-16 bg-white px-6 pb-24 pt-8">
-        <div className="flex items-center justify-between">
-          {isLoading && (
-            <span className="text-sm text-black/45 md:text-base">
-              Loading...
-            </span>
-          )}
-        </div>
+        {isLoading ? (
+          <div className="mb-6 rounded-[28px] border border-black/8 bg-[#f7f1e8] p-5 shadow-stage">
+            <div className="h-4 w-32 animate-pulse rounded-full bg-black/10" />
+            <div className="mt-4 h-8 w-48 animate-pulse rounded-full bg-black/12" />
+            <div className="mt-5 h-12 w-full animate-pulse rounded-full bg-brand-primary/45" />
+            <p className="mt-4 text-sm font-medium text-[#5d5345]">
+              Getting this circle ready for you...
+            </p>
+          </div>
+        ) : null}
         {loadError && (
-          <div className="mt-3 text-sm text-red-600">{loadError}</div>
+          <div className="mt-3 rounded-[28px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+            <p className="font-semibold text-red-900">{loadError}</p>
+            <p className="mt-1 leading-relaxed">
+              Try again to bring back your next mission.
+            </p>
+            <button
+              type="button"
+              onClick={() => setReloadKey((current) => current + 1)}
+              className="mt-3 inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+            >
+              Try again
+            </button>
+          </div>
         )}
         {!episodeCount && (
-          <div className="mt-4 text-sm text-black/45">
-            No episodes available yet.
+          <div className="mt-4 rounded-[28px] border border-black/8 bg-[#f7f1e8] px-5 py-4 text-sm font-medium text-[#5d5345]">
+            This circle is still getting its dots ready.
           </div>
         )}
         {shouldShowTodayMission && nextEpisode ? (
@@ -1124,8 +1164,15 @@ const CirclePage: React.FC<CirclePageProps> = ({
             const playLabel = isCompleted
               ? "Listen again"
               : hasStarted
-                ? "Resume"
-                : "Play";
+                ? "Keep going"
+                : "Start dot";
+            const statusLabel = isCompleted
+              ? "Done"
+              : isCurrent
+                ? getPrimaryActionLabel(hasStarted)
+                : hasStarted
+                  ? "In progress"
+                  : "New";
             return (
               <React.Fragment key={episode.episode}>
                 <div
@@ -1181,6 +1228,17 @@ const CirclePage: React.FC<CirclePageProps> = ({
                           <span className="font-semibold text-[#b07b00]">
                             {tags.length > 0 ? "· " : ""}
                             Completed
+                          </span>
+                        ) : null}
+                        {!isCompleted ? (
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                              isCurrent
+                                ? "bg-white/14 text-white"
+                                : "bg-[#f4ecdf] text-[#6b5843]"
+                            }`}
+                          >
+                            {statusLabel}
                           </span>
                         ) : null}
                       </div>
@@ -1255,7 +1313,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
         {continueItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">Continue</h3>
+            <h2 className="text-lg font-semibold text-black">
+              More to keep going
+            </h2>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {continueItems.map((item) => (
                 <CircleCard
@@ -1274,9 +1334,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
         )}
         {showRecommendationSections && relatedItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">
+            <h2 className="text-lg font-semibold text-black">
               You might also like
-            </h3>
+            </h2>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {relatedItems.map((item) => (
                 <CircleCard
@@ -1294,9 +1354,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
         )}
         {showRecommendationSections && differentItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">
+            <h2 className="text-lg font-semibold text-black">
               Try something different
-            </h3>
+            </h2>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {differentItems.map((item) => (
                 <CircleCard

@@ -113,7 +113,8 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   onPlayEpisode,
   showContinueRow = true,
 }) => {
-  const { data, isLoading, error } = useBrowseCircles(studentId);
+  const { data, isLoading, error, refetch, isFetching } =
+    useBrowseCircles(studentId);
 
   const enrichedCircles = useMemo(() => {
     const circles = data?.circles ?? [];
@@ -450,11 +451,60 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   );
 
   if (isLoading) {
-    return <div className="p-6 text-gray-600">Loading circles...</div>;
+    return (
+      <div className="min-h-screen bg-white px-4 pb-24 pt-0">
+        <WelcomeSection userName={userName} />
+        <div className="space-y-6">
+          <div className="rounded-[32px] bg-[#f4ecdf] p-5 shadow-stage ring-1 ring-black/8">
+            <div className="h-4 w-32 animate-pulse rounded-full bg-black/10" />
+            <div className="mt-4 h-10 w-56 animate-pulse rounded-full bg-black/12" />
+            <div className="mt-6 aspect-[4/5] animate-pulse rounded-[28px] bg-black/8" />
+            <div className="mt-5 h-12 w-44 animate-pulse rounded-full bg-brand-primary/60" />
+            <p className="mt-4 text-sm font-medium text-[#5d5345]">
+              Getting your next adventure ready...
+            </p>
+          </div>
+          <div className="space-y-3">
+            <div className="h-8 w-40 animate-pulse rounded-full bg-black/10" />
+            <div className="flex gap-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="w-40 shrink-0 space-y-3 rounded-[28px] bg-white"
+                >
+                  <div className="aspect-[2/3] animate-pulse rounded-2xl bg-black/8" />
+                  <div className="h-4 w-28 animate-pulse rounded-full bg-black/10" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-6 text-gray-600">Error loading circles.</div>;
+    return (
+      <div className="min-h-screen bg-white px-4 pb-24 pt-0">
+        <WelcomeSection userName={userName} />
+        <div className="rounded-[32px] border border-[#f0c9c7] bg-[#fff5f4] p-6 text-[#7d3a33] shadow-stage">
+          <p className="font-display text-2xl font-bold leading-tight text-[#3c201c]">
+            We couldn&apos;t open your circles just yet.
+          </p>
+          <p className="mt-3 text-sm font-medium leading-relaxed text-[#7d3a33]">
+            Check your connection and try again. Your progress is still safe.
+          </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="mt-5 inline-flex items-center rounded-full bg-[#1a1a1f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -58,6 +58,9 @@ type DotTag = {
   label: string;
 };
 
+const getPrimaryActionLabel = (hasStarted?: boolean) =>
+  hasStarted ? "Keep going" : "Start here";
+
 const normalizeDotTypeSlug = (value: string | null | undefined) => {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
@@ -243,9 +246,9 @@ const getDotTags = (
         { icon: "debate", label: (typeName || "Take a side").toUpperCase() },
       ];
     case "vocabulary":
-      return [{ icon: "vocabulary", label: "VOCABULARY" }];
+      return [{ icon: "vocabulary", label: "WORD GAME" }];
     case "spelling":
-      return [{ icon: "spelling", label: "SPELLING" }];
+      return [{ icon: "spelling", label: "SPELLING GAME" }];
     case "storytelling":
     case "mediation":
     case "talktime":
@@ -257,9 +260,9 @@ const getDotTags = (
         return [{ icon: "generic", label: typeName.toUpperCase() }];
       }
       return [
-        { icon: "listen", label: "LISTEN" },
-        { icon: "talk", label: "TALK TIME" },
-        ...(vocabulary ? [{ icon: "vocabulary", label: "VOCABULARY" }] : []),
+        { icon: "listen", label: "LISTEN FIRST" },
+        { icon: "talk", label: "TALK WITH TOMO" },
+        ...(vocabulary ? [{ icon: "vocabulary", label: "WORD GAME" }] : []),
       ];
   }
 };
@@ -277,6 +280,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   const [episodes, setEpisodes] = useState<EpisodeMeta[]>([]);
   const [isLoadingEpisodes, setIsLoadingEpisodes] = useState(false);
   const [episodesError, setEpisodesError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const { updateBookProgress, isUpdating } = useBooks(studentId);
 
   const totalDots = Math.max(
@@ -424,7 +428,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
       } catch (error) {
         if (isCancelled) return;
         console.warn("Failed to load hero episodes:", error);
-        setEpisodesError("Could not load the full dot list.");
+        setEpisodesError("We couldn’t load the full dot list yet.");
         setEpisodes([]);
       } finally {
         if (!isCancelled) {
@@ -438,7 +442,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [item.book.chapters, item.book.id, studentId]);
+  }, [item.book.chapters, item.book.id, studentId, reloadKey]);
 
   const activeEpisodeNumber = useMemo(() => {
     if (typeof item.nextChapter === "number" && item.nextChapter > 0) {
@@ -462,6 +466,11 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
     item.nextDotTitle?.trim() ||
     `Dot ${activeEpisodeNumber}`;
   const highlightedDot = progressDot ?? activeEpisodeNumber;
+  const activeHasStarted =
+    (activeEpisode?.status?.listening_status &&
+      activeEpisode.status.listening_status !== "not_started") ||
+    (activeEpisode?.status?.talking_status &&
+      activeEpisode.status.talking_status !== "not_started");
 
   const handlePlayEpisode = (
     episode: number,
@@ -506,22 +515,27 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0)_38%)]" />
 
           <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-5 py-5 md:px-7 md:py-7">
-            <button
-              type="button"
-              onClick={handleHeroPlay}
-              disabled={isUpdating}
-              aria-label={`Play ${activeDotTitle}`}
-              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 16 16"
-                className="ml-1 h-12 w-12 md:h-16 md:w-16"
-                fill="currentColor"
+            <div className="pointer-events-auto flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={handleHeroPlay}
+                disabled={isUpdating}
+                aria-label={`Play ${activeDotTitle}`}
+                className="group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
               >
-                <path d="M4 2.5v11l9-5.5-9-5.5z" />
-              </svg>
-            </button>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="ml-1 h-12 w-12 md:h-16 md:w-16"
+                  fill="currentColor"
+                >
+                  <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                </svg>
+              </button>
+              <div className="rounded-full bg-black/62 px-4 py-2 text-center text-sm font-semibold text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)] backdrop-blur-md">
+                {`${getPrimaryActionLabel(Boolean(activeHasStarted))}: Dot ${activeEpisodeNumber}`}
+              </div>
+            </div>
           </div>
 
           <div className="relative z-20 flex h-full min-h-[560px] flex-col justify-between p-5 text-white md:min-h-[700px] md:p-7">
@@ -603,13 +617,23 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
               {episodesError ? (
                 <div className="mb-4 rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
-                  {episodesError}
+                  <p className="font-semibold text-red-900">{episodesError}</p>
+                  <p className="mt-1 leading-relaxed">
+                    Try again to bring back the full mission list.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setReloadKey((current) => current + 1)}
+                    className="mt-3 inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                  >
+                    Try again
+                  </button>
                 </div>
               ) : null}
 
               {!isLoadingEpisodes && episodes.length === 0 ? (
                 <div className="rounded-3xl border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
-                  No dots available yet.
+                  This circle is still getting its dots ready.
                 </div>
               ) : null}
 
@@ -627,8 +651,8 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     const playLabel = isCompleted
                       ? "Listen again"
                       : hasStarted
-                        ? "Resume"
-                        : "Play";
+                        ? "Keep going"
+                        : "Start dot";
                     const showRowButton = isCompleted || isCurrent;
                     const durationLabel =
                       episode.typeSlug !== "teachtime" &&
@@ -755,16 +779,17 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               }
                               disabled={isUpdating}
                               aria-label={`Play ${episode.title || `Dot ${episode.episode}`}`}
-                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed md:h-16 md:w-16"
+                              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand-primary px-4 py-3 text-sm font-semibold text-black shadow-glow-gold transition hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed md:px-5"
                             >
                               <svg
                                 aria-hidden="true"
                                 viewBox="0 0 16 16"
-                                className="ml-1 h-6 w-6 md:h-7 md:w-7"
+                                className="ml-0.5 h-5 w-5"
                                 fill="currentColor"
                               >
                                 <path d="M4 2.5v11l9-5.5-9-5.5z" />
                               </svg>
+                              <span>{playLabel}</span>
                             </button>
                           ) : (
                             <button
