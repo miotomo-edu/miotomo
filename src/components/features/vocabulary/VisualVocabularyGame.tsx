@@ -687,7 +687,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (showCompletionScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#1C1610] px-6 py-10 text-center text-[#efe6d6]">
         <div className="flex max-w-2xl flex-col items-center gap-5">
           <div className="text-xs font-semibold uppercase tracking-super text-[#d8cdbd]">
             Vocabulary Complete
@@ -715,13 +715,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#2F2C2F] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#1C1610] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-3xl items-center gap-3">
         <span className="text-[0.6rem] font-semibold tracking-super text-[#d8cdbd] sm:text-xs md:text-xl">
           WORDS
         </span>
         <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#6f6a63] md:h-1.5" />
+          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#524030] md:h-1.5" />
           <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {items.map((_, index) => {
               const isActive = index === currentWordIndex;
@@ -951,8 +951,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             className="h-20 w-auto sm:h-24 md:h-32"
           />
           <div className="relative flex-1">
-            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#4a4345]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
+            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#2C2214]" />
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#2C2214] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
               <span
                 className="flex-1 break-words whitespace-pre-line"
                 style={{
