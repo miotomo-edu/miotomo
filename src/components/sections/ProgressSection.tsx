@@ -73,6 +73,67 @@ const CardSection: React.FC<CardSectionProps> = ({
 );
 
 const iconMap = [bookSquareIcon, connectionIcon];
+
+// -------- Skeleton --------
+const Shimmer: React.FC<{ className?: string }> = ({ className = "" }) => (
+  <div className={`animate-pulse rounded-xl bg-black/[0.07] ${className}`} />
+);
+
+const SkeletonCardSection: React.FC<{ rows?: number }> = ({ rows = 2 }) => (
+  <div className="space-y-2.5">
+    <div className="flex items-center gap-2.5">
+      <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
+      <Shimmer className="h-5 w-36" />
+    </div>
+    <div className="rounded-2xl bg-white ring-1 ring-black/10 p-4 space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center justify-between">
+          <Shimmer className="h-4 w-2/3" />
+          <Shimmer className="h-4 w-12" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const ProgressSkeleton: React.FC = () => (
+  <section className="min-h-screen bg-[#efe6da] px-4 pb-24 pt-6">
+    <Shimmer className="mb-5 h-9 w-32" />
+    {/* Tab pills */}
+    <div className="mb-5 flex gap-2">
+      <Shimmer className="h-7 w-24 rounded-full" />
+      <Shimmer className="h-7 w-16 rounded-full" />
+      <Shimmer className="h-7 w-12 rounded-full" />
+    </div>
+    {/* Day circles */}
+    <div className="mb-4 flex gap-3">
+      {Array.from({ length: 7 }).map((_, i) => (
+        <Shimmer key={i} className="h-10 w-10 rounded-full" />
+      ))}
+    </div>
+    <div className="space-y-6">
+      <SkeletonCardSection rows={2} />
+      <SkeletonCardSection rows={3} />
+      <SkeletonCardSection rows={2} />
+      {/* Streak card */}
+      <div className="space-y-2.5">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
+          <Shimmer className="h-5 w-28" />
+        </div>
+        <div className="rounded-2xl bg-black/10 p-4">
+          <div className="flex items-center gap-3">
+            <Shimmer className="h-10 w-12 rounded-lg" />
+            <div className="space-y-1.5">
+              <Shimmer className="h-4 w-20" />
+              <Shimmer className="h-3 w-32" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
 const weekLetters = ["M", "T", "W", "T", "F", "S", "S"];
 
 const ProgressSection: React.FC<{ conversationId: string }> = ({
@@ -117,11 +178,8 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
       ((status.metrics && status.metrics !== "done") ||
         (status.utterances && status.utterances !== "done")));
 
-  if (isProcessing) {
-    return <div className="p-6">Processing conversation…</div>;
-  }
-  if (!data) {
-    return <div className="p-6">No progress available</div>;
+  if (isProcessing || !data) {
+    return <ProgressSkeleton />;
   }
 
   const { today, week } = mapMetricsToProgress(data.metrics, data.utterances);
