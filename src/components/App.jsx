@@ -588,7 +588,7 @@ const App = ({ transportType, region = "" }) => {
       : activeComponent === "parents"
         ? "bg-[#F6EFE2]"
       : activeComponent === "progress"
-        ? "bg-[#EAB7AF]"
+        ? "bg-white"
         : activeComponent === "onboarding"
           ? "bg-white"
           : activeComponent === "interactive"

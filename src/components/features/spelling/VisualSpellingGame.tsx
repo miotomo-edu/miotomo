@@ -97,6 +97,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   onComplete,
   previewMode = null,
 }) => {
+  const isPreviewMode = Boolean(previewMode);
   const isIntroPreview = previewMode === "spelling-intro";
   const isGameplayPreview = previewMode === "spelling-game";
   const isCompletionPreview = previewMode === "spelling-complete";
@@ -131,7 +132,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   const [showEndScreen, setShowEndScreen] = useState(false);
 
   useEffect(() => {
-    if (!previewMode) return;
+    if (!isPreviewMode) return;
 
     setWords(["FOSSIL"]);
     setAudioUrl("");
@@ -153,7 +154,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
     setShowIntro(isIntroPreview);
     setShowCompletionScreen(false);
     setShowEndScreen(false);
-  }, [previewMode]);
+  }, [isCompletionPreview, isGameplayPreview, isIntroPreview, isPreviewMode]);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
@@ -204,13 +205,13 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   }, [attemptQuote]);
 
   useEffect(() => {
-    if (previewMode) return;
-
     let isActive = true;
 
     const fetchSpellingData = async () => {
-      setIsLoading(true);
-      setLoadError(null);
+      if (!isPreviewMode) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
       const { data, error } = await supabase
         .from("dots_spelling")
         .select("words,audio")
@@ -222,8 +223,10 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
       if (error) {
         console.error("Failed to load spelling data:", error);
-        setLoadError("Unable to load spelling data.");
-        setIsLoading(false);
+        if (!isPreviewMode) {
+          setLoadError("Unable to load spelling data.");
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -238,8 +241,12 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
       setAudioUrl(audio);
       setCurrentWordIndex(0);
       setTargetWord(wordList[0]?.toUpperCase() ?? "");
-      setHasPlayedCurrent(false);
-      setWordResults(Array.from({ length: wordList.length }, () => null));
+      setHasPlayedCurrent(isGameplayPreview || isCompletionPreview);
+      setWordResults(
+        Array.from({ length: wordList.length }, () =>
+          isCompletionPreview ? "correct" : null,
+        ),
+      );
       setIsLoading(false);
     };
 
@@ -248,7 +255,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
     return () => {
       isActive = false;
     };
-  }, [previewMode]);
+  }, [isCompletionPreview, isGameplayPreview, isPreviewMode]);
 
   useEffect(() => {
     if (!audioUrl) {

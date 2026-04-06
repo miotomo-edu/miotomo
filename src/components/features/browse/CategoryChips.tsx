@@ -4,13 +4,13 @@ const CHIPS = ["History", "Science", "Imagination"];
 
 const CategoryChips: React.FC = () => {
   return (
-    <section className="pb-7">
+    <section className="pb-0">
       <div className="flex flex-wrap gap-2.5">
-        {CHIPS.map((label) => (
+        {CHIPS.map((label, i) => (
           <button
             key={label}
             type="button"
-            className="rounded-full bg-[#1C1C22] px-5 py-2.5 text-base font-semibold leading-none text-white transition active:scale-[0.97] hover:bg-[#2a2a33]"
+            className={`rounded-full bg-[#1C1C22] px-5 py-2.5 text-base font-semibold leading-none text-white transition active:scale-[0.97] hover:bg-[#2a2a33]${i >= 2 ? " hidden sm:inline-flex" : ""}`}
           >
             {label}
           </button>

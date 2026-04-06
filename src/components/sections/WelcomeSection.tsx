@@ -2,7 +2,7 @@
 import React from "react";
 import userAvatar from "../../assets/img/user-avatar.png";
 
-const AVATAR_SIZE = 64; // px
+const AVATAR_SIZE = 44; // px
 
 interface WelcomeSectionProps {
   userName: string;

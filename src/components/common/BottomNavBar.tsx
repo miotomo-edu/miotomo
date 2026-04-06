@@ -1,7 +1,7 @@
 import React from "react";
-import { ParentsIcon } from "./icons/ParentsIcon";
 import { CirclesIcon } from "./icons/CirclesIcon";
 import { TomoIcon } from "./icons/TomoIcon4";
+import { ProgressIcon } from "./icons/ProgressIcon";
 
 interface BottomNavBarProps {
   items?: { label: string; componentName: string; icon?: React.ReactNode }[];
@@ -13,8 +13,8 @@ interface BottomNavBarProps {
 
 const defaultNavItems = [
   { label: "Circles", componentName: "library", icon: <CirclesIcon /> },
-  { label: "Tomo", componentName: "progress", icon: <TomoIcon /> },
-  { label: "Parents", componentName: "parents", icon: <ParentsIcon /> },
+  { label: "Tomo", componentName: "parents", icon: <TomoIcon /> },
+  { label: "Progress", componentName: "progress", icon: <ProgressIcon /> },
 ];
 
 const BottomNavBar: React.FC<BottomNavBarProps> = ({

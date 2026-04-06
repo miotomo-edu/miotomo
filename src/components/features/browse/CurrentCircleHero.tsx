@@ -488,9 +488,9 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   return (
     <section>
-      <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
+      <p className="font-display mb-3 text-2xl font-bold text-[#020617]">
         Continue talking
-      </h1>
+      </p>
       <div className="relative overflow-hidden rounded-[32px] bg-[#efe6da] shadow-stage ring-1 ring-black/10">
         <div className="relative min-h-[560px] overflow-hidden md:min-h-[700px]">
           {coverUrl ? (

@@ -70,6 +70,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   onComplete,
   previewMode = null,
 }) => {
+  const isPreviewMode = Boolean(previewMode);
   const isVocabularyPreview =
     previewMode === "vocab-intro" ||
     previewMode === "vocab-game" ||
@@ -121,7 +122,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const lastTranscriptRef = useRef("");
 
   useEffect(() => {
-    if (!previewMode) return;
+    if (!isPreviewMode) return;
 
     if (isVocabularyPreview) {
       const previewItem: VocabItem = {
@@ -175,7 +176,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       setIsLoading(false);
       setLoadError(null);
     }
-  }, [previewMode]);
+  }, [isPreviewMode, isSpellingPreview, isVocabularyPreview, previewMode]);
 
   const attemptQuote = useMemo(() => {
     const reachedMax = !isCorrectSolved && attempts.length >= MAX_ATTEMPTS;
@@ -206,13 +207,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   ]);
 
   useEffect(() => {
-    if (previewMode) return;
-
     let isActive = true;
 
     const fetchWords = async () => {
-      setIsLoading(true);
-      setLoadError(null);
+      if (!isPreviewMode) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
       const { data, error } = await supabase
         .from("vocab_items")
         .select(
@@ -232,8 +233,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
       if (error) {
         console.error("Failed to load vocab words:", error);
-        setLoadError("Unable to load vocabulary words.");
-        setIsLoading(false);
+        if (!isPreviewMode) {
+          setLoadError("Unable to load vocabulary words.");
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -266,12 +269,24 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       setTomoPromptText(vocabItems[0]?.tomoPromptText ?? "");
       setDefinition(vocabItems[0]?.definition ?? "");
       setFeedbackTextMap(vocabItems[0]?.feedbackTextMap ?? {});
-      setPhase("listen");
-      setWordResults(Array.from({ length: vocabItems.length }, () => null));
+      setPhase(
+        isVocabularyPreview
+          ? previewMode === "vocab-game"
+            ? "revealed"
+            : previewMode === "vocab-complete"
+              ? "feedback"
+              : "listen"
+          : "listen",
+      );
+      setWordResults(
+        Array.from({ length: vocabItems.length }, () =>
+          previewMode === "vocab-complete" ? "correct" : null,
+        ),
+      );
       setAttempts([]);
-      setIsCorrectSolved(false);
+      setIsCorrectSolved(previewMode === "vocab-complete");
       setFeedbackKey(null);
-      setHasListened(false);
+      setHasListened(previewMode !== "vocab-intro");
       setIsLoading(false);
     };
 
@@ -280,7 +295,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     return () => {
       isActive = false;
     };
-  }, [previewMode]);
+  }, [isPreviewMode, isVocabularyPreview, previewMode]);
 
   useEffect(() => {
     if (typingTimeoutRef.current) {

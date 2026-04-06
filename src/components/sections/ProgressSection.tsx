@@ -54,19 +54,26 @@ interface CardSectionProps {
   icon?: React.ReactNode;
   children: ReactNode;
   contentClassName?: string;
+  titleClassName?: string;
 }
 
 const CardSection: React.FC<CardSectionProps> = ({
   title,
   icon,
   children,
-  contentClassName = "rounded-2xl bg-white ring-1 ring-black/10 p-4",
+  contentClassName = "rounded-[28px] border border-black/10 bg-[#f6efe5] p-5 shadow-card",
+  titleClassName = "text-[#161414]",
 }) => (
-  <div className="space-y-2.5">
-    <div className="flex items-center gap-2.5">
-      <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-brand-primary" aria-hidden="true" />
+  <div className="space-y-3">
+    <div className="flex items-center gap-3">
+      <span
+        className="inline-block h-6 w-1.5 shrink-0 rounded-full bg-brand-primary"
+        aria-hidden="true"
+      />
       {icon}
-      <h2 className="font-display text-lg font-bold text-gray-900">{title}</h2>
+      <h2 className={`font-display text-xl font-bold ${titleClassName}`}>
+        {title}
+      </h2>
     </div>
     <div className={contentClassName}>{children}</div>
   </div>
@@ -80,12 +87,12 @@ const Shimmer: React.FC<{ className?: string }> = ({ className = "" }) => (
 );
 
 const SkeletonCardSection: React.FC<{ rows?: number }> = ({ rows = 2 }) => (
-  <div className="space-y-2.5">
-    <div className="flex items-center gap-2.5">
+  <div className="space-y-3">
+    <div className="flex items-center gap-3">
       <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
       <Shimmer className="h-5 w-36" />
     </div>
-    <div className="rounded-2xl bg-white ring-1 ring-black/10 p-4 space-y-3">
+    <div className="space-y-3 rounded-[28px] border border-black/10 bg-[#f6efe5] p-5 shadow-card">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center justify-between">
           <Shimmer className="h-4 w-2/3" />
@@ -97,36 +104,37 @@ const SkeletonCardSection: React.FC<{ rows?: number }> = ({ rows = 2 }) => (
 );
 
 const ProgressSkeleton: React.FC = () => (
-  <section className="min-h-screen bg-[#efe6da] px-4 pb-24 pt-6">
-    <Shimmer className="mb-5 h-9 w-32" />
-    {/* Tab pills */}
-    <div className="mb-5 flex gap-2">
-      <Shimmer className="h-7 w-24 rounded-full" />
-      <Shimmer className="h-7 w-16 rounded-full" />
-      <Shimmer className="h-7 w-12 rounded-full" />
-    </div>
-    {/* Day circles */}
-    <div className="mb-4 flex gap-3">
-      {Array.from({ length: 7 }).map((_, i) => (
-        <Shimmer key={i} className="h-10 w-10 rounded-full" />
-      ))}
-    </div>
-    <div className="space-y-6">
-      <SkeletonCardSection rows={2} />
-      <SkeletonCardSection rows={3} />
-      <SkeletonCardSection rows={2} />
-      {/* Streak card */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-2.5">
-          <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
-          <Shimmer className="h-5 w-28" />
-        </div>
-        <div className="rounded-2xl bg-black/10 p-4">
+  <section className="relative min-h-screen overflow-hidden bg-white px-4 pb-24 pt-6">
+    <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,rgba(250,195,4,0.18),rgba(250,195,4,0)_65%)]" />
+    <div className="relative">
+      <Shimmer className="mb-2 h-4 w-28" />
+      <Shimmer className="mb-6 h-11 w-52" />
+      <div className="mb-5 flex gap-2">
+        <Shimmer className="h-9 w-24 rounded-full" />
+        <Shimmer className="h-9 w-16 rounded-full" />
+        <Shimmer className="h-9 w-12 rounded-full" />
+      </div>
+      <div className="mb-6 flex gap-3">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <Shimmer key={i} className="h-11 w-11 rounded-full" />
+        ))}
+      </div>
+      <div className="space-y-6">
+        <SkeletonCardSection rows={2} />
+        <SkeletonCardSection rows={3} />
+        <SkeletonCardSection rows={2} />
+        <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Shimmer className="h-10 w-12 rounded-lg" />
-            <div className="space-y-1.5">
-              <Shimmer className="h-4 w-20" />
-              <Shimmer className="h-3 w-32" />
+            <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
+            <Shimmer className="h-5 w-28" />
+          </div>
+          <div className="rounded-[28px] bg-[#151316] p-5 shadow-hero">
+            <div className="flex items-center gap-3">
+              <Shimmer className="h-12 w-12 rounded-2xl bg-white/10" />
+              <div className="space-y-1.5">
+                <Shimmer className="h-4 w-20 bg-white/10" />
+                <Shimmer className="h-3 w-32 bg-white/10" />
+              </div>
             </div>
           </div>
         </div>
@@ -135,6 +143,70 @@ const ProgressSkeleton: React.FC = () => (
   </section>
 );
 const weekLetters = ["M", "T", "W", "T", "F", "S", "S"];
+
+const getWordMonogram = (value: string) =>
+  value
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+
+const getSubskillTone = (title: string) => {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("vocabulary")) {
+    return {
+      label: "VO",
+      classes: "bg-[#fff5d1] text-[#8a5d00] ring-1 ring-[#f2d47c]",
+    };
+  }
+  if (normalized.includes("fluency")) {
+    return {
+      label: "FL",
+      classes: "bg-[#ece6ff] text-[#5f3fa8] ring-1 ring-[#cdb8ff]",
+    };
+  }
+  if (normalized.includes("critical")) {
+    return {
+      label: "CT",
+      classes: "bg-[#dff2eb] text-[#255a46] ring-1 ring-[#b8decf]",
+    };
+  }
+  if (normalized.includes("story")) {
+    return {
+      label: "ST",
+      classes: "bg-[#ffe7d7] text-[#8b4e18] ring-1 ring-[#f3c7a4]",
+    };
+  }
+  return {
+    label: "LG",
+    classes: "bg-[#f2ece7] text-[#5f5449] ring-1 ring-black/10",
+  };
+};
+
+const getCategoryTone = (name: string) => {
+  if (name === "Cognitive Skills") {
+    return {
+      shell: "bg-[#f3eee7]",
+      body: "bg-white",
+      chip: "bg-[#15201b] text-[#f7f1e8]",
+      meter: "bg-[#d6ebe1]",
+    };
+  }
+  if (name === "Language & Communication") {
+    return {
+      shell: "bg-[#f6efe5]",
+      body: "bg-white",
+      chip: "bg-[#20181a] text-[#f7f1e8]",
+      meter: "bg-[#efe2ff]",
+    };
+  }
+  return {
+    shell: "bg-[#f8f1e4]",
+    body: "bg-white",
+    chip: "bg-[#221d14] text-[#f7f1e8]",
+    meter: "bg-[#ffe8c7]",
+  };
+};
 
 const ProgressSection: React.FC<{ conversationId: string }> = ({
   conversationId,
@@ -206,90 +278,125 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
 
   // -------- Render --------
   return (
-    <section className="min-h-screen bg-[#efe6da] px-4 pb-24 pt-6">
-      <h1 className="font-display mb-5 text-3xl font-bold text-gray-900">Progress</h1>
-      {/* Pills */}
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setView("week")}
-            className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide transition ${
-              view === "week"
-                ? "bg-brand-primary text-black"
-                : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            This Week
-          </button>
-        </div>
-        <div className="flex gap-2">
-          {["month", "year"].map((v) => {
-            const isActive = view === v;
-            return (
-              <button
-                key={v}
-                onClick={() => setView(v as any)}
-                className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide transition ${
-                  isActive
-                    ? "bg-brand-primary text-black"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                {v}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+    <section className="relative min-h-screen overflow-hidden bg-white px-4 pb-24 pt-6 text-[#161414]">
+      <div className="pointer-events-none absolute inset-x-[-15%] top-[-4rem] h-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(250,195,4,0.22),rgba(250,195,4,0)_72%)] blur-2xl" />
+      <div className="pointer-events-none absolute right-[-4rem] top-24 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,236,223,0.9),rgba(244,236,223,0)_70%)]" />
+      <div className="relative">
+        <div className="mb-6 rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,235,0.92))] px-5 py-5 shadow-card">
+          <div className="flex flex-col gap-5">
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#8b6b2f]">
+                learning ledger
+              </p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="font-display text-4xl font-bold leading-none text-[#171411]">
+                    Progress
+                  </h1>
+                  <p className="mt-2 max-w-[24rem] text-sm leading-relaxed text-[#6f6256]">
+                    A brighter canvas for Tomo&apos;s learning signals, with
+                    warm cards and dark anchors carrying the contrast.
+                  </p>
+                </div>
+                <div className="rounded-[24px] bg-[#171411] px-4 py-3 text-right text-[#f7f1e8] shadow-elevated">
+                  <div className="text-xs font-semibold uppercase tracking-widest text-[#f0d59d]">
+                    active streak
+                  </div>
+                  <div className="mt-1 font-display text-3xl font-bold leading-none text-brand-primary">
+                    {week?.streak ?? 0}
+                  </div>
+                  <div className="mt-1 text-xs text-[#d8cdbd]">sessions</div>
+                </div>
+              </div>
+            </div>
 
-      {view === "week" && (
-        <>
-          <div className="mb-4 flex gap-3 font-bold">
-            {weekLetters.map((letter, index) => {
-              const todayIndex = new Date().getDay();
-              const mappedIndex = (index + 1) % 7;
-              const isToday = mappedIndex === todayIndex;
-              return (
-                <span
-                  key={`${letter}-${index}`}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
-                    isToday
-                      ? "bg-brand-primary text-black shadow-[0_2px_8px_rgba(250,195,4,0.35)]"
-                      : "bg-white/60 text-gray-500 ring-1 ring-black/[0.08]"
-                  }`}
-                >
-                  {letter}
-                </span>
-              );
-            })}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="inline-flex rounded-full border border-black/10 bg-[#f7f2ea] p-1 shadow-xs">
+                {(["week", "month", "year"] as const).map((v) => {
+                  const isActive = view === v;
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => setView(v)}
+                      className={`cursor-pointer rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest transition duration-200 ${
+                        isActive
+                          ? "bg-[#171411] text-[#f7f1e8] shadow-sm"
+                          : "text-[#7b7264] hover:text-[#171411]"
+                      }`}
+                    >
+                      {v === "week" ? "This Week" : v}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
+                {weekLetters.map((letter, index) => {
+                  const todayIndex = new Date().getDay();
+                  const mappedIndex = (index + 1) % 7;
+                  const isToday = mappedIndex === todayIndex;
+                  return (
+                    <span
+                      key={`${letter}-${index}`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold shadow-xs ring-1 sm:h-11 sm:w-11 sm:text-sm ${
+                        isToday
+                          ? "bg-brand-primary text-[#171411] ring-brand-primary"
+                          : "bg-[#f7f2ea] text-[#8b7d70] ring-black/10"
+                      }`}
+                    >
+                      {letter}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
           </div>
+        </div>
+
+        {view === "week" && (
           <div className="space-y-6">
             {today && (
               <>
                 <CardSection
                   title={`${conversationDayLabel} Superpower`}
-                  contentClassName="space-y-3 p-0"
+                  contentClassName="space-y-4 rounded-[30px] bg-[#161316] p-5 text-[#f7f1e8] shadow-hero"
+                  titleClassName="text-[#161414]"
                 >
+                  <div className="rounded-[24px] border border-white/10 bg-white/5 px-4 py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-[#f0d59d]">
+                          Tomo noticed
+                        </div>
+                        <p className="mt-2 max-w-[22rem] text-sm leading-relaxed text-[#d8cdbd]">
+                          {today.superpower.subtitle}
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-brand-primary px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[#171411]">
+                        live signal
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-3">
                     {today.superpower.skills.map((s, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded-3xl bg-white px-4 py-3 ring-1 ring-black/[0.08]"
+                        className="flex items-center justify-between rounded-[24px] border border-white/10 bg-white/8 px-4 py-3 shadow-sm backdrop-blur-sm"
                       >
                         <div className="flex items-center gap-5">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-primary shadow-glow-gold">
                             <img
                               src={iconMap[i] ?? bookSquareIcon}
                               alt=""
                               className="h-6 w-6"
                             />
                           </span>
-                          <span className="text-sm text-gray-800">
+                          <span className="text-sm font-medium text-[#f7f1e8]">
                             {s.text}
                           </span>
                         </div>
                         {s.score && (
-                          <span className="text-xs font-semibold uppercase tracking-wide text-[#b07b00]">
+                          <span className="rounded-full border border-[#f0d59d]/30 bg-[#f0d59d]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-[#f0d59d]">
                             {s.score}
                           </span>
                         )}
@@ -301,23 +408,28 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                 <CardSection title="Learning Growth">
                   <div className="space-y-4">
                     {today.progress.map((p, i) => (
-                      <div key={i}>
-                        <div className="mb-1 flex justify-between">
-                          <span className="text-sm text-gray-700">
+                      <div
+                        key={i}
+                        className="rounded-[24px] border border-black/8 bg-white px-4 py-4 shadow-xs"
+                      >
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold text-[#352e28]">
                             {p.label}
                           </span>
-                          <span className="text-sm font-semibold text-[#b07b00]">
+                          <span className="rounded-full bg-[#fff2ca] px-3 py-1 text-xs font-bold uppercase tracking-widest text-[#8b6500]">
                             {p.value}%
                           </span>
                         </div>
-                        <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-black/[0.08]">
+                        <div className="mb-2 h-2.5 w-full overflow-hidden rounded-full bg-[#efe3d2]">
                           <div
-                            className="h-2 rounded-full bg-brand-primary"
+                            className="h-2.5 rounded-full bg-[linear-gradient(90deg,#FAC304,#F2D47C)]"
                             style={{ width: `${p.value}%` }}
                           />
                         </div>
                         {p.trend && (
-                          <div className="text-xs text-black/50">{p.trend}</div>
+                          <div className="text-xs leading-relaxed text-[#7b7264]">
+                            {p.trend}
+                          </div>
                         )}
                       </div>
                     ))}
@@ -326,15 +438,20 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
 
                 {today.newSkills.length > 0 && (
                   <CardSection title="New Skills Unlocked">
-                    <div className="space-y-3">
+                    <div className="grid gap-3">
                       {today.newSkills.map((s, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 rounded-3xl bg-white px-4 py-3 ring-1 ring-black/[0.08]"
+                          className="flex items-center gap-3 rounded-[24px] border border-[#f0ddba] bg-[linear-gradient(180deg,#fffaf0,#f9f0de)] px-4 py-4 shadow-xs"
                         >
-                          <span>{s.emoji}</span>
-                          <span className="text-sm">
-                            <strong>{s.word}</strong> – {s.meaning}
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#171411] font-display text-sm font-bold text-[#f7f1e8] shadow-sm">
+                            {getWordMonogram(s.word)}
+                          </span>
+                          <span className="text-sm leading-relaxed text-[#352e28]">
+                            <strong className="font-semibold text-[#171411]">
+                              {s.word}
+                            </strong>{" "}
+                            – {s.meaning}
                           </span>
                         </div>
                       ))}
@@ -343,17 +460,20 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
                 )}
 
                 <CardSection title="Area of Growth">
-                  <ol className="space-y-3 text-sm text-gray-800">
+                  <ol className="space-y-3 text-sm text-[#352e28]">
                     {[
                       "Give longer answers to a question",
                       "Use new learnt words in sentences",
                       "Think more about characters journey",
                     ].map((text, index) => (
-                      <li key={text} className="flex items-start gap-3">
-                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs font-bold text-black">
+                      <li
+                        key={text}
+                        className="flex items-start gap-3 rounded-[22px] border border-black/8 bg-white px-4 py-3 shadow-xs"
+                      >
+                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs font-bold text-[#171411]">
                           {index + 1}
                         </span>
-                        <span>{text}</span>
+                        <span className="leading-relaxed">{text}</span>
                       </li>
                     ))}
                   </ol>
@@ -365,67 +485,95 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
               <>
                 <CardSection
                   title="Weekly Streak"
-                  contentClassName="rounded-2xl bg-[linear-gradient(135deg,#1a1a1a_0%,#2d2a1f_100%)] p-4 text-white"
+                  contentClassName="rounded-[30px] bg-[linear-gradient(135deg,#161316_0%,#2a241f_52%,#3b3227_100%)] p-5 text-white shadow-hero"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="font-display text-4xl font-bold text-brand-primary">{week.streak}</span>
+                      <span className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#fff2ca] font-display text-3xl font-bold text-[#171411] shadow-elevated">
+                        {week.streak}
+                      </span>
                       <div>
-                        <div className="text-sm font-bold text-white">Day Streak</div>
-                        <div className="text-xs text-white/60">Amazing work this week!</div>
+                        <div className="text-sm font-bold uppercase tracking-widest text-[#f0d59d]">
+                          Day Streak
+                        </div>
+                        <div className="text-sm text-white/70">
+                          Amazing work this week.
+                        </div>
                       </div>
                     </div>
-                    <StarIcon className="h-6 w-6 text-brand-primary" aria-hidden="true" />
+                    <StarIcon
+                      className="h-7 w-7 text-brand-primary"
+                      aria-hidden="true"
+                    />
                   </div>
                 </CardSection>
 
                 {week.categories.map((cat, i) => {
                   const isOpen = expanded === cat.name;
+                  const tone = getCategoryTone(cat.name);
                   return (
                     <CardSection
                       key={i}
                       title={cat.name}
                       icon={categoryIcon(cat.name)}
-                      contentClassName="overflow-hidden rounded-2xl ring-1 ring-black/10"
+                      contentClassName={`overflow-hidden rounded-[28px] border border-black/10 ${tone.shell} shadow-card`}
                     >
                       <button
                         type="button"
-                        className="flex w-full items-center justify-between bg-white px-4 py-3"
+                        className={`flex w-full cursor-pointer items-center justify-between ${tone.body} px-4 py-4 transition duration-200 hover:brightness-[0.99]`}
                         onClick={() =>
                           setExpanded(isOpen ? null : (cat.name as string))
                         }
                       >
-                        <span className="text-sm font-semibold text-gray-700">
-                          {isOpen ? "Hide progress" : "View progress"}
-                        </span>
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 20 20"
-                          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                          fill="none"
-                        >
-                          <path d="M5 7.5l5 5 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${tone.chip}`}
+                          >
+                            {cat.badge}
+                          </span>
+                          <span className="text-sm font-semibold text-[#2f2b27]">
+                            {isOpen ? "Hide progress" : "View progress"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-[#7b7264]">
+                            {cat.subskills.length} skills
+                          </span>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 20 20"
+                            className={`h-4 w-4 text-[#7b7264] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                            fill="none"
+                          >
+                            <path d="M5 7.5l5 5 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
                       </button>
                       {isOpen && (
-                        <div className="space-y-2 border-t border-black/[0.06] bg-white px-4 pb-4 pt-3">
+                        <div className="space-y-3 border-t border-black/[0.06] bg-transparent px-4 pb-4 pt-3">
                           {cat.subskills.map((s, j) => (
                             <div
                               key={j}
-                              className="flex items-center justify-between rounded-3xl bg-white/60 px-3 py-2.5 ring-1 ring-black/[0.06]"
+                              className={`flex items-center justify-between rounded-[24px] ${tone.body} px-4 py-3 shadow-xs ring-1 ring-black/[0.06]`}
                             >
-                              <div className="flex items-center gap-2">
-                                <span>{s.icon}</span>
-                                <span className="text-sm">{s.title}</span>
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className={`flex h-10 w-10 items-center justify-center rounded-2xl text-[11px] font-bold uppercase tracking-widest ${getSubskillTone(s.title).classes}`}
+                                >
+                                  {getSubskillTone(s.title).label}
+                                </span>
+                                <span className="text-sm font-semibold text-[#2f2b27]">
+                                  {s.title}
+                                </span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-20 overflow-hidden rounded-full bg-black/[0.08]">
+                              <div className="flex items-center gap-3">
+                                <div className={`h-2.5 w-24 overflow-hidden rounded-full ${tone.meter}`}>
                                   <div
-                                    className="h-2 rounded-full bg-brand-primary"
+                                    className="h-2.5 rounded-full bg-[linear-gradient(90deg,#FAC304,#F2D47C)]"
                                     style={{ width: `${s.progress}%` }}
                                   />
                                 </div>
-                                <span className="text-xs">
+                                <span className="min-w-10 text-right text-xs font-semibold text-[#6f6256]">
                                   {s.progress}%
                                 </span>
                                 <span className="flex items-center gap-0.5">
@@ -444,27 +592,31 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
               </>
             )}
           </div>
-        </>
-      )}
-      {view === "month" && (
-        <div className="space-y-6">
-          <CardSection title="Monthly Summary">
-            <p className="text-sm text-gray-800">
-              Monthly insights will appear here soon.
-            </p>
-          </CardSection>
-        </div>
-      )}
+        )}
+        {view === "month" && (
+          <div className="space-y-6">
+            <CardSection title="Monthly Summary">
+              <div className="rounded-[24px] border border-black/8 bg-white px-4 py-4 shadow-xs">
+                <p className="text-sm leading-relaxed text-[#6f6256]">
+                  Monthly insights will appear here soon.
+                </p>
+              </div>
+            </CardSection>
+          </div>
+        )}
 
-      {view === "year" && (
-        <div className="space-y-6">
-          <CardSection title="Yearly Summary">
-            <p className="text-sm text-gray-800">
-              Yearly insights will appear here soon.
-            </p>
-          </CardSection>
-        </div>
-      )}
+        {view === "year" && (
+          <div className="space-y-6">
+            <CardSection title="Yearly Summary">
+              <div className="rounded-[24px] border border-black/8 bg-white px-4 py-4 shadow-xs">
+                <p className="text-sm leading-relaxed text-[#6f6256]">
+                  Yearly insights will appear here soon.
+                </p>
+              </div>
+            </CardSection>
+          </div>
+        )}
+      </div>
     </section>
   );
 };

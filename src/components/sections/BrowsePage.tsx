@@ -510,7 +510,6 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
       <div className="space-y-10 px-4 pb-24 pt-0">
         <div className="space-y-0">
           <WelcomeSection userName={userName} />
-          <CategoryChips />
           {currentCircleItem ? (
             <CurrentCircleHero
               studentId={studentId}
@@ -522,6 +521,13 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
               onPlay={onPlayEpisode}
             />
           ) : null}
+        </div>
+
+        <div>
+          <h2 className="font-display text-2xl font-bold text-[#020617]">Explore Circles</h2>
+          <div className="mt-2">
+            <CategoryChips />
+          </div>
         </div>
 
         {showContinueRow && continueItems.length > 0 ? (
