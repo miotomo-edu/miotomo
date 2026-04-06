@@ -28,7 +28,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
           className="h-full w-full object-cover"
         />
         {lightBackground ? (
-          <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-white via-white/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-white via-white/90 to-transparent" />
         ) : (
           <>
             <div className="absolute left-0 right-0 top-0 h-[env(safe-area-inset-top)] bg-black" />
@@ -37,8 +37,8 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
         )}
       </div>
 
-      <div className="relative z-10 flex h-full w-full flex-1 flex-col items-center justify-between px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
-        <div className="flex w-full flex-1 flex-col items-center justify-center gap-5">
+      <div className="relative z-10 flex h-full w-full flex-1 flex-col items-center justify-end px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
+        <div className="flex w-full max-w-sm flex-col items-center gap-4">
           <h1
             className={`font-display max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl md:text-6xl ${
               lightBackground
@@ -59,25 +59,24 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
               {description}
             </p>
           ) : null}
-        </div>
-
-        <div className="w-full max-w-sm">
-          <p
-            className={`mb-3 text-xs uppercase tracking-super ${
-              lightBackground
-                ? "text-[#020617]/60"
-                : "text-[#efe6d6]/70 drop-shadow-[0_4px_10px_rgba(0,0,0,1)]"
-            }`}
-          >
-            {subtitle}
-          </p>
-          <button
-            type="button"
-            onClick={onStart}
-            className="w-full min-h-[3.25rem] rounded-full bg-brand-primary px-6 py-4 text-lg font-bold uppercase tracking-wide text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] sm:min-h-[3.5rem] sm:text-xl"
-          >
-            {buttonLabel}
-          </button>
+          <div className="mt-2 w-full">
+            <p
+              className={`mb-3 text-xs uppercase tracking-super ${
+                lightBackground
+                  ? "text-[#020617]/60"
+                  : "text-[#efe6d6]/70 drop-shadow-[0_4px_10px_rgba(0,0,0,1)]"
+              }`}
+            >
+              {subtitle}
+            </p>
+            <button
+              type="button"
+              onClick={onStart}
+              className="w-full min-h-[3.25rem] rounded-full bg-brand-primary px-6 py-4 text-lg font-bold uppercase tracking-wide text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] sm:min-h-[3.5rem] sm:text-xl"
+            >
+              {buttonLabel}
+            </button>
+          </div>
         </div>
       </div>
     </div>
