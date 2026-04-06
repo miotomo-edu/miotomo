@@ -28,6 +28,7 @@ import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { characterData } from "../lib/characters";
+import { getPreviewConfig } from "../lib/previewMode";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
@@ -47,19 +48,40 @@ const shouldSkipOnboarding = () => {
 };
 
 const App = ({ transportType, region = "" }) => {
+  const previewConfig = useMemo(() => getPreviewConfig(), []);
   const [activeComponent, setActiveComponent] = useState(() =>
-    shouldSkipOnboarding() ? "library" : "landing",
+    previewConfig?.screen === "dot-complete" ||
+    previewConfig?.screen === "circle-complete"
+      ? "dot-complete"
+      : previewConfig?.screen === "vocab-intro" ||
+          previewConfig?.screen === "vocab-game" ||
+          previewConfig?.screen === "vocab-complete" ||
+          previewConfig?.screen === "spelling-intro" ||
+          previewConfig?.screen === "spelling-game" ||
+          previewConfig?.screen === "spelling-complete"
+        ? "vocabulary-game"
+        : shouldSkipOnboarding()
+          ? "library"
+          : "landing",
   );
   const prevActiveComponent = useRef(activeComponent);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [selectedChapter, setSelectedChapter] = useState(1);
+  const [selectedBook, setSelectedBook] = useState(() => previewConfig?.book ?? null);
+  const [selectedChapter, setSelectedChapter] = useState(
+    () => previewConfig?.completedDot ?? 1,
+  );
   const [selectedDotTitle, setSelectedDotTitle] = useState("");
   const [selectedDotTypeSlug, setSelectedDotTypeSlug] = useState(null);
-  const [completedDotChapter, setCompletedDotChapter] = useState(null);
+  const [completedDotChapter, setCompletedDotChapter] = useState(
+    () =>
+      previewConfig?.screen === "dot-complete" ||
+      previewConfig?.screen === "circle-complete"
+        ? previewConfig.completedDot
+        : null,
+  );
   const [isDemoSession, setIsDemoSession] = useState(false);
   const mainRef = useRef(null);
   const scrollPositionsRef = useRef({});
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(() => previewConfig?.userName ?? "");
   const [currentCharacter, setCurrentCharacter] = useState(null);
   const [circleReturnComponent, setCircleReturnComponent] = useState("library");
   const [shouldStartSession, setShouldStartSession] = useState(false);
@@ -106,11 +128,15 @@ const App = ({ transportType, region = "" }) => {
     return hashParams.get("studentId") || "";
   });
 
+  const resolvedStudentId =
+    studentId === "vasu2015"
+      ? HARDCODED_STUDENT_ID
+      : studentId || (previewConfig ? HARDCODED_STUDENT_ID : studentId);
   const {
     data: student,
     isLoading: studentLoading,
     error: studentError,
-  } = useStudent(studentId === "vasu2015" ? HARDCODED_STUDENT_ID : studentId);
+  } = useStudent(resolvedStudentId);
   const { getConversations } = useConversations();
   const { isAnalyzing, wakeAnalytics } = useAnalytics();
 
@@ -126,8 +152,9 @@ const App = ({ transportType, region = "" }) => {
   }, [wakeAnalytics]);
 
   useEffect(() => {
+    if (previewConfig?.userName) return;
     if (student?.name) setUserName(student.name);
-  }, [student]);
+  }, [student, previewConfig?.userName]);
 
   const fetchActiveConversations = useCallback(async () => {
     if (!studentId) return;
@@ -472,7 +499,12 @@ const App = ({ transportType, region = "" }) => {
           />
         );
       case "vocabulary-game":
-        return <RewardsSection onComplete={() => handleShowDotCompletion()} />;
+        return (
+          <RewardsSection
+            onComplete={() => handleShowDotCompletion()}
+            previewScreen={previewConfig?.screen ?? null}
+          />
+        );
       case "parents":
         return <ParentsSection />;
       case "settings":
@@ -529,9 +561,12 @@ const App = ({ transportType, region = "" }) => {
       }
     : undefined;
 
-  if (studentLoading) return <div>Loading student...</div>;
-  if (studentError) return <div>Error loading student.</div>;
-  if (!studentId || studentError || (!studentLoading && !student)) {
+  if (!previewConfig && studentLoading) return <div>Loading student...</div>;
+  if (!previewConfig && studentError) return <div>Error loading student.</div>;
+  if (
+    !previewConfig &&
+    (!studentId || studentError || (!studentLoading && !student))
+  ) {
     return (
       <div
         style={{

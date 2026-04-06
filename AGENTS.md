@@ -5,6 +5,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 
 ### Voice & Flow Notes
 - `skipOnboarding=1` (or `true`) in the URL opens the app directly on Library; default startup still shows Landing + Onboarding.
+- `preview=vocab-intro|vocab-game|dot-complete|circle-complete|vocab-complete|spelling-intro|spelling-game|spelling-complete` opens the matching hard-to-reach UI directly for development. Optional params: `previewName`, `previewDot`, `previewTotalDots`, `previewBookTitle`.
 - After a reader taps a book anywhere in the Library/Home experience, open the circle page with the episode list; Play goes directly to the chat for the chosen episode.
 - When Pipecat sends `celebration_sent`, the character avatar swaps to its thumbs-up art; only emit that event when the celebration should persist through the rest of the session.
 - Dot completion and phase status live in `dot_progress` (listening/talking statuses + elapsed seconds) and are updated by the frontend during intro/chat.
@@ -15,7 +16,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 - Warm-up pings run through `useAnalytics.wakeAnalytics()`: they call analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) on app start, every 45 seconds, and again on `BotReady` to reduce Render/edge cold starts.
 
 ## Build, Test, and Development Commands
-- `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport and `?skipOnboarding=1` to jump straight to Library for QA.
+- `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport, `?skipOnboarding=1` to jump straight to Library for QA, and `?preview=...` to jump straight to completion screens while styling/debugging them.
 - `npm run build` – Produce the optimized bundle in `dist/`; this must succeed before a PR leaves draft.
 - `npm run preview` – Serve the built assets locally to smoke-test WebRTC flows.
 - `npm run lint` – Run ESLint over `ts,tsx`; fix or explain all findings.
