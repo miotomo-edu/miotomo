@@ -175,7 +175,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       setIsLoading(false);
       setLoadError(null);
     }
-  }, [isSpellingPreview, isVocabularyPreview, previewMode]);
+  }, [previewMode]);
 
   const attemptQuote = useMemo(() => {
     const reachedMax = !isCorrectSolved && attempts.length >= MAX_ATTEMPTS;
@@ -629,15 +629,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     return (
       <VisualSpellingGame
         onComplete={onComplete}
-        previewMode={
-          isSpellingPreview
-            ? previewMode === "spelling-intro"
-              ? "spelling-intro"
-              : previewMode === "spelling-game"
-                ? "spelling-game"
-                : "spelling-complete"
-            : null
-        }
+        previewMode={isSpellingPreview ? (previewMode as Extract<typeof previewMode, "spelling-intro" | "spelling-game" | "spelling-complete">) : null}
       />
     );
   }

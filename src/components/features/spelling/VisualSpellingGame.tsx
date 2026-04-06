@@ -153,7 +153,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
     setShowIntro(isIntroPreview);
     setShowCompletionScreen(false);
     setShowEndScreen(false);
-  }, [isCompletionPreview, isGameplayPreview, isIntroPreview, previewMode]);
+  }, [previewMode]);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
