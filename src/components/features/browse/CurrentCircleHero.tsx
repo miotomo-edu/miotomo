@@ -488,10 +488,10 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   return (
     <section>
-      <h1 className="font-display mb-7 text-3xl font-bold leading-none md:text-5xl">
+      <p className="font-display mb-3 text-2xl font-bold text-[#020617]">
         Continue talking
-      </h1>
-      <div className="relative overflow-hidden rounded-[34px] bg-[#efe6da] shadow-[0_28px_90px_rgba(25,26,20,0.18)] ring-1 ring-black/10">
+      </p>
+      <div className="relative overflow-hidden rounded-[32px] bg-[#efe6da] shadow-stage ring-1 ring-black/10">
         <div className="relative min-h-[560px] overflow-hidden md:min-h-[700px]">
           {coverUrl ? (
             <img
@@ -511,7 +511,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               onClick={handleHeroPlay}
               disabled={isUpdating}
               aria-label={`Play ${activeDotTitle}`}
-              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full border-4 border-stone-800 bg-black text-white shadow-[0_14px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
             >
               <svg
                 aria-hidden="true"
@@ -532,7 +532,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   onClick={() =>
                     onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
                   }
-                  className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-md transition hover:bg-white/22"
+                  className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-super text-white backdrop-blur-md transition hover:bg-white/22"
                 >
                   Open circle
                 </button>
@@ -550,8 +550,8 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   >
                     {item.book.title}
                   </h1>
-                  <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-[2rem]">
-                    <span className="h-3 w-3 shrink-0 rounded-full bg-[#FAC304]" />
+                  <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-3xl">
+                    <span className="h-3 w-3 shrink-0 rounded-full bg-brand-primary" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber} · ${activeDotTitle}`}</span>
                   </div>
                 </div>
@@ -563,7 +563,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     aria-label={
                       isExpanded ? "Hide dots" : `See all ${totalDots} dots`
                     }
-                    className="mb-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-white/70 bg-black/20 text-white backdrop-blur-sm transition duration-300 hover:bg-black/35 active:scale-95"
+                    className="mb-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-white/70 bg-black/20 text-white backdrop-blur-sm transition duration-300 hover:bg-black/35 active:scale-[0.97]"
                   >
                     <svg
                       aria-hidden="true"
@@ -596,19 +596,19 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           <div className="overflow-hidden">
             <div className="border-t border-black/10 bg-[linear-gradient(180deg,#f7f1e8_0%,#efe7da_100%)] px-5 pb-6 pt-5 text-black md:px-7 md:pb-8 md:pt-6">
               {isLoadingEpisodes ? (
-                <div className="rounded-[24px] border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
+                <div className="rounded-3xl border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
                   Loading dots...
                 </div>
               ) : null}
 
               {episodesError ? (
-                <div className="mb-4 rounded-[24px] border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+                <div className="mb-4 rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
                   {episodesError}
                 </div>
               ) : null}
 
               {!isLoadingEpisodes && episodes.length === 0 ? (
-                <div className="rounded-[24px] border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
+                <div className="rounded-3xl border border-black/10 bg-white/70 px-4 py-5 text-sm text-black/60">
                   No dots available yet.
                 </div>
               ) : null}
@@ -646,9 +646,9 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     return (
                       <div
                         key={`${item.book.id}-episode-${episode.episode}`}
-                        className={`flex items-center gap-4 rounded-[22px] border px-4 py-4 transition md:px-5 md:py-5 ${
+                        className={`flex items-center gap-4 rounded-3xl border px-4 py-4 transition md:px-5 md:py-5 ${
                           isCurrent
-                            ? "border-black/15 bg-black text-white shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                            ? "border-black/15 bg-black text-white shadow-elevated"
                             : "border-black/10 bg-white/78 text-black"
                         }`}
                       >
@@ -669,7 +669,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
                         <div className="min-w-0 flex-1">
                           {isCurrent ? (
-                            <div className="mb-1 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-[#FAC304]">
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-primary">
                               Today's mission
                             </div>
                           ) : null}
@@ -684,7 +684,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                             {tags.map((tag) => (
                               <span
                                 key={`${episode.episode}-${tag.label}`}
-                                className="inline-flex items-center gap-1.5 text-[0.72rem] font-medium uppercase tracking-[0.06em]"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
                               >
                                 <LineTagIcon
                                   icon={tag.icon}
@@ -755,7 +755,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               }
                               disabled={isUpdating}
                               aria-label={`Play ${episode.title || `Dot ${episode.episode}`}`}
-                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#FAC304] text-black shadow-[0_0_0_6px_rgba(250,195,4,0.22)] transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed md:h-16 md:w-16"
+                              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed md:h-16 md:w-16"
                             >
                               <svg
                                 aria-hidden="true"
@@ -777,7 +777,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                                 )
                               }
                               disabled={isUpdating}
-                              className="shrink-0 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-95 disabled:cursor-not-allowed md:px-5 md:text-base"
+                              className="shrink-0 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
                             >
                               Play again!
                             </button>

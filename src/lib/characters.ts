@@ -37,8 +37,6 @@ import wordieListeningAvatar from "../assets/img/characters/panda_listening.svg"
 import wordieSleepingAvatar from "../assets/img/characters/panda_sleeping.svg";
 import wordieCelebratingAvatar from "../assets/img/characters/panda_thumbs_up.svg";
 
-// import fizzAvatar from "../assets/img/fizz-avatar.png";
-
 import echoAvatar from "../assets/img/characters/parrot.svg";
 import echoSleepingAvatar from "../assets/img/characters/parrot_sleeping.svg";
 import echoListeningAvatar from "../assets/img/characters/parrot_listening.svg";

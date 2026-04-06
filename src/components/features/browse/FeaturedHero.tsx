@@ -55,7 +55,7 @@ const FeaturedHeroSlide: React.FC<{
       ) : null}
       <div className="absolute bottom-6 left-6 right-6 text-white">
         {effectiveKicker ? (
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 md:text-sm">
+          <div className="text-xs font-semibold uppercase tracking-super text-white/80 md:text-sm">
             {effectiveKicker}
           </div>
         ) : null}
@@ -90,7 +90,7 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
   return (
     <div
-      className="relative h-[62vh] min-h-[300px] w-full overflow-hidden rounded-[28px] text-left shadow-lg"
+      className="relative h-[62vh] min-h-[300px] w-full overflow-hidden rounded-3xl text-left shadow-lg"
       role="region"
       aria-label="Featured circles"
     >
@@ -113,7 +113,7 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             type="button"
             onClick={goPrev}
             aria-label="Previous featured circle"
-            className="absolute left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/45 active:scale-95 md:left-3 md:h-16 md:w-16"
+            className="absolute left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/45 active:scale-[0.97] md:left-3 md:h-16 md:w-16"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 md:h-8 md:w-8" fill="none">
               <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -123,7 +123,7 @@ const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             type="button"
             onClick={goNext}
             aria-label="Next featured circle"
-            className="absolute right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/45 active:scale-95 md:right-3 md:h-16 md:w-16"
+            className="absolute right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/45 active:scale-[0.97] md:right-3 md:h-16 md:w-16"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 md:h-8 md:w-8" fill="none">
               <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />

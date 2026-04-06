@@ -4,6 +4,7 @@ import tomoSpellingIcon from "../../../assets/img/tomo-spelling.png";
 import talkBackground from "../../../assets/img/spelling_bg.png";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
+import type { PreviewScreen } from "../../../lib/previewMode";
 
 type LetterStatus = "correct" | "present" | "absent" | "empty";
 
@@ -50,7 +51,7 @@ const evaluateGuess = (guess: string, target: string): LetterStatus[] => {
 
 const getTileClass = (status: LetterStatus, filled: boolean) => {
   if (!filled) {
-    return "border-[#5a5550] bg-[#2f2b2f]";
+    return "border-black/20 bg-white";
   }
   if (status === "correct") {
     return "border-[#81906B] bg-[#6F7A5C] text-[#E9DFC7]";
@@ -59,19 +60,19 @@ const getTileClass = (status: LetterStatus, filled: boolean) => {
     return "border-[#DBAE54] bg-[#C59A41] text-[#2a2629]";
   }
   if (status === "absent") {
-    return "border-[#4f4a45] bg-[#2f2b2f] text-[#9c9287]";
+    return "border-black/20 bg-black/[0.08] text-[#020617]/50";
   }
-  return "border-[#5a5550] bg-[#2f2b2f]";
+  return "border-black/20 bg-white";
 };
 
 const getUnderlineClass = (status: LetterStatus, filled: boolean) => {
   if (!filled) {
-    return "border-[#5a5550] text-[#efe6d6]";
+    return "border-black/20 text-[#020617]";
   }
-  if (status === "correct") return "border-[#8fb29a] text-[#efe6d6]";
-  if (status === "present") return "border-[#d2a84f] text-[#efe6d6]";
-  if (status === "absent") return "border-[#4f4a45] text-[#9c9287]";
-  return "border-[#5a5550] text-[#efe6d6]";
+  if (status === "correct") return "border-[#8fb29a] text-[#020617]";
+  if (status === "present") return "border-[#d2a84f] text-[#020617]";
+  if (status === "absent") return "border-black/20 text-[#020617]/50";
+  return "border-black/20 text-[#020617]";
 };
 
 const getLetterClass = (status: LetterStatus, filled: boolean) => {
@@ -80,17 +81,26 @@ const getLetterClass = (status: LetterStatus, filled: boolean) => {
   }
   if (status === "correct") return "text-[#8fb29a]";
   if (status === "present") return "text-[#d2a84f]";
-  if (status === "absent") return "text-[#9c9287]";
-  return "text-[#efe6d6]";
+  if (status === "absent") return "text-[#020617]/40";
+  return "text-[#020617]";
 };
 
 type VisualSpellingGameProps = {
   onComplete?: () => void;
+  previewMode?: Extract<
+    PreviewScreen,
+    "spelling-intro" | "spelling-game" | "spelling-complete"
+  > | null;
 };
 
 const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   onComplete,
+  previewMode = null,
 }) => {
+  const isPreviewMode = Boolean(previewMode);
+  const isIntroPreview = previewMode === "spelling-intro";
+  const isGameplayPreview = previewMode === "spelling-game";
+  const isCompletionPreview = previewMode === "spelling-complete";
   const [words, setWords] = useState<string[]>([]);
   const [audioUrl, setAudioUrl] = useState<string>("");
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -102,7 +112,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   const [wordResults, setWordResults] = useState<
     Array<"correct" | "wrong" | null>
   >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !previewMode);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -117,9 +127,34 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [displayedQuote, setDisplayedQuote] = useState("");
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(() => !previewMode);
   const [showCompletionScreen, setShowCompletionScreen] = useState(false);
   const [showEndScreen, setShowEndScreen] = useState(false);
+
+  useEffect(() => {
+    if (!isPreviewMode) return;
+
+    setWords(["FOSSIL"]);
+    setAudioUrl("");
+    setCurrentWordIndex(0);
+    setTargetWord("FOSSIL");
+    setCurrentGuess("");
+    setAttempts([]);
+    setMessage("");
+    setIsCorrectSolved(isCompletionPreview);
+    setWordResults([isCompletionPreview ? "correct" : null]);
+    setIsLoading(false);
+    setLoadError(null);
+    setAudioReady(false);
+    setHasPlayedCurrent(isGameplayPreview || isCompletionPreview);
+    setIsPlaying(false);
+    setSpinKey(0);
+    setPlayLocked(false);
+    setPressedKey(null);
+    setShowIntro(isIntroPreview);
+    setShowCompletionScreen(false);
+    setShowEndScreen(false);
+  }, [isCompletionPreview, isGameplayPreview, isIntroPreview, isPreviewMode]);
 
   const isRoundComplete = isCorrectSolved || attempts.length >= MAX_ATTEMPTS;
   const isFailedRound = attempts.length >= MAX_ATTEMPTS && !isCorrectSolved;
@@ -173,8 +208,10 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
     let isActive = true;
 
     const fetchSpellingData = async () => {
-      setIsLoading(true);
-      setLoadError(null);
+      if (!isPreviewMode) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
       const { data, error } = await supabase
         .from("dots_spelling")
         .select("words,audio")
@@ -186,8 +223,10 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
       if (error) {
         console.error("Failed to load spelling data:", error);
-        setLoadError("Unable to load spelling data.");
-        setIsLoading(false);
+        if (!isPreviewMode) {
+          setLoadError("Unable to load spelling data.");
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -202,8 +241,12 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
       setAudioUrl(audio);
       setCurrentWordIndex(0);
       setTargetWord(wordList[0]?.toUpperCase() ?? "");
-      setHasPlayedCurrent(false);
-      setWordResults(Array.from({ length: wordList.length }, () => null));
+      setHasPlayedCurrent(isGameplayPreview || isCompletionPreview);
+      setWordResults(
+        Array.from({ length: wordList.length }, () =>
+          isCompletionPreview ? "correct" : null,
+        ),
+      );
       setIsLoading(false);
     };
 
@@ -212,7 +255,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [isCompletionPreview, isGameplayPreview, isPreviewMode]);
 
   useEffect(() => {
     if (!audioUrl) {
@@ -478,14 +521,15 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         buttonLabel="Start Spelling"
         onStart={() => setShowIntro(false)}
         backgroundImage={talkBackground}
+        lightBackground
       />
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-black text-white">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+      <div className="flex h-full w-full items-center justify-center bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           Loading spelling...
         </span>
       </div>
@@ -494,8 +538,8 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (loadError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           {loadError}
         </span>
       </div>
@@ -504,8 +548,8 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (!targetWord) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           No spelling words available.
         </span>
       </div>
@@ -514,44 +558,47 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (showEndScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-6 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
-        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d8cdbd]">
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-6 bg-white px-6 py-10 text-center text-[#020617]">
+        <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
           Flow Complete
         </div>
         <h1 className="text-4xl font-bold md:text-5xl">
           You reached the end of the test flow.
         </h1>
-        <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
+        <p className="max-w-xl text-lg leading-8 text-[#020617]/60 md:text-2xl">
           The next step after spelling can be wired from here.
         </p>
       </div>
     );
   }
 
-  if (showCompletionScreen) {
+  if (isCompletionPreview || showCompletionScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
         <div className="flex max-w-2xl flex-col items-center gap-5">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d8cdbd]">
+          <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
             Spelling Complete
           </div>
-          <h1 className="text-4xl font-bold md:text-5xl">
-            {isCorrectSolved ? "You spelled it right." : "You finished the spelling round."}
+          <h1 className="font-display text-4xl font-bold md:text-5xl">
+            {isCompletionPreview || isCorrectSolved
+              ? "You spelled it right."
+              : "You finished the spelling round."}
           </h1>
-          <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
-            {isCorrectSolved
+          <p className="max-w-xl text-lg leading-8 text-[#020617]/60 md:text-2xl">
+            {isCompletionPreview || isCorrectSolved
               ? "Nice listening and nice spelling."
               : `The word was ${targetWord}.`}
           </p>
-          <div className="text-sm uppercase tracking-[0.18em] text-[#c59a41] md:text-base">
-            Score: {correctCount} / {words.length}
+          <div className="text-sm uppercase tracking-super text-brand-primary md:text-base">
+            Score: {isCompletionPreview ? 1 : correctCount} /{" "}
+            {isCompletionPreview ? 1 : words.length}
           </div>
         </div>
 
         <button
           type="button"
           onClick={handleContinue}
-          className="rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-8 py-4 text-lg font-bold uppercase tracking-[0.12em] text-[#2a2629] transition hover:brightness-105 md:px-10 md:py-5 md:text-xl"
+          className="rounded-full bg-brand-primary px-8 py-4 text-lg font-bold uppercase tracking-wider text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:px-10 md:py-5 md:text-xl"
         >
           Continue
         </button>
@@ -560,13 +607,13 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#2F2C2F] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-3xl items-center gap-3">
-        <span className="text-[0.6rem] font-semibold tracking-[0.3em] text-[#d8cdbd] sm:text-xs md:text-2xl">
+        <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-2xl">
           WORDS
         </span>
         <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#6f6a63] md:h-1.5" />
+          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
           <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {words.map((_, index) => {
               const isActive = index === currentWordIndex;
@@ -576,7 +623,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                   ? "bg-[#8fb29a]"
                   : result === "wrong"
                     ? "bg-[#d2a84f]"
-                    : "bg-[#d8cdbd]";
+                    : "bg-black/20";
               return (
                 <div
                   key={`word-step-${index}`}
@@ -600,12 +647,12 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         <button
           type="button"
           onClick={handlePlayClick}
-          className={`flex min-h-[3.25rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-[#DACDB9] px-6 text-sm font-bold uppercase tracking-wide shadow-[0_10px_22px_rgba(0,0,0,0.45)] transition sm:min-h-[3.5rem] sm:min-w-[12rem] md:text-2xl ${
-            playLocked ? "opacity-70" : ""
+          className={`flex min-h-[3.25rem] min-w-[10rem] items-center justify-center gap-2 rounded-full bg-brand-primary px-6 text-sm font-bold uppercase tracking-wide shadow-elevated shadow-inset-highlight transition sm:min-h-[3.5rem] sm:min-w-[12rem] md:text-2xl ${
+            playLocked ? "opacity-70" : "hover:brightness-[1.03] active:scale-[0.97]"
           } ${
             hasPlayedCurrent
-              ? "bg-[#C0B095] text-[#2a2629]"
-              : "bg-[#C0B095] text-[#2a2629] animate-pulse"
+              ? "text-[#2a2629]"
+              : "text-[#2a2629] animate-pulse"
           }`}
           aria-label="Listen"
           disabled={playLocked}
@@ -667,7 +714,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                     className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-4 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg md:text-[2.5rem] ${getUnderlineClass(
                       "empty",
                       filled,
-                    )} ${isActiveSlot ? "!border-[#efe6d6] !text-[#efe6d6]" : ""}`}
+                    )} ${isActiveSlot ? "!border-[#020617] !text-[#020617]" : ""}`}
                   >
                     {letter.trim()}
                   </div>
@@ -715,14 +762,14 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
       <div className="w-full max-w-3xl">
         {message && (
-          <p className="text-center text-xs text-[#d8cdbd] sm:text-sm">
+          <p className="text-center text-xs text-[#020617]/60 sm:text-sm">
             {message}
           </p>
         )}
       </div>
 
       {isRoundComplete && !isLastWord && (
-        <p className="text-center text-xs uppercase tracking-[0.2em] text-[#c6b9aa]">
+        <p className="text-center text-xs uppercase tracking-super text-[#020617]/60">
           Ready for the next word
         </p>
       )}
@@ -735,8 +782,8 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
             className="h-14 w-auto sm:h-16 md:h-24"
           />
           <div className="relative flex-1">
-            <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#4a4345]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#efe6d6] shadow-[0_3px_0_#262224] sm:text-lg md:text-2xl">
+            <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#EFE6DA]" />
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-lg md:text-2xl">
               <span
                 className="flex-1"
                 style={{
@@ -759,11 +806,9 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                   }}
                   onPointerUp={releaseKey}
                   onPointerLeave={releaseKey}
-                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] transition ${
-                    isRoundComplete
-                      ? "bg-[#C0B095] text-[#2a2629]"
-                      : "bg-[#C0B095] text-[#2a2629]"
-                  } ${pressedKey === "SUBMIT" ? "bg-[#c9ba9f] text-[#2a2629]" : ""}`}
+                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary shadow-inset-highlight transition ${
+                    pressedKey === "SUBMIT" ? "brightness-[1.05]" : "hover:brightness-[1.03]"
+                  } text-[#2a2629]`}
                   aria-label={submitLabel}
                 >
                   <svg
@@ -816,8 +861,8 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                     }}
                     onPointerUp={releaseKey}
                     onPointerLeave={releaseKey}
-                    className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border-2 border-[#584D49] text-[#E2D7BB] shadow-[0_4px_0_#1f1b1d] transition ${
-                      isPressed ? "bg-[#e5dac7] text-[#2a2629]" : "bg-[#393335]"
+                    className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border-2 border-[#D4C9B8] text-[#020617] shadow-[0_4px_0_rgba(0,0,0,0.10)] transition ${
+                      isPressed ? "bg-[#e5dac7] text-[#2a2629]" : "bg-[#EFE6DA]"
                     }`}
                     style={{ transform: `rotate(${rotation}deg)` }}
                     aria-label="Delete"
@@ -843,7 +888,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
               const status = letterStatuses[key];
               const statusClass = status
                 ? getTileClass(status, true)
-                : "border-[#584D49] bg-[#393335]";
+                : "border-[#D4C9B8] bg-[#EFE6DA]";
               const isPressed = pressedKey === key;
               const rotation = keyRotations[key] ?? 0;
 
@@ -858,7 +903,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                   }}
                   onPointerUp={releaseKey}
                   onPointerLeave={releaseKey}
-                  className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border-2 text-[0.85rem] font-semibold shadow-[0_4px_0_#1f1b1d] transition sm:text-base ${
+                  className={`h-[var(--key-height)] w-[var(--key-size)] select-none rounded-md border-2 text-[0.85rem] font-semibold shadow-[0_4px_0_rgba(0,0,0,0.10)] transition sm:text-base ${
                     isPressed ? "bg-[#e5dac7] text-[#2a2629]" : statusClass
                   }`}
                   style={{ transform: `rotate(${rotation}deg)` }}
@@ -881,11 +926,11 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
       </div>
       {(isCorrectSolved || isFailedRound) && !isLastWord && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-xs rounded-2xl border border-[#6b6256] bg-[#2f2b2d] p-6 text-center text-[#efe6d6] shadow-2xl">
+          <div className="w-full max-w-xs rounded-2xl bg-white p-6 text-center text-[#020617] shadow-2xl ring-1 ring-black/10">
             {isCorrectSolved ? (
               <>
                 <p className="text-lg font-semibold">You spelled</p>
-                <p className="mt-2 text-2xl font-extrabold tracking-[0.2em]">
+                <p className="mt-2 font-display text-2xl font-extrabold tracking-super">
                   {targetWord}
                 </p>
                 <p className="mt-1 text-lg font-semibold">right!</p>
@@ -893,10 +938,10 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
             ) : (
               <>
                 <p className="text-lg font-semibold">Nice try!</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.25em] text-[#d8cdbd]">
+                <p className="mt-2 text-xs uppercase tracking-super text-[#020617]/60">
                   The word was
                 </p>
-                <p className="mt-2 text-2xl font-extrabold tracking-[0.2em]">
+                <p className="mt-2 font-display text-2xl font-extrabold tracking-super">
                   {targetWord}
                 </p>
               </>
@@ -904,7 +949,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
             <button
               type="button"
               onClick={submitHandler}
-              className="mt-5 w-full rounded-full bg-[#efe6d6] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[#2a2629]"
+              className="mt-5 w-full rounded-full bg-[#EFE6DA] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-[#020617]"
             >
               Next
             </button>

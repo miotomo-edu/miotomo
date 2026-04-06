@@ -1,394 +1,482 @@
 # Miotomo Design System — MASTER
 
-> **Product:** AI reading companion for children ages 6–12
-> **Stack:** React 19 + Vite + TailwindCSS v4
-> **Paradigm:** Mobile-first, flat design, two-surface (dark voice / light library)
+> Voice-first AI learning companion for children aged 7–12.
+> Single AI character: **Tomo**. One product. One design language.
 
 ---
 
-## 1. Color Tokens
+## 1. Brand Personality
 
-### Core Palette
+| Dimension | Direction |
+|-----------|-----------|
+| Age target | 7–12 (child holds the device; parent approves) |
+| Tone | Warm, curious, encouraging — never condescending |
+| Energy | Calm confidence, not hyperactive |
+| Visual style | **Warm Claymorphism** — soft depth, rounded forms, tactile warmth |
+| Forbidden | Neon, cold blues, sterile white, aggressive reds, emoji as icons |
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--color-bg-dark` | `#000000` | Voice/talk screen backgrounds, bottom nav |
-| `--color-bg-light` | `#FFFFFF` | Library, browse, circle page backgrounds |
-| `--color-bg-paper` | `#F4ECDF` | Warm light surface for browse / circle detail backgrounds |
-| `--color-bg-paper-deep` | `#EFE6D8` | Lower light surface / overlapping content area |
-| `--color-surface-dark` | `#232329` | Speech bubbles, dark cards |
-| `--color-surface-elevated` | `#2C2C33` | gray-800 — elevated dark surfaces |
-| `--color-cta` | `#f25a57` | Primary play buttons, completed dot indicator |
-| `--color-cta-ring` | `rgba(242,90,87,0.22)` | Glow ring around play button |
-| `--color-assistant-bubble` | `#FAC304` | AI chat bubble background (yellow/gold) |
-| `--color-assistant-bubble-20` | `#FAC30433` | AI bubble with 20% opacity |
-| `--color-highlight-gold` | `#FAC304` | Hero / circle-detail highlight color, completed dots, current-mission accents |
-| `--color-highlight-gold-ring` | `rgba(250,195,4,0.22)` | Glow ring around gold play buttons |
-| `--color-user-bubble` | `#F4F7F4` | User chat bubble background |
-| `--color-accent-green` | `#13EF93` | green-spring, success states |
-| `--color-accent-blue` | `#79AFFA` | blue-link, interactive links |
-| `--color-mic-glow` | `#f78ad7` | Pink glow on active microphone |
-
-### Gray Scale (Custom)
-
-```
-gray-25:   #FBFBFF   ← near-white tint
-gray-200:  #E1E1E5   ← subtle dividers, disabled buttons
-gray-350:  #BBBBBF   ← placeholder text
-gray-450:  #949498   ← secondary text
-gray-600:  #616165   ← supporting text
-gray-700:  #4E4E52   ← medium emphasis
-gray-800:  #2C2C33   ← dark surface
-gray-850:  #1A1A1F   ← near-black surface
-gray-900:  #101014   ← deep dark
-gray-1000: #0B0B0C   ← near-black
-```
-
-### Character Accent Colors
-
-Each character has a soft pastel accent for their avatar container / background tint.
-
-| Character | Name | Hex | Modality |
-|-----------|------|-----|----------|
-| Cat | Tomo | `#F2D47C` | Storytelling / Teaching |
-| Octopus | Gramma | `#92B1D1` | Grammar / Spelling |
-| Fox | Argoo | `#E49C88` | Debating |
-| Panda | Wordie | `#92949E` | Vocabulary |
-| Parrot | Echo | `#97BBA0` | Story twist |
-
-### Light-Screen Text Contrast Pairs
-
-| Usage | Text | Background | Ratio |
-|-------|------|------------|-------|
-| Body text | `#0F172A` | `#FFFFFF` | 19:1 ✓ |
-| Secondary text | `gray-500 (#64748B)` | `#FFFFFF` | 5.9:1 ✓ |
-| Badge text | `#FFFFFF` | `#000/80` | ≥7:1 ✓ |
-| Completed label | `#16a34a` | `#FFFFFF` | 5.9:1 ✓ |
-| CTA button text (coral) | `#FFFFFF` | `#f25a57` | 4.6:1 ✓ |
-| CTA button text (gold) | `#111111` | `#FAC304` | 11.3:1 ✓ |
+**Style rationale:** Claymorphism (soft 3D depth, multi-layer shadows, generous border-radii, spring-physics press feedback) is the ideal match for a children's companion app. It communicates safety and warmth without being infantilising.
 
 ---
 
-## 2. Typography
+## 2. Color Tokens
 
-### Font Stack
+### 2.1 Semantic Tokens (what to use in code)
 
-```css
-/* Global body — loaded via Google Fonts */
-font-family: "Nunito", sans-serif;
+Replace all raw hex values with these names. Define them as CSS variables in `globals.css` and as Tailwind tokens in `tailwind.config.cjs`.
 
-/* Logo */
-font-family: "Exo 2", sans-serif;  /* .logo class */
+```
+--color-brand-primary    #FAC304   Gold — primary CTA, active nav, highlights
+--color-brand-dark       #1A1A1F   Near-black — primary dark surface
+--color-brand-danger     #f25a57   Red — destructive, error states
 
-/* Tailwind custom families */
-font-favorit: var(--font-favorit), Arial, sans-serif;
-font-inter:   var(--font-inter), Arial, sans-serif;
-font-fira:    var(--font-fira), monospace;   /* code/mono contexts */
+--color-surface-base     #FFFFFF   Default page background (library, onboarding)
+--color-surface-warm     #F4ECDF   Warm cream — calm sections (parents, post-onboarding)
+--color-surface-circle   #EFE6DA   Circle page background
+--color-surface-dark     #101014   Interactive/talk screen background
+--color-surface-card     #FFFFFF   Card backgrounds in light sections
+
+--color-tomo             #F2D47C   Tomo's character accent (badge panels, intro tints)
+
+--color-text-primary     #111111   Default body text on light surfaces
+--color-text-secondary   #7B7264   Muted text, meta labels
+--color-text-inverse     #EFE6D6   Primary text on dark surfaces
+--color-text-muted-inv   #D8CDBD   Muted text on dark surfaces
+--color-text-gold        #C59A41   Decorative gold text (on dark)
+
+--color-user-bubble      #C492F1   User chat bubble (purple)
+--color-assistant-bubble #FAC304   Tomo chat bubble (gold)
+
+--color-border-light     rgba(0,0,0,0.10)   Borders on light surfaces
+--color-border-dark      rgba(255,255,255,0.14)  Borders on dark surfaces
 ```
 
-**Nunito** is the primary body font. Hero, browse, and circle-detail titles may use the existing `font-display` family when matching the editorial hero treatment.
+### 2.2 Gray Scale (keep in Tailwind config)
 
-### Type Scale
+Already defined in `tailwind.config.cjs`. No changes needed.
 
-| Role | Class | Size | Weight | Usage |
-|------|-------|------|--------|-------|
-| Hero title | `text-6xl font-bold` | 60px | 700 | Circle page book titles |
-| Display | `text-5xl font-bold` | 48px | 700 | Hero card titles (md+) |
-| H1 | `text-3xl font-bold` | 30px | 700 | Section headings |
-| H2 | `text-2xl font-bold` | 26px | 700 | `h2` default = 26px |
-| H3 | `text-lg font-semibold` | 18px | 600 | Sub-section labels |
-| Body | `text-base` | 16px | 400 | Default body copy |
-| Caption | `text-sm` | 14px | 400–500 | Meta, type names, durations |
-| Label | `text-xs` | 12px | 400–600 | Nav labels, badges, kickers |
+```
+gray-25   #FBFBFF
+gray-200  #E1E1E5
+gray-350  #BBBBBF
+gray-450  #949498
+gray-600  #616165
+gray-700  #4E4E52
+gray-800  #2C2C33
+gray-850  #1A1A1F
+gray-900  #101014
+gray-1000 #0B0B0C
+```
 
-### Tracking Conventions
+### 2.3 Remove from Tailwind Config
 
-| Context | Class |
+These character tokens reference removed characters and should be deleted:
+
+```js
+// DELETE from tailwind.config.cjs → colors.character:
+gramma: "#92B1D1"
+argoo:  "#E49C88"
+wordie: "#92949E"
+echo:   "#97BBA0"
+
+// RENAME:
+character.tomo → color-tomo (keep as a named token, not a character system)
+```
+
+### 2.4 Add to Tailwind Config
+
+```js
+colors: {
+  brand: {
+    primary: "#FAC304",
+    dark:    "#1A1A1F",
+    danger:  "#f25a57",
+  },
+  surface: {
+    base:   "#FFFFFF",
+    warm:   "#F4ECDF",
+    circle: "#EFE6DA",
+    dark:   "#101014",
+  },
+  tomo: "#F2D47C",
+}
+```
+
+---
+
+## 3. Typography
+
+### 3.1 Font Families
+
+| Role | Font | Weight Range | Use |
+|------|------|-------------|-----|
+| Display | **Baloo 2** | 400–700 | All headings, large titles, Tomo speech |
+| Body | **Nunito** | 400–700 | Body copy, labels, UI text |
+
+**Body font note:** Nunito is well-suited to this age group — friendly, rounded, highly legible. Do not change. The script-generated suggestion (Comic Neue) is less legible at small sizes and should be ignored.
+
+### 3.2 Type Scale (replace all arbitrary `text-[...]` values)
+
+Replace the current 25+ arbitrary font size values with this 8-step scale:
+
+| Token | px | Tailwind | Use |
+|-------|----|---------|-----|
+| `text-xs` | 12px | `text-xs` | Metadata, timestamps, tiny labels |
+| `text-sm` | 14px | `text-sm` | Secondary labels, helper text |
+| `text-base` | 16px | `text-base` | Body copy, default UI text |
+| `text-lg` | 18px | `text-lg` | Prominent labels, section headers |
+| `text-xl` | 20px | `text-xl` | Card titles, subheadings |
+| `text-2xl` | 24px | `text-2xl` | Section headings |
+| `text-3xl` | 30px | `text-3xl` | Page headings |
+| `text-4xl` | 36px | `text-4xl` | Hero headings |
+| `text-5xl` | 48px | `text-5xl` | Display / landing hero only |
+
+For truly large display moments (intro screens, completion screens), `text-5xl` is the ceiling. Do not add arbitrary rem values above this.
+
+### 3.3 Weight Conventions
+
+| Use case | Weight |
+|----------|--------|
+| Display headings | `font-bold` (700) |
+| Section headings | `font-semibold` (600) |
+| Body, labels | `font-medium` (500) |
+| Metadata, muted | `font-normal` (400) |
+
+### 3.4 Letter Spacing Conventions
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `tracking-normal` | 0 | Body text |
+| `tracking-wide` | 0.025em | Navigation labels |
+| `tracking-wider` | 0.05em | Uppercase section labels |
+| `tracking-widest` | 0.1em | All-caps badges, pill labels |
+
+Do not use arbitrary `tracking-[...]` values. Collapse the current 10+ custom tracking values into these four.
+
+### 3.5 Line Height Conventions
+
+| Use | Class |
+|-----|-------|
+| Display headings | `leading-none` or `leading-tight` |
+| Section headings | `leading-snug` |
+| Body copy | `leading-relaxed` (1.625) |
+| Chat / speech text | `leading-7` |
+
+---
+
+## 4. Spacing
+
+The app uses an implicit 4dp/8dp grid. Make it explicit.
+
+### 4.1 Standard Spacing (use Tailwind defaults — no custom values needed)
+
+| Tailwind | px | Use |
+|----------|----|-----|
+| `space-1` | 4px | Micro gaps (icon to label) |
+| `space-2` | 8px | Tight component internal gap |
+| `space-3` | 12px | Default internal padding |
+| `space-4` | 16px | Standard component padding |
+| `space-5` | 20px | Loose internal padding |
+| `space-6` | 24px | Section internal padding |
+| `space-8` | 32px | Between components |
+| `space-10` | 40px | Between sections |
+| `space-12` | 48px | Large section separation |
+
+### 4.2 Page Horizontal Padding
+
+| Context | Value |
 |---------|-------|
-| Hero title tight | `tracking-[-0.03em]` |
-| Kicker / eyebrow | `tracking-[0.2em]` uppercase |
-| Badge / tag | `tracking-wide` uppercase |
-| Body | Default (no explicit tracking) |
+| Mobile content | `px-4` (16px) |
+| Mobile cards/rows | `px-4` to `px-5` |
+| Wide sections | `px-6` (24px) |
+| Desktop (≥1024px) | `px-8` (32px) |
+
+### 4.3 App Shell
+
+The mobile shell is fixed at `402px` width. This is a known constraint, not a design error. Do not modify.
 
 ---
 
-## 3. Spacing
+## 5. Border Radius Scale
 
-4/8px base unit system:
+Replace the current ~15 arbitrary radius values with this 6-step scale:
 
-```
-4px   → gap-1, p-1
-8px   → gap-2, p-2      ← minimum touch spacing between targets
-12px  → gap-3, p-3
-16px  → gap-4, p-4      ← standard horizontal padding
-20px  → gap-5, p-5
-24px  → gap-6, p-6      ← section internal padding
-32px  → mt-8, gap-8
-48px  → mt-12           ← between major sections
-96px  → pb-24           ← bottom padding to clear nav bar
-```
+| Token | Value | Tailwind | Use |
+|-------|-------|---------|-----|
+| `radius-sm` | 8px | `rounded-lg` | Chips, tags, small badges |
+| `radius-md` | 12px | `rounded-xl` | Buttons, input fields |
+| `radius-lg` | 16px | `rounded-2xl` | Cards (standard) |
+| `radius-xl` | 24px | `rounded-3xl` | Panels, modals, episode rows |
+| `radius-2xl` | 32px | `rounded-[32px]` | Hero sections, large cards |
+| `radius-full` | 9999px | `rounded-full` | Avatars, circular buttons, pills |
 
-**Section vertical rhythm:** mt-4 (tight grouping) → mt-8 (component separation) → mt-12 (section separation).
+**Migration:** Audit all `rounded-[22px]`, `rounded-[28px]`, `rounded-[34px]`, etc. and collapse them to the nearest scale step.
 
 ---
 
-## 4. Border Radius
+## 6. Shadow / Elevation Scale
 
-| Shape | Class | Usage |
-|-------|-------|-------|
-| Full pill | `rounded-full` | Buttons, badges, nav items, avatars, dots |
-| Large card | `rounded-[28px]` | Hero cards (FeaturedHero, NextDotCard), desktop shell |
-| Medium card | `rounded-2xl` | CircleCard covers, modals |
-| Small | `rounded` | Progress bars |
-| Button back | `rounded-full` | Back button, all CTAs |
+Current state: ~20 different custom shadow values scattered across components. Collapse to 5 named levels:
 
----
+| Level | CSS Value | Use |
+|-------|-----------|-----|
+| `shadow-xs` | `0 1px 3px rgba(0,0,0,0.08)` | Subtle separation (cards on white) |
+| `shadow-sm` | `0 4px 12px rgba(0,0,0,0.10)` | Standard card depth |
+| `shadow-md` | `0 8px 24px rgba(0,0,0,0.14)` | Elevated cards, modals |
+| `shadow-lg` | `0 14px 40px rgba(0,0,0,0.22)` | Featured hero, play buttons |
+| `shadow-xl` | `0 28px 90px rgba(25,26,20,0.18)` | Full hero sections (CurrentCircleHero) |
+| `shadow-glow-gold` | `0 0 0 6px rgba(250,195,4,0.22)` | Gold ring around active play button |
+| `shadow-glow-mic` | `0 0 16px 4px #f78ad7, 0 2px 8px rgba(0,0,0,0.08)` | Mic pulse (listening state) |
 
-## 5. Elevation & Shadows
-
-This is a **flat-design** product. Shadow use is minimal and intentional:
-
-| Context | Shadow |
-|---------|--------|
-| Hero content card | `shadow-[0_12px_30px_rgba(0,0,0,0.2)]` |
-| Featured hero container | `shadow-lg` |
-| Play button glow ring | `box-shadow: 0 0 0 8px rgba(242,90,87,0.22)` |
-| Active mic glow | `box-shadow: 0 0 16px 4px #f78ad7, 0 2px 8px rgba(0,0,0,0.08)` |
-| Cards (ring, not shadow) | `ring-1 ring-black/10` |
-
-Never add arbitrary drop shadows. Use `ring-*` for card outlines and the specific box-shadow values above for glow effects.
-
----
-
-## 6. Surfaces (Two-Surface System)
-
-The app has two distinct visual surfaces that must not be mixed on the same screen:
-
-### Light Surface (Library / Browse)
-- Background: pure white `#FFFFFF` / `bg-library` for neutral browse layouts
-- Warm variant: `#F4ECDF → #EFE6D8` for hero-aligned browse / circle-detail surfaces
-- Text: `text-gray-900` (#0F172A)
-- Cards: white with `ring-1 ring-black/10`
-- Hero overlay: either `bg-gradient-to-t from-black/80 via-black/30 to-transparent` or the warmer editorial gradient used by `CurrentCircleHero` / `CirclePage`
-- Used in: LibraryPage, BrowsePage, CirclePage, ProgressSection
-
-### Dark Surface (Voice / Talk)
-- Background: `#000000`
-- Text: `#FFFFFF`
-- Speech bubbles: `#232329` (surface-dark)
-- Bottom nav: always `#000000`
-- Used in: TalkWithBook (voice session), CharacterContainer, Transcript
-
----
-
-## 7. Component Patterns
-
-### Buttons
-
-**Primary CTA (Play, dark-surface card)**
-```tsx
-// Coral/red pill — always full-width or 80×80px circle
-className="rounded-full bg-[#f25a57] text-white shadow-[0_0_0_8px_rgba(242,90,87,0.22)] transition hover:scale-[1.02]"
+Add these as custom shadow tokens in `tailwind.config.cjs`:
+```js
+boxShadow: {
+  'xs': '0 1px 3px rgba(0,0,0,0.08)',
+  'card': '0 4px 12px rgba(0,0,0,0.10)',
+  'elevated': '0 8px 24px rgba(0,0,0,0.14)',
+  'hero': '0 14px 40px rgba(0,0,0,0.22)',
+  'stage': '0 28px 90px rgba(25,26,20,0.18)',
+  'glow-gold': '0 0 0 6px rgba(250,195,4,0.22)',
+  'glow-mic': '0 0 16px 4px #f78ad7, 0 2px 8px rgba(0,0,0,0.08)',
+  'inset-highlight': 'inset 0 1px 0 rgba(255,255,255,0.45)',
+}
 ```
 
-**Primary CTA (Play, hero-aligned light surface)**
-```tsx
-className="rounded-full bg-[#FAC304] text-black shadow-[0_0_0_8px_rgba(250,195,4,0.22)] transition hover:scale-[1.02]"
+---
+
+## 7. Animation Tokens
+
+### 7.1 Duration
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `duration-fast` | 100ms | Tap feedback (scale down) |
+| `duration-base` | 150ms | Default transitions |
+| `duration-moderate` | 300ms | Color/opacity transitions |
+| `duration-slow` | 500ms | Hero expand/collapse |
+
+### 7.2 Easing
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `ease-spring` | `cubic-bezier(0.22, 1, 0.36, 1)` | Hero expansion, modal entry |
+| `ease-out` | Tailwind default | Most entering elements |
+| `ease-in` | Tailwind default | Exiting elements |
+
+### 7.3 Standard Interaction Feedback
+
+All tappable elements follow this pattern — no exceptions:
+```
+hover:brightness-[1.03]
+active:scale-[0.97]
+transition duration-150 ease-out
 ```
 
-**Secondary Action (replay/resume pill)**
-```tsx
-className="rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800 hover:bg-gray-300"
+For large CTA buttons:
+```
+hover:scale-[1.02]
+active:scale-[0.98]
+transition duration-150 ease-out
 ```
 
-**SplitColorButton** — signature component for character selection. Uses `linear-gradient` split with `clip-path` text technique. Always `rounded-full h-12`.
+### 7.4 Named Animations (globals.css)
 
-**Back Button**
-```tsx
-className="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-white"
+| Class | Behavior | Duration |
+|-------|----------|----------|
+| `.animate-fade-in` | opacity 0→1, translateY 4px→0 | 280ms ease-out |
+| `.mic-pulse` | scale 1→1.08→1 | 1.2s infinite |
+| `.mic-glow` | pink glow shadow | static class |
+| `.slow-spin` | rotate -360deg | 1.5s linear |
+
+All animations must respect `prefers-reduced-motion`. Add to `globals.css`:
+```css
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .mic-pulse,
+  .slow-spin {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
 ```
-
-Minimum touch target: **44×44px** (`min-h-[44px] min-w-[44px]`).
-
-### Cards
-
-**CircleCard** — book card in browse rows
-- Size: `w-40` (mobile) → `w-64` (md+)
-- Cover: `aspect-[2/3]` with `rounded-2xl`
-- Badge: top-left pill, `bg-black/80`, uppercase, `text-[10px]`
-- Hover: `group-hover:scale-[1.03]` on cover image (300ms)
-
-**FeaturedHero** — full-bleed hero slider
-- Height: `h-[62vh] min-h-[300px]`
-- `rounded-[28px]`
-- Gradient overlay from bottom
-- Title: `text-3xl font-bold` (mobile) → `text-5xl font-bold` (md+)
-- Slide transition: `translateX` with `duration-500 ease-out`
-
-**NextDotCard** — today's mission card
-- `rounded-[28px] bg-black text-white`
-- Play button: `absolute right-5 top-1/2 -translate-y-1/2`, 80×80px circle
-
-### Progress Dots
-
-Used to show episode progress inline on cards:
-```tsx
-// Filled (completed)
-className="h-2.5 w-2.5 rounded-full bg-black border-2 border-black/40"
-
-// Paused (current)
-className="h-2.5 w-2.5 rounded-full border-[2.5px] border-black bg-transparent"
-
-// Empty
-className="h-2.5 w-2.5 rounded-full border-2 border-black/40 bg-transparent"
-```
-
-On dark backgrounds (hero), use `bg-white` and `border-white/70` instead.
-
-### CircleDotsSymbol
-
-Reusable episode-progress symbol used in hero/detail contexts.
-
-- Outer ring with evenly spaced dots around a circle
-- Two visual states only for dots: completed (`#FAC304`) and not completed (same color as ring)
-- The dot matching the current row / episode number may be larger, but not recolored
-- Optional center label for episode number
-- Default dark version:
-  - ring / incomplete dots: `#0A1024`
-  - completed dots: `#FAC304`
-  - label: `#111111`
-- Inverted hero/detail version:
-  - ring / incomplete dots: `#FFFFFF`
-  - completed dots: `#FAC304`
-  - label: `#FFFFFF`
-
-### Bottom Navigation
-- Height: `h-16` (64px)
-- Background: always `#000000`
-- 3 items max (current: Circles, Tomo, Parents)
-- Icons: SVG, `w-6 h-6`, stroke-width 2.5 (active) / 1.5 (inactive)
-- Labels: `text-xs`, always white, `font-weight: 800` active / `400` inactive
-- No visual active indicator beyond font weight (current pattern)
-
-### Speech Bubbles
-- Background: `#232329`
-- `border-radius: 45px`
-- CSS `::after` arrow pointing down-right
 
 ---
 
-## 8. Animation & Motion
+## 8. Component Patterns
 
-### Defined Animations
+### 8.1 Primary CTA Button
 
-| Name | Duration | Easing | Trigger |
-|------|----------|--------|---------|
-| `animate-fade-in` | 280ms | `ease-out` | Route entry, content reveal |
-| `.scale-up` | 100ms | `forwards` | Press start (scale 0.95→1) |
-| `.scale-down` | 100ms | `forwards` | Press end (scale 1→0.95) |
-| `.mic-pulse` | 1200ms | `infinite` | Mic active state (scale 1.08) |
-| `slowSpin` | 1500ms | `linear` | Loading indicator |
-| `character-orb-wrapper` | 160ms | `ease` | Volume response animation |
-| Orb opacity | 300ms | `ease` | Disabled/loading state |
-| Hero slide | 500ms | `ease-out` | FeaturedHero carousel |
-| Parallax scroll | rAF | — | CirclePage header |
-
-### Rules
-- Press feedback: scale 0.95–0.97, ≤100ms — applied via `.scale-up/.scale-down` or `hover:scale-[1.02]`
-- Entrances: `ease-out`; exits: `ease-in`
-- Never animate `width`, `height`, `top`, `left` — only `transform` and `opacity`
-- All scroll-driven animations use `requestAnimationFrame` (see CirclePage parallax)
-- Respect `prefers-reduced-motion` — disable `animate-fade-in`, `.mic-pulse`, carousel motion
-
----
-
-## 9. Layout
-
-### Mobile Shell
 ```
-Device viewport → #root (flex column, 100%)
-  └── .app-mobile-shell (100vh via --vh, flex column)
-       ├── Page content (flex-1, scrollable)
-       └── BottomNavBar (flex-shrink-0, h-16)
+bg-[#FAC304]  text-gray-900  font-bold  uppercase  tracking-wider
+rounded-full  px-6 py-3.5  min-h-[52px]
+shadow-hero  shadow-inset-highlight
+hover:brightness-[1.04] active:scale-[0.97]
+transition duration-150 ease-out
 ```
 
-On desktop ≥1367px, the shell is constrained to **402×874px** aspect ratio, centered with `border-radius: 24px`.
+### 8.2 Secondary Button
 
-### Safe Areas
-- `.safe-area-top`: `padding-top: calc(1rem + env(safe-area-inset-top))`
-- Bottom: `padding-bottom: calc(4rem + env(safe-area-inset-bottom))` via `.with-bottom-nav`
-- Horizontal: `env(safe-area-inset-left/right)` on `.app-mobile-shell`
-
-### Page Padding
-- Standard horizontal: `px-6` (24px)
-- Bottom clearance for nav: `pb-24` (96px)
-
-### Horizontal Scroll Rows
-Used for browse card rows:
-```tsx
-className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+```
+bg-white/10  border border-white/30  text-white  font-semibold
+rounded-full  px-5 py-3  min-h-[48px]
+hover:bg-white/18 active:scale-[0.97]
+transition duration-150 ease-out
 ```
 
-### Viewport Height
-Use `calc(var(--vh, 1vh) * 100)` instead of `100vh` for mobile. The `--vh` custom property is set via JS to handle iOS Safari toolbar offsets.
+### 8.3 Standard Card (light surface)
+
+```
+bg-white  rounded-2xl  shadow-card
+border border-black/[0.07]
+p-4
+```
+
+### 8.4 Episode Row Card
+
+```
+bg-white/80  rounded-3xl  border border-black/10
+px-4 py-4  gap-3
+```
+
+### 8.5 Play Button (large, circular)
+
+```
+bg-[#FAC304]  rounded-full  w-16 h-16 (or w-24 h-24 for hero)
+shadow-hero  shadow-glow-gold
+hover:scale-[1.03] active:scale-[0.97]
+transition duration-150 ease-out
+```
+
+### 8.6 Bottom Navigation
+
+```
+bg-black  h-16 + safe-area-inset-bottom
+Icon active: #FAC304
+Icon inactive: rgba(255,255,255,0.55)
+Active dot: h-1 w-1 rounded-full bg-[#FAC304]
+```
 
 ---
 
-## 10. Iconography
+## 9. Screen-Level Color Mapping
 
-- All icons are **inline SVG components** in `src/components/common/icons/`
-- Standard size: `w-6 h-6` (24×24px)
-- Stroke-based icons: consistent stroke-width (1.5 inactive, 2.5 active in nav)
-- No emoji as icons
-- No external icon library — all custom SVG
-
----
-
-## 11. Image Conventions
-
-### Book Covers
-- Fetched via `useCircleCover()` hook (adds Supabase storage URL)
-- Aspect ratio: `2/3` (portrait book cover)
-- Object fit: `object-cover`
-- Fallback: gray placeholder with "No cover" text
-
-### Discussion Backgrounds
-- Located: `src/assets/img/discussion/{bookId}/{modality}/{landscape/}{talk|listen}.png`
-- Loaded dynamically via `import.meta.glob()`
-- Supports portrait/landscape and per-book overrides
-
-### Character Avatars
-- SVG files in `src/assets/img/characters/`
-- States: `idle`, `listening`, `sleeping`, `celebrating`
-- Displayed via `<img src={character.images.idle} />`
+| Screen | Background | Text | Notes |
+|--------|-----------|------|-------|
+| Library / Home | `#FFFFFF` | `#111111` | Default light |
+| Browse | `#FFFFFF` → dark | Mixed | Dark category section |
+| Circle page | `#EFE6DA` | `#111111` | Warm cream |
+| TalkWithBook | `#000000` | `#EFE6D6` | Full dark, interactive |
+| Parents | `#F6EFE2` | `#111111` | Warm cream |
+| Progress | `#EFE6DA` | `#111111` | Warm cream (matches Circle page) |
+| Onboarding | `#FFFFFF` | `#111111` | Clean white |
+| Post-onboarding | `#F4ECDF` | `#111111` | Warm cream |
 
 ---
 
-## 12. UX Rules (App-Specific)
+## 10. Visual Audit — Live App Observations
 
-1. **Single primary action per screen** — one visible play/CTA button per view
-2. **No hover-only interactions** — all interactions via onClick (touch device primary)
-3. **Tap highlight removal** — `.tap-safe` class on interactive orbs/animations to remove WebKit highlight
-4. **Scroll state preservation** — navigate back restores scroll position via `scrollPositionsRef` in App.jsx
-5. **overscroll-behavior: contain** — on scroll containers to prevent pull-to-refresh conflicts
-6. **Bottom nav always visible** — never hide bottom nav during in-app navigation (only during voice session)
-7. **Gradient overlays** — for dark-on-image text: `bg-gradient-to-t from-black/80 via-black/30 to-transparent`
-8. **Loading states** — inline "Loading..." text for episode data; skeleton/orb animation for voice pipeline
-9. **Error states** — inline red text near the affected content (`text-red-600`), not toast-only
+Captured by navigating the live app at `localhost:3000` on a 430×932 mobile viewport.
+
+### Home / Circles Screen
+- ✅ Tomo avatar with gold star badge — warm, inviting, well-executed
+- ✅ Gold accent bar before section headings (`Continue talking`, `New`, `Nature Wonders`) — consistent and branded
+- ✅ BY DESIGN: Two chip styles co-exist — filled black for active category, outlined for `All ▾`. Intentional active/inactive distinction.
+- ✅ Play button on home hero unified to gold `#FAC304` matching Circle page
+- ✅ BY DESIGN: "Continue talking" has no subtitle — intentional; the section heading is sufficient context
+- ✅ Beautiful illustrated artwork for Circle covers — distinctive and premium-feeling
+
+### Circle Page
+- ✅ Hero image fills the top edge-to-edge — immersive and bold
+- ✅ "Today's Mission" dark featured card with gold play button — clear hierarchy, strong visual weight
+- ✅ BY DESIGN: Dot modality icons vary per dot type — `LISTEN + TALK TIME + VOCABULARY` vs `TAKE A SIDE` vs `TEACH TIME WITH TOMO` reflects real content differences, not a bug
+- ✅ BY DESIGN: Only the current dot is tappable; dots unlock sequentially. Static appearance of locked dots is intentional.
+- ✅ Dot number indicators (circular node diagrams) are unique and memorable
+- ✅ Dark episode cards on the cream Circle page background create strong contrast
+
+### Progress / Tomo Screen
+- ✅ Restyled to warm cream (`#EFE6DA`) matching Library/Circle visual system
+- ✅ Weekly day selector uses gold active day circle with glow — consistent with brand
+- ✅ Star emoji replaced with `StarIcon` SVG component
+- ✅ Distinct SVG icons added to each skill category (brain, speech bubble, star).
+- ✅ Collapse panels upgraded: `<div>` → `<button>`, animated SVG chevron, white card surface
+
+### Parents Screen
+- ✅ Placeholder developer text replaced with user-facing "Coming soon" copy
+
+### Navigation Bar
+- ✅ Black bar, gold active icon+label, muted white inactive — clear and branded
+- ⚠️ **Tomo icon is text-rendered** (`o_o` face) rather than an SVG. This may render inconsistently across fonts and OS versions
+- BY DESIGN: ⚠️ **Only 3 nav items** — the design system notes a max of 5, but 3 items leaves a lot of empty space in the bar; consider whether this is intentional or if items are missing
 
 ---
 
-## Pre-Delivery Checklist
+## 11. UI Audit — Issues & Priorities
 
-- [ ] No emojis used as icons (all SVG)
-- [ ] Touch targets ≥ 44×44px
-- [ ] Min 8px gap between tappable elements
-- [ ] Tap feedback (scale 0.95–0.97 within 100ms)
-- [ ] Using `transform`/`opacity` only for animations
-- [ ] Safe area insets respected (top + bottom)
-- [ ] `pb-24` on scrollable page content (clears bottom nav)
-- [ ] Text contrast ≥ 4.5:1 (light surface), ≥ 4.5:1 (dark surface)
-- [ ] `var(--vh)` used instead of `100vh`
-- [ ] `[scrollbar-width:none]` on horizontal scroll rows
-- [ ] Character accent color used for customBg, not inline hex
-- [ ] New screens use either full dark OR full light surface — never mixed
+### Critical (affects usability / accessibility)
+
+1. ✅ **DONE — `prefers-reduced-motion` support added** — block added to `globals.css`; `.mic-pulse`, `.animate-fade-in`, `.slow-spin` are suppressed and all transitions clamped to 0.01ms.
+
+2. ✅ **DONE — `:focus-visible` outline added** — `2px solid #FAC304` ring in `globals.css` restores visible keyboard/switch-access focus state.
+
+3. **Icon-only buttons lack `aria-label`** — the mic button, play button, and navigation icons in `TalkWithBook.tsx` and `BottomNavBar.tsx` should have `aria-label` on every `<button>` that contains only an icon.
+
+### High (visual inconsistency / design debt)
+
+4. **Typography fragmentation** — 25+ arbitrary `text-[...]` values across the codebase. Migrate all to the 8-step scale in §3.2. This is the single largest source of visual inconsistency.
+
+5. **Border radius inconsistency** — values span 3px → 34px with no semantic meaning. Migrate to the 6-step scale in §5.
+
+6. ✅ **DONE — Stale character tokens removed** — `character.gramma/argoo/wordie/echo` deleted; `character.tomo` renamed to `tomo`. `brand`, `surface`, and shadow tokens added.
+
+7. ✅ **DONE — `#FAC304` migrated to `brand-primary` token** — all Tailwind class usages replaced; inline styles and SVG props retain hex (Tailwind tokens don't apply there).
+
+8. **Shadow values are all one-offs** — no two components use the same shadow. Migrate to the 7 named shadow tokens in §6.
+
+### Medium (polish / maintainability)
+
+9. **Letter spacing fragmentation** — 10 different custom `tracking-[...]` values. Collapse to the 4 named tokens in §3.4.
+
+10. **Inconsistent button tap feedback** — some buttons use `hover:brightness-105`, others `hover:scale-[1.02]`, others `hover:brightness-[1.02]`. Standardise to the pattern in §7.3.
+
+11. **`#C492F1` (user bubble purple) has no semantic token name** — appears only in chat. Define as `--color-user-bubble` and add to Tailwind config.
+
+12. **Desktop background `#836e6e` is hardcoded in CSS** — should be a named token if it stays, or reconsidered (it's an odd brownish purple that doesn't match the warm palette).
+
+### Low (nice to have)
+
+13. **Missing skeleton/shimmer loading states** — loading screens show a text spinner ("Loading vocab...", "Loading..."). Replace with skeleton shapes matching the content layout for perceived performance.
+
+14. **No `cursor-pointer` on tappable elements** — needed for desktop/web PWA users.
+
+15. **The `scrollbar-thin` utility class** is defined but its `thumb` color is not set — the scrollbar renders browser-default. Add `background: rgba(0,0,0,0.2)` to `.scrollbar-thin::-webkit-scrollbar-thumb`.
+
+---
+
+## 11. Migration Priorities
+
+Do these in order. Each step is independent — you can stop at any point.
+
+| Step | Change | Impact |
+|------|--------|--------|
+| ~~1~~ | ✅ Add `prefers-reduced-motion` block to `globals.css` | Accessibility |
+| ~~2~~ | ✅ Add `:focus-visible` outline to `globals.css` | Accessibility |
+| ~~3~~ | ✅ Delete stale character tokens from `tailwind.config.cjs` | Cleanliness |
+| ~~4~~ | ✅ Add `brand`, `surface`, `tomo` tokens to `tailwind.config.cjs` | Foundation |
+| ~~5~~ | ✅ Add named shadow tokens to `tailwind.config.cjs` | Foundation |
+| ~~6~~ | ✅ Migrate `#FAC304` hardcodes to `bg-brand-primary` / `text-brand-primary` | Consistency |
+| ~~7~~ | ✅ Migrate typography to 8-step scale | Visual consistency |
+| ~~8~~ | ✅ Migrate border radius to 6-step scale | Visual consistency |
+| ~~9~~ | ✅ Migrate shadows to named tokens | Visual consistency |
+| ~~10~~ | ✅ Standardise button interaction pattern | Polish |
+
+---
+
+## 13. What Not To Change
+
+- **Font families**: Baloo 2 + Nunito is the right pairing for this age group. Do not change.
+- **`#FAC304` as primary brand color**: The gold is distinctive and warm. Keep it.
+- **App shell width (402px)**: This is an intentional mobile-emulation constraint. Do not change.
+- **Dark background on TalkWithBook**: Full black during voice sessions creates focus. Keep it.
+- **Gray scale in Tailwind**: The existing custom gray scale is coherent and useful. Keep it.

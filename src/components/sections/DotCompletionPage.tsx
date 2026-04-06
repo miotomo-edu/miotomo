@@ -50,17 +50,17 @@ const getFirstName = (value: string) => {
 
 const FireworkBurst: React.FC<{ className: string }> = ({ className }) => (
   <div className={`absolute h-12 w-12 ${className}`} aria-hidden="true">
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-[135deg] rounded-full bg-[#FAC304]" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-[135deg] rounded-full bg-brand-primary" />
   </div>
 );
 
 const Sparkle: React.FC<{ className: string }> = ({ className }) => (
   <div className={`absolute h-4 w-4 ${className}`} aria-hidden="true">
-    <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 rounded-full bg-[#FAC304]" />
-    <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 rounded-full bg-[#FAC304]" />
+    <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 rounded-full bg-brand-primary" />
+    <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 rounded-full bg-brand-primary" />
   </div>
 );
 
@@ -107,18 +107,18 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                   labelColor="#0a1024"
                   className="md:h-[64px] md:w-[64px]"
                 />
-                <p className="font-display text-[1.65rem] font-bold leading-[1.02] tracking-[-0.03em] text-[#020617] md:text-[1.85rem] lg:text-[2rem]">
+                <p className="font-display text-2xl font-bold leading-[1.02] tracking-[-0.03em] text-[#020617] md:text-3xl lg:text-3xl">
                   {`Dot ${completedEpisode} completed`}
                 </p>
               </div>
 
               <div className="mt-6 md:mt-5 lg:mt-8">
-                <h1 className="font-display text-[2.35rem] font-bold leading-[0.94] tracking-[-0.05em] text-[#020617] md:max-w-[11ch] md:text-[3.7rem] md:leading-[0.88] lg:text-[4.35rem]">
+                <h1 className="font-display text-4xl font-bold leading-[0.94] tracking-[-0.05em] text-[#020617] md:max-w-[11ch] md:text-5xl md:leading-[0.88] lg:text-5xl">
                   {`You completed a Dot, ${firstName}!`}
                 </h1>
-                <p className="mt-3 max-w-[20ch] text-xl leading-8 text-[#020617]/82 md:max-w-[22ch] md:text-[1.45rem] md:leading-[2.05rem] lg:max-w-[20ch] lg:text-[1.7rem] lg:leading-[2.5rem]">
+                <p className="mt-3 max-w-[20ch] text-xl leading-8 text-[#020617]/82 md:max-w-[22ch] md:text-2xl md:leading-[2.05rem] lg:max-w-[20ch] lg:text-2xl lg:leading-[2.5rem]">
                   {remainingMessage}
-                  <span className="ml-1 text-[#FAC304]">✦</span>
+                  <span className="ml-1 text-brand-primary">✦</span>
                 </p>
               </div>
 
@@ -140,7 +140,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                   />
                 ))}
 
-                <div className="absolute inset-x-[8%] bottom-[12%] h-16 rounded-[50%] bg-[radial-gradient(circle,rgba(2,6,23,0.12),rgba(2,6,23,0)_72%)] blur-xl" />
+                <div className="absolute inset-x-[8%] bottom-[12%] h-16 rounded-full bg-[radial-gradient(circle,rgba(2,6,23,0.12),rgba(2,6,23,0)_72%)] blur-xl" />
 
                 <img
                   src={tomoCelebrating}
@@ -166,7 +166,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
               <Sparkle key={`sparkle-${index}`} className={position} />
             ))}
 
-            <div className="absolute inset-x-[8%] bottom-[12%] h-16 rounded-[50%] bg-[radial-gradient(circle,rgba(2,6,23,0.12),rgba(2,6,23,0)_72%)] blur-xl md:inset-x-[16%] md:bottom-[10%] md:h-20" />
+            <div className="absolute inset-x-[8%] bottom-[12%] h-16 rounded-full bg-[radial-gradient(circle,rgba(2,6,23,0.12),rgba(2,6,23,0)_72%)] blur-xl md:inset-x-[16%] md:bottom-[10%] md:h-20" />
 
             <img
               src={tomoCelebrating}
@@ -191,7 +191,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 labelColor="#0a1024"
                 className="md:h-[64px] md:w-[64px]"
               />
-              <p className="text-[1.65rem] leading-[1.2] text-[#020617] md:max-w-[18ch] md:text-[1.65rem] lg:max-w-[16ch] lg:text-[2rem]">
+              <p className="text-2xl leading-[1.2] text-[#020617] md:max-w-[18ch] md:text-2xl lg:max-w-[16ch] lg:text-3xl">
                 {nextEpisode ? (
                   <>
                     Come back tomorrow for{" "}
@@ -211,7 +211,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                     ? onPreviewNextDot(book, nextEpisode)
                     : onPreviewNextDot(book, completedEpisode)
                 }
-                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-[1.02] active:scale-[0.99] md:min-h-[58px] md:max-w-[22rem] md:text-[1.16rem] lg:min-h-[64px] lg:max-w-[24rem] lg:text-[1.3rem]"
+                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
               >
                 {nextEpisode
                   ? `Take a peek at Dot ${nextEpisode}`
@@ -229,7 +229,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
               ? onPreviewNextDot(book, nextEpisode)
               : onPreviewNextDot(book, completedEpisode)
           }
-          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-[1.02] active:scale-[0.99]"
+          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97]"
         >
           {nextEpisode
             ? `Take a peek at Dot ${nextEpisode}`

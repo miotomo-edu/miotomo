@@ -5,6 +5,7 @@ import vocabularyBackground from "../../../assets/img/vocabulary_bg.png";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
 import VisualSpellingGame from "../spelling/VisualSpellingGame";
+import type { PreviewScreen } from "../../../lib/previewMode";
 
 type Attempt = {
   text: string;
@@ -24,6 +25,15 @@ type VocabItem = {
 
 type VisualVocabularyGameProps = {
   onComplete?: () => void;
+  previewMode?: Extract<
+    PreviewScreen,
+    | "vocab-intro"
+    | "vocab-game"
+    | "vocab-complete"
+    | "spelling-intro"
+    | "spelling-game"
+    | "spelling-complete"
+  > | null;
 };
 
 const TEST_CIRCLE_ID = "ff7f12ca-78e4-4987-9d2c-63a68694a1b1";
@@ -58,7 +68,19 @@ const parseFeedbackTextMap = (value: unknown) => {
 
 const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   onComplete,
+  previewMode = null,
 }) => {
+  const isPreviewMode = Boolean(previewMode);
+  const isVocabularyPreview =
+    previewMode === "vocab-intro" ||
+    previewMode === "vocab-game" ||
+    previewMode === "vocab-complete";
+  const isVocabularyCompletionPreview = previewMode === "vocab-complete";
+  const isSpellingPreview =
+    previewMode === "spelling-intro" ||
+    previewMode === "spelling-game" ||
+    previewMode === "spelling-complete";
+  const isSpellingCompletionPreview = previewMode === "spelling-complete";
   const [items, setItems] = useState<VocabItem[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [targetWord, setTargetWord] = useState("");
@@ -73,7 +95,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const [wordResults, setWordResults] = useState<
     Array<"correct" | "wrong" | null>
   >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !previewMode);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [displayedQuote, setDisplayedQuote] = useState("");
@@ -87,7 +109,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const [feedbackKey, setFeedbackKey] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasListened, setHasListened] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(() => !previewMode);
   const [showSpellingGame, setShowSpellingGame] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -98,6 +120,63 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastTranscriptRef = useRef("");
+
+  useEffect(() => {
+    if (!isPreviewMode) return;
+
+    if (isVocabularyPreview) {
+      const previewItem: VocabItem = {
+        wordId: "preview-word",
+        targetWord: "fossil",
+        contextText:
+          "A fossil can show us what ancient animals looked like millions of years ago.",
+        contextAudioUrl: "",
+        tomoPromptText: "Say the word: fossil.",
+        feedbackTextMap: {},
+        definition:
+          "A fossil is the preserved remains or trace of a living thing from long ago.",
+        language: "en",
+      };
+
+      setItems([previewItem]);
+      setCurrentWordIndex(0);
+      setTargetWord(previewItem.targetWord.toUpperCase());
+      setRawTargetWord(previewItem.targetWord);
+      setContextText(previewItem.contextText);
+      setContextAudioUrl(previewItem.contextAudioUrl);
+      setTomoPromptText(previewItem.tomoPromptText);
+      setDefinition(previewItem.definition);
+      setFeedbackTextMap(previewItem.feedbackTextMap);
+      setPhase(
+        previewMode === "vocab-game"
+          ? "revealed"
+          : previewMode === "vocab-complete"
+            ? "feedback"
+            : "listen",
+      );
+      setWordResults([previewMode === "vocab-complete" ? "correct" : null]);
+      setAttempts([]);
+      setIsCorrectSolved(previewMode === "vocab-complete");
+      setMessage("");
+      setFeedbackKey(null);
+      setHasListened(previewMode !== "vocab-intro");
+      setIsRecording(false);
+      setIsGrading(false);
+      setIsPlaying(false);
+      setShowIntro(previewMode === "vocab-intro");
+      setShowSpellingGame(false);
+      setIsLoading(false);
+      setLoadError(null);
+      return;
+    }
+
+    if (isSpellingPreview) {
+      setShowIntro(false);
+      setShowSpellingGame(true);
+      setIsLoading(false);
+      setLoadError(null);
+    }
+  }, [isPreviewMode, isSpellingPreview, isVocabularyPreview, previewMode]);
 
   const attemptQuote = useMemo(() => {
     const reachedMax = !isCorrectSolved && attempts.length >= MAX_ATTEMPTS;
@@ -131,8 +210,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     let isActive = true;
 
     const fetchWords = async () => {
-      setIsLoading(true);
-      setLoadError(null);
+      if (!isPreviewMode) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
       const { data, error } = await supabase
         .from("vocab_items")
         .select(
@@ -152,8 +233,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
       if (error) {
         console.error("Failed to load vocab words:", error);
-        setLoadError("Unable to load vocabulary words.");
-        setIsLoading(false);
+        if (!isPreviewMode) {
+          setLoadError("Unable to load vocabulary words.");
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -186,12 +269,24 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       setTomoPromptText(vocabItems[0]?.tomoPromptText ?? "");
       setDefinition(vocabItems[0]?.definition ?? "");
       setFeedbackTextMap(vocabItems[0]?.feedbackTextMap ?? {});
-      setPhase("listen");
-      setWordResults(Array.from({ length: vocabItems.length }, () => null));
+      setPhase(
+        isVocabularyPreview
+          ? previewMode === "vocab-game"
+            ? "revealed"
+            : previewMode === "vocab-complete"
+              ? "feedback"
+              : "listen"
+          : "listen",
+      );
+      setWordResults(
+        Array.from({ length: vocabItems.length }, () =>
+          previewMode === "vocab-complete" ? "correct" : null,
+        ),
+      );
       setAttempts([]);
-      setIsCorrectSolved(false);
+      setIsCorrectSolved(previewMode === "vocab-complete");
       setFeedbackKey(null);
-      setHasListened(false);
+      setHasListened(previewMode !== "vocab-intro");
       setIsLoading(false);
     };
 
@@ -200,7 +295,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [isPreviewMode, isVocabularyPreview, previewMode]);
 
   useEffect(() => {
     if (typingTimeoutRef.current) {
@@ -540,10 +635,18 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     return `What is the meaning of “${rawTargetWord}”?`;
   })();
   const showCompletionScreen =
-    phase === "feedback" && isLastWord && isCorrectSolved;
+    isVocabularyCompletionPreview ||
+    (phase === "feedback" && isLastWord && isCorrectSolved);
+  const completionCorrectCount = isVocabularyCompletionPreview ? 1 : correctCount;
+  const completionItemCount = isVocabularyCompletionPreview ? 1 : items.length;
 
-  if (showSpellingGame) {
-    return <VisualSpellingGame onComplete={onComplete} />;
+  if (isSpellingPreview || showSpellingGame) {
+    return (
+      <VisualSpellingGame
+        onComplete={onComplete}
+        previewMode={isSpellingPreview ? (previewMode as Extract<typeof previewMode, "spelling-intro" | "spelling-game" | "spelling-complete">) : null}
+      />
+    );
   }
 
   if (showIntro) {
@@ -555,14 +658,15 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         buttonLabel="Understand the words"
         onStart={() => setShowIntro(false)}
         backgroundImage={vocabularyBackground}
+        lightBackground
       />
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-black text-white">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+      <div className="flex h-full w-full items-center justify-center bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           Loading vocab...
         </span>
       </div>
@@ -571,8 +675,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (loadError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           {loadError}
         </span>
       </div>
@@ -581,8 +685,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (!targetWord) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           No vocab words available.
         </span>
       </div>
@@ -591,26 +695,26 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (showCompletionScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#2F2C2F] px-6 py-10 text-center text-[#efe6d6]">
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
         <div className="flex max-w-2xl flex-col items-center gap-5">
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d8cdbd]">
+          <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
             Vocabulary Complete
           </div>
-          <h1 className="text-4xl font-bold md:text-5xl">
+          <h1 className="font-display text-4xl font-bold md:text-5xl">
             Nice work. You got the word right.
           </h1>
-          <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
+          <p className="max-w-xl text-lg leading-8 text-[#020617]/60 md:text-2xl">
             Next up: spelling the word you just learned.
           </p>
-          <div className="text-sm uppercase tracking-[0.18em] text-[#c59a41] md:text-base">
-            Score: {correctCount} / {items.length}
+          <div className="text-sm uppercase tracking-super text-brand-primary md:text-base">
+            Score: {completionCorrectCount} / {completionItemCount}
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => setShowSpellingGame(true)}
-          className="rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-8 py-4 text-lg font-bold uppercase tracking-[0.12em] text-[#2a2629] transition hover:brightness-105 md:px-10 md:py-5 md:text-xl"
+          className="rounded-full bg-brand-primary px-8 py-4 text-lg font-bold uppercase tracking-wider text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:px-10 md:py-5 md:text-xl"
         >
           Move On To Spelling
         </button>
@@ -619,13 +723,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#2F2C2F] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-3xl items-center gap-3">
-        <span className="text-[0.6rem] font-semibold tracking-[0.3em] text-[#d8cdbd] sm:text-xs md:text-xl">
+        <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-xl">
           WORDS
         </span>
         <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#6f6a63] md:h-1.5" />
+          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
           <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {items.map((_, index) => {
               const isActive = index === currentWordIndex;
@@ -635,7 +739,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   ? "bg-[#8fb29a]"
                   : result === "wrong"
                     ? "bg-[#d2a84f]"
-                    : "bg-[#d8cdbd]";
+                    : "bg-black/20";
               return (
                 <div
                   key={`vocab-step-${index}`}
@@ -661,10 +765,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             type="button"
             onClick={handleListen}
             disabled={isPlaying}
-            className={`flex h-16 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-[#C0B095] px-10 text-xl font-semibold uppercase tracking-wide text-[#2a2629] transition sm:h-18 sm:text-2xl md:h-20 md:text-3xl ${
+            className={`flex h-16 items-center justify-center rounded-full bg-brand-primary px-10 text-xl font-semibold uppercase tracking-wide text-[#2a2629] shadow-elevated shadow-inset-highlight transition sm:h-18 sm:text-2xl md:h-20 md:text-3xl ${
               isPlaying
                 ? "cursor-not-allowed opacity-70"
-                : "hover:brightness-105"
+                : "hover:brightness-[1.03] active:scale-[0.97]"
             }`}
           >
             Listen
@@ -679,7 +783,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       >
         <div className="flex w-full flex-col items-center gap-3 md:gap-4">
           <div className="flex w-full items-center justify-center">
-            <div className="inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#efe6d6] md:text-5xl">
+            <div className="inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#020617] md:text-5xl">
               <span className="inline">
                 {phase === "listen" ? (
                   <span className="opacity-0">“{contextText}”</span>
@@ -719,7 +823,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                           <span className="text-[#C59A41]">
                             {matchText}
                             {trailingPunctuation ? (
-                              <span className="text-[#efe6d6]">
+                              <span className="text-[#020617]">
                                 {trailingPunctuation}
                               </span>
                             ) : null}
@@ -736,10 +840,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   type="button"
                   onClick={handleListen}
                   disabled={isPlaying}
-                  className={`flex h-10 w-10 items-center justify-center text-[#efe6d6] transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
+                  className={`flex h-10 w-10 items-center justify-center text-[#020617]/70 transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
                     isPlaying
                       ? "cursor-not-allowed opacity-70"
-                      : "hover:brightness-105"
+                      : "hover:brightness-[1.03]"
                   }`}
                   aria-label={
                     hasListened ? "Replay sentence" : "Listen to sentence"
@@ -767,7 +871,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
       {rawTargetWord && phase !== "listen" && (
         <div className="absolute left-1/2 top-1/2 z-20 flex w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4 text-center px-4">
-          <div className="text-3xl font-semibold text-[#d8cdbd] md:text-4xl">
+          <div className="text-3xl font-semibold text-[#020617]/60 md:text-4xl">
             {promptText}
           </div>
           <div className="flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
@@ -775,7 +879,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               <button
                 type="button"
                 onClick={handleNextWord}
-                className="flex h-full w-full items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition"
+                className="flex h-full w-full items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition"
                 aria-label="Next word"
               >
                 <svg
@@ -795,8 +899,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               <button
                 type="button"
                 onClick={isRecording ? () => stopRecording() : startRecording}
-                className={`flex h-full w-full flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition ${
-                  isRecording ? "opacity-80" : "hover:brightness-105"
+                className={`flex h-full w-full flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition ${
+                  isRecording ? "opacity-80" : "hover:brightness-[1.03]"
                 }`}
                 aria-label={isRecording ? "Stop recording" : "Start recording"}
               >
@@ -829,7 +933,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               </button>
             ) : null}
           </div>
-          <div className="mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#d8cdbd] md:text-3xl">
+          <div className="mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#020617]/60 md:text-3xl">
             <span className={showRetryHint ? "opacity-100" : "opacity-0"}>
               Let's try again!
             </span>
@@ -855,8 +959,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             className="h-20 w-auto sm:h-24 md:h-32"
           />
           <div className="relative flex-1">
-            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#4a4345]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#4a4345] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
+            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#EFE6DA]" />
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-xl md:text-3xl">
               <span
                 className="flex-1 break-words whitespace-pre-line"
                 style={{
