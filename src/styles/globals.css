@@ -120,6 +120,28 @@ body {
   animation: fadeInSoft 0.28s ease-out;
 }
 
+@keyframes heroPlayPulse {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+}
+
+.hero-play-pulse {
+  animation: heroPlayPulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Speech Bubbles Scroll Element */
 .scrollable-element {
   overflow: auto;

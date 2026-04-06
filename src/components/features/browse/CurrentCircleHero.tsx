@@ -506,22 +506,28 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0)_38%)]" />
 
           <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-5 py-5 md:px-7 md:py-7">
-            <button
-              type="button"
-              onClick={handleHeroPlay}
-              disabled={isUpdating}
-              aria-label={`Play ${activeDotTitle}`}
-              className="pointer-events-auto group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36 animate-[pulse_3s_ease-in-out_infinite]"
-            >
-              <svg
+            <div className="pointer-events-none relative flex h-28 w-28 items-center justify-center md:h-36 md:w-36">
+              <span
                 aria-hidden="true"
-                viewBox="0 0 16 16"
-                className="ml-1 h-12 w-12 md:h-16 md:w-16"
-                fill="currentColor"
+                className="hero-play-pulse absolute inset-0 rounded-full border border-[rgba(250,195,4,0.55)] bg-[radial-gradient(circle,rgba(250,195,4,0.22)_0%,rgba(250,195,4,0.08)_48%,rgba(250,195,4,0)_72%)]"
+              />
+              <button
+                type="button"
+                onClick={handleHeroPlay}
+                disabled={isUpdating}
+                aria-label={`Play ${activeDotTitle}`}
+                className="pointer-events-auto relative z-10 group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36"
               >
-                <path d="M4 2.5v11l9-5.5-9-5.5z" />
-              </svg>
-            </button>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="ml-1 h-12 w-12 md:h-16 md:w-16"
+                  fill="currentColor"
+                >
+                  <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div className="relative z-20 flex h-full min-h-[560px] flex-col justify-between p-5 text-white md:min-h-[700px] md:p-7">
