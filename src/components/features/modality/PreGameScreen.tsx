@@ -18,35 +18,29 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
   description,
 }) => {
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col overflow-hidden bg-black text-[#f7f0e6]">
-      <div className="absolute inset-0">
+    <div className="relative flex min-h-full w-full flex-1 flex-col bg-white text-[#020617]">
+      <div className="relative h-[42vh] w-full overflow-hidden rounded-b-[2rem]">
         <img
           src={backgroundImage}
           alt=""
           className="h-full w-full object-cover"
         />
-        <div className="absolute left-0 right-0 top-0 h-[env(safe-area-inset-top)] bg-black" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141216] via-[#141216]/70 to-[#141216]/20" />
-        <div
-          className="absolute left-0 right-0 top-0 bg-[linear-gradient(to_bottom,#2F2C2F,transparent)]"
-          style={{ height: "50px" }}
-        />
       </div>
 
-      <div className="relative z-10 flex h-full w-full flex-1 flex-col items-center justify-between px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
-        <div className="flex w-full flex-1 flex-col items-center justify-center gap-5">
-          <h1 className="font-display max-w-2xl text-3xl font-extrabold tracking-tight text-[#f7f0e6] drop-shadow-[0_6px_24px_rgba(0,0,0,1)] sm:text-5xl md:text-6xl">
+      <div className="flex flex-1 flex-col items-center justify-between px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-6 text-center">
+        <div className="flex flex-col items-center gap-3">
+          <h1 className="font-display max-w-2xl text-3xl font-extrabold tracking-tight text-[#020617] sm:text-5xl md:text-6xl">
             {title}
           </h1>
           {description ? (
-            <p className="max-w-xl text-lg text-[#efe6d6]/80 drop-shadow-[0_4px_12px_rgba(0,0,0,1)] sm:text-xl md:text-3xl">
+            <p className="max-w-xl text-lg text-[#020617]/60 sm:text-xl md:text-3xl">
               {description}
             </p>
           ) : null}
         </div>
 
         <div className="w-full max-w-sm">
-          <p className="mb-3 text-xs uppercase tracking-super text-[#efe6d6]/70 drop-shadow-[0_4px_10px_rgba(0,0,0,1)]">
+          <p className="mb-3 text-xs uppercase tracking-super text-[#020617]/60">
             {subtitle}
           </p>
           <button
