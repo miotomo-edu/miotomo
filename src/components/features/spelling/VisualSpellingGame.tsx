@@ -514,6 +514,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         buttonLabel="Start Spelling"
         onStart={() => setShowIntro(false)}
         backgroundImage={talkBackground}
+        lightBackground
       />
     );
   }
