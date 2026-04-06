@@ -28,7 +28,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
           className="h-full w-full object-cover"
         />
         {lightBackground ? (
-          <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-white via-white/90 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-white via-white/90 to-transparent" />
         ) : (
           <>
             <div className="absolute left-0 right-0 top-0 h-[env(safe-area-inset-top)] bg-black" />
@@ -38,7 +38,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
       </div>
 
       <div className="relative z-10 flex h-full w-full flex-1 flex-col items-center justify-end px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
-        <div className="flex w-full max-w-sm flex-col items-center gap-4">
+        <div className="flex w-full max-w-xl flex-col items-center gap-4">
           <h1
             className={`font-display max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl md:text-6xl ${
               lightBackground
@@ -60,7 +60,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
             </p>
           ) : null}
           <div className="mt-2 w-full">
-            <p
+            {/*<p
               className={`mb-3 text-xs uppercase tracking-super ${
                 lightBackground
                   ? "text-[#020617]/60"
@@ -68,7 +68,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
               }`}
             >
               {subtitle}
-            </p>
+            </p>*/}
             <button
               type="button"
               onClick={onStart}

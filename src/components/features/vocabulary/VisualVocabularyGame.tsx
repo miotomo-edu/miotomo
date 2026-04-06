@@ -643,6 +643,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         buttonLabel="Understand the words"
         onStart={() => setShowIntro(false)}
         backgroundImage={vocabularyBackground}
+        lightBackground
       />
     );
   }
