@@ -649,8 +649,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-black text-white">
-        <span className="text-sm uppercase tracking-super text-white/60">
+      <div className="flex h-full w-full items-center justify-center bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           Loading vocab...
         </span>
       </div>
@@ -659,8 +659,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (loadError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <span className="text-sm uppercase tracking-super text-white/60">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           {loadError}
         </span>
       </div>
@@ -669,8 +669,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (!targetWord) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black text-white">
-        <span className="text-sm uppercase tracking-super text-white/60">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+        <span className="text-sm uppercase tracking-super text-[#020617]/60">
           No vocab words available.
         </span>
       </div>
@@ -679,15 +679,15 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (showCompletionScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-[#1C1610] px-6 py-10 text-center text-[#efe6d6]">
+      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
         <div className="flex max-w-2xl flex-col items-center gap-5">
-          <div className="text-xs font-semibold uppercase tracking-super text-[#d8cdbd]">
+          <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
             Vocabulary Complete
           </div>
           <h1 className="font-display text-4xl font-bold md:text-5xl">
             Nice work. You got the word right.
           </h1>
-          <p className="max-w-xl text-lg leading-8 text-[#d8cdbd] md:text-2xl">
+          <p className="max-w-xl text-lg leading-8 text-[#020617]/60 md:text-2xl">
             Next up: spelling the word you just learned.
           </p>
           <div className="text-sm uppercase tracking-super text-brand-primary md:text-base">
@@ -707,13 +707,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-[#1C1610] px-4 py-4 text-[#efe6d6] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-3xl items-center gap-3">
-        <span className="text-[0.6rem] font-semibold tracking-super text-[#d8cdbd] sm:text-xs md:text-xl">
+        <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-xl">
           WORDS
         </span>
         <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-[#524030] md:h-1.5" />
+          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
           <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {items.map((_, index) => {
               const isActive = index === currentWordIndex;
@@ -723,7 +723,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   ? "bg-[#8fb29a]"
                   : result === "wrong"
                     ? "bg-[#d2a84f]"
-                    : "bg-[#d8cdbd]";
+                    : "bg-black/20";
               return (
                 <div
                   key={`vocab-step-${index}`}
@@ -767,7 +767,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       >
         <div className="flex w-full flex-col items-center gap-3 md:gap-4">
           <div className="flex w-full items-center justify-center">
-            <div className="inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#efe6d6] md:text-5xl">
+            <div className="inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#020617] md:text-5xl">
               <span className="inline">
                 {phase === "listen" ? (
                   <span className="opacity-0">“{contextText}”</span>
@@ -807,7 +807,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                           <span className="text-[#C59A41]">
                             {matchText}
                             {trailingPunctuation ? (
-                              <span className="text-[#efe6d6]">
+                              <span className="text-[#020617]">
                                 {trailingPunctuation}
                               </span>
                             ) : null}
@@ -824,7 +824,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   type="button"
                   onClick={handleListen}
                   disabled={isPlaying}
-                  className={`flex h-10 w-10 items-center justify-center text-[#efe6d6] transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
+                  className={`flex h-10 w-10 items-center justify-center text-[#020617]/70 transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
                     isPlaying
                       ? "cursor-not-allowed opacity-70"
                       : "hover:brightness-[1.03]"
@@ -855,7 +855,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
       {rawTargetWord && phase !== "listen" && (
         <div className="absolute left-1/2 top-1/2 z-20 flex w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4 text-center px-4">
-          <div className="text-3xl font-semibold text-[#d8cdbd] md:text-4xl">
+          <div className="text-3xl font-semibold text-[#020617]/60 md:text-4xl">
             {promptText}
           </div>
           <div className="flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
@@ -863,7 +863,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               <button
                 type="button"
                 onClick={handleNextWord}
-                className="flex h-full w-full items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition"
+                className="flex h-full w-full items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition"
                 aria-label="Next word"
               >
                 <svg
@@ -883,7 +883,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               <button
                 type="button"
                 onClick={isRecording ? () => stopRecording() : startRecording}
-                className={`flex h-full w-full flex-shrink-0 items-center justify-center rounded-full border-2 border-[#DACDB9] bg-white/10 text-[#efe6d6] transition ${
+                className={`flex h-full w-full flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition ${
                   isRecording ? "opacity-80" : "hover:brightness-[1.03]"
                 }`}
                 aria-label={isRecording ? "Stop recording" : "Start recording"}
@@ -917,7 +917,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               </button>
             ) : null}
           </div>
-          <div className="mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#d8cdbd] md:text-3xl">
+          <div className="mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#020617]/60 md:text-3xl">
             <span className={showRetryHint ? "opacity-100" : "opacity-0"}>
               Let's try again!
             </span>
@@ -943,8 +943,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             className="h-20 w-auto sm:h-24 md:h-32"
           />
           <div className="relative flex-1">
-            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#2C2214]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#2C2214] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#efe6d6] sm:text-xl md:text-3xl">
+            <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#EFE6DA]" />
+            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-xl md:text-3xl">
               <span
                 className="flex-1 break-words whitespace-pre-line"
                 style={{
