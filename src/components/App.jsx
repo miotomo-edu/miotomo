@@ -27,6 +27,7 @@ import { VoiceBotProvider } from "../context/VoiceBotContextProvider";
 import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
+import { useBrowseCircles } from "../hooks/useBrowseCircles";
 import { characterData } from "../lib/characters";
 import { getPreviewConfig } from "../lib/previewMode";
 
@@ -47,11 +48,30 @@ const shouldSkipOnboarding = () => {
   return value === "1" || value === "true";
 };
 
+const isWithinWindow = (start, end) => {
+  const now = Date.now();
+  if (start) {
+    const startTime = Date.parse(start);
+    if (!Number.isNaN(startTime) && now < startTime) {
+      return false;
+    }
+  }
+  if (end) {
+    const endTime = Date.parse(end);
+    if (!Number.isNaN(endTime) && now > endTime) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const App = ({ transportType, region = "" }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const [activeComponent, setActiveComponent] = useState(() =>
-    previewConfig?.screen === "dot-complete" ||
-    previewConfig?.screen === "circle-complete"
+    previewConfig?.screen === "circle-page"
+      ? "circle"
+      : previewConfig?.screen === "dot-complete" ||
+          previewConfig?.screen === "circle-complete"
       ? "dot-complete"
       : previewConfig?.screen === "vocab-intro" ||
           previewConfig?.screen === "vocab-game" ||
@@ -137,8 +157,81 @@ const App = ({ transportType, region = "" }) => {
     isLoading: studentLoading,
     error: studentError,
   } = useStudent(resolvedStudentId);
+  const { data: browseData } = useBrowseCircles(resolvedStudentId);
   const { getConversations } = useConversations();
   const { isAnalyzing, wakeAnalytics } = useAnalytics();
+
+  const previewCircleSelection = useMemo(() => {
+    if (previewConfig?.screen !== "circle-page" || !browseData?.circles?.length) {
+      return null;
+    }
+
+    const featuredEntries = browseData.circles
+      .filter((circle) => {
+        const catalog = circle.catalog ?? {};
+        return (
+          Boolean(catalog.featured) &&
+          isWithinWindow(catalog.featured_start, catalog.featured_end)
+        );
+      })
+      .sort((a, b) => {
+        const rankA = a.catalog?.featured_rank ?? Number.POSITIVE_INFINITY;
+        const rankB = b.catalog?.featured_rank ?? Number.POSITIVE_INFINITY;
+        if (rankA !== rankB) return rankA - rankB;
+
+        const publishedA = a.catalog?.published_at
+          ? Date.parse(a.catalog.published_at)
+          : Number.NEGATIVE_INFINITY;
+        const publishedB = b.catalog?.published_at
+          ? Date.parse(b.catalog.published_at)
+          : Number.NEGATIVE_INFINITY;
+        return publishedB - publishedA;
+      });
+
+    const book = featuredEntries[0] ?? browseData.circles[0] ?? null;
+    if (!book) return null;
+
+    const progressRows = browseData.progressRows ?? [];
+    const activeRows = progressRows.filter((row) => {
+      if (row.book_id !== book.id) return false;
+      const listening = row.listening_status ?? "not_started";
+      const talking = row.talking_status ?? "not_started";
+      if (talking === "completed") return false;
+      return (
+        ["paused", "in_progress"].includes(listening) ||
+        ["paused", "in_progress"].includes(talking)
+      );
+    });
+
+    const activeRow = activeRows.sort((a, b) => {
+      const timeA = Date.parse(a.last_active_at ?? "");
+      const timeB = Date.parse(b.last_active_at ?? "");
+      if (Number.isNaN(timeA)) return 1;
+      if (Number.isNaN(timeB)) return -1;
+      return timeB - timeA;
+    })[0];
+
+    let completedDots = 0;
+    progressRows.forEach((row) => {
+      if (row.book_id !== book.id || row.talking_status !== "completed") return;
+      const episode = Number(row.episode ?? 0);
+      if (Number.isFinite(episode) && episode > completedDots) {
+        completedDots = episode;
+      }
+    });
+
+    const totalDots = Math.max(Number(book.chapters) || 0, 0);
+    const nextChapter = activeRow?.episode
+      ? Number(activeRow.episode)
+      : totalDots > 0 && completedDots >= totalDots
+        ? 1
+        : Math.max(completedDots + 1, 1);
+
+    return {
+      book,
+      nextChapter: Number.isFinite(nextChapter) && nextChapter > 0 ? nextChapter : 1,
+    };
+  }, [browseData, previewConfig?.screen]);
 
   useEffect(() => {
     void wakeAnalytics();
@@ -155,6 +248,12 @@ const App = ({ transportType, region = "" }) => {
     if (previewConfig?.userName) return;
     if (student?.name) setUserName(student.name);
   }, [student, previewConfig?.userName]);
+
+  useEffect(() => {
+    if (previewConfig?.screen !== "circle-page" || !previewCircleSelection) return;
+    setSelectedBook(previewCircleSelection.book);
+    setSelectedChapter(previewCircleSelection.nextChapter);
+  }, [previewConfig?.screen, previewCircleSelection]);
 
   const fetchActiveConversations = useCallback(async () => {
     if (!studentId) return;
@@ -419,7 +518,7 @@ const App = ({ transportType, region = "" }) => {
         return (
           <PostOnboardingCircleIntroPage
             userName={userName}
-            studentId={studentId}
+            studentId={resolvedStudentId}
             onPlayEpisode={handlePlayEpisode}
           />
         );
@@ -427,7 +526,7 @@ const App = ({ transportType, region = "" }) => {
         return (
           <HomePage
             userName={userName}
-            studentId={studentId}
+            studentId={resolvedStudentId}
             onOpenCircle={openCirclePage}
             onPlayEpisode={handlePlayEpisode}
           />
@@ -436,7 +535,7 @@ const App = ({ transportType, region = "" }) => {
         return (
           <LibraryPage
             userName={userName}
-            studentId={studentId}
+            studentId={resolvedStudentId}
             collapseHeroSignal={libraryHeroCollapseSignal}
             onOpenCircle={openCirclePage}
             onPlayEpisode={handlePlayEpisode}
@@ -447,7 +546,7 @@ const App = ({ transportType, region = "" }) => {
           return (
             <LibraryPage
               userName={userName}
-              studentId={studentId}
+              studentId={resolvedStudentId}
               collapseHeroSignal={libraryHeroCollapseSignal}
               onOpenCircle={openCirclePage}
               onPlayEpisode={handlePlayEpisode}
@@ -457,7 +556,7 @@ const App = ({ transportType, region = "" }) => {
         return (
           <CirclePage
             book={selectedBook}
-            studentId={studentId}
+            studentId={resolvedStudentId}
             userName={userName}
             scrollContainerRef={mainRef}
             onBack={() =>
@@ -469,14 +568,17 @@ const App = ({ transportType, region = "" }) => {
         );
       case "progress":
         return (
-          <ProgressSection conversationId={latestConversationId || undefined} />
+          <ProgressSection
+            conversationId={latestConversationId || undefined}
+            userName={userName}
+          />
         );
       case "dot-complete":
         if (!selectedBook) {
           return (
             <LibraryPage
               userName={userName}
-              studentId={studentId}
+              studentId={resolvedStudentId}
               collapseHeroSignal={libraryHeroCollapseSignal}
               onOpenCircle={openCirclePage}
               onPlayEpisode={handlePlayEpisode}
@@ -531,7 +633,7 @@ const App = ({ transportType, region = "" }) => {
               dotTitle={selectedDotTitle}
               currentCharacter={currentCharacter}
               userName={userName}
-              studentId={studentId}
+              studentId={resolvedStudentId}
               region={region}
               showControlButton={false} // hide controls; autostart path
               onDisconnectRequest={disconnectRef}

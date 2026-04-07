@@ -5,7 +5,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 
 ### Voice & Flow Notes
 - `skipOnboarding=1` (or `true`) in the URL opens the app directly on Library; default startup still shows Landing + Onboarding.
-- `preview=vocab-intro|vocab-game|dot-complete|circle-complete|vocab-complete|spelling-intro|spelling-game|spelling-complete` opens the matching hard-to-reach UI directly for development. Optional params: `previewName`, `previewDot`, `previewTotalDots`, `previewBookTitle`.
+- `preview=circle-page|vocab-intro|vocab-game|dot-complete|circle-complete|vocab-complete|spelling-intro|spelling-game|spelling-complete` opens the matching hard-to-reach UI directly for development. `circle-page` should use the current student circle when browse data is available. Optional params: `previewName`, `previewDot`, `previewTotalDots`, `previewBookTitle`, `studentId`.
 - After a reader taps a book anywhere in the Library/Home experience, open the circle page with the episode list; Play goes directly to the chat for the chosen episode.
 - When Pipecat sends `celebration_sent`, the character avatar swaps to its thumbs-up art; only emit that event when the celebration should persist through the rest of the session.
 - Dot completion and phase status live in `dot_progress` (listening/talking statuses + elapsed seconds) and are updated by the frontend during intro/chat.
