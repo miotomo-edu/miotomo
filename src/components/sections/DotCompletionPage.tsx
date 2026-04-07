@@ -114,11 +114,15 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
 
               <div className="mt-6 md:mt-5 lg:mt-8">
                 <h1 className="font-display text-4xl font-bold leading-[0.94] tracking-[-0.05em] text-[#020617] md:max-w-[11ch] md:text-5xl md:leading-[0.88] lg:text-5xl">
-                  {`You completed a Dot, ${firstName}!`}
+                  {remainingDots === 0
+                    ? `Circle complete, ${firstName}!`
+                    : `You completed a Dot, ${firstName}!`}
                 </h1>
-                <p className="mt-3 max-w-[20ch] text-xl leading-8 text-[#020617]/82 md:max-w-[22ch] md:text-2xl md:leading-[2.05rem] lg:max-w-[20ch] lg:text-2xl lg:leading-[2.5rem]">
+                <p className="mt-3 max-w-[20ch] text-xl leading-[1.45] text-[#020617]/82 md:max-w-[22ch] md:text-2xl lg:max-w-[20ch] lg:text-2xl">
                   {remainingMessage}
-                  <span className="ml-1 text-brand-primary">✦</span>
+                  <svg aria-hidden="true" viewBox="0 0 16 16" className="ml-1.5 inline-block h-[0.85em] w-[0.85em] align-[-0.05em] text-brand-primary" fill="currentColor">
+                    <path d="M8 0l1.2 5.5L14 6.5l-4.2 3.2 1.4 5.3L8 12l-3.2 3 1.4-5.3L2 6.5l4.8-1L8 0z" />
+                  </svg>
                 </p>
               </div>
 
@@ -176,7 +180,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
           </div>
 
           <div className="mt-0 shrink-0 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:col-start-1 md:row-start-3 md:mt-0 md:w-full md:max-w-[42rem] md:pb-0">
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="hidden items-center gap-3 md:flex md:gap-4">
               <CircleDotsSymbol
                 totalDots={Math.max(totalDots, 1)}
                 completedDots={completedEpisode}
@@ -211,7 +215,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                     ? onPreviewNextDot(book, nextEpisode)
                     : onPreviewNextDot(book, completedEpisode)
                 }
-                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
+                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
               >
                 {nextEpisode
                   ? `Take a peek at Dot ${nextEpisode}`
@@ -229,7 +233,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
               ? onPreviewNextDot(book, nextEpisode)
               : onPreviewNextDot(book, completedEpisode)
           }
-          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-[#fdba3e] px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97]"
+          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97]"
         >
           {nextEpisode
             ? `Take a peek at Dot ${nextEpisode}`
