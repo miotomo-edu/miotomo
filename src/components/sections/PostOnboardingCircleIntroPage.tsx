@@ -205,13 +205,13 @@ const getDotTags = (
 ): DotTag[] => {
   switch (typeSlug) {
     case "teachtime":
-      return [{ icon: "teach", label: (typeName || "Teach time with Tomo").toUpperCase() }];
+      return [{ icon: "teach", label: typeName || "Teach time with Tomo" }];
     case "debating":
-      return [{ icon: "debate", label: (typeName || "Take a side").toUpperCase() }];
+      return [{ icon: "debate", label: typeName || "Take a side" }];
     case "vocabulary":
-      return [{ icon: "vocabulary", label: "VOCABULARY" }];
+      return [{ icon: "vocabulary", label: "Vocabulary" }];
     case "spelling":
-      return [{ icon: "spelling", label: "SPELLING" }];
+      return [{ icon: "spelling", label: "Spelling" }];
     case "storytelling":
     case "mediation":
     case "talktime":
@@ -220,12 +220,12 @@ const getDotTags = (
         typeName &&
         !["storytelling", "mediation", "talktime"].includes(typeSlug || "")
       ) {
-        return [{ icon: "generic", label: typeName.toUpperCase() }];
+        return [{ icon: "generic", label: typeName }];
       }
       return [
-        { icon: "listen", label: "LISTEN" },
-        { icon: "talk", label: "TALK TIME" },
-        ...(vocabulary ? [{ icon: "vocabulary", label: "VOCABULARY" }] : []),
+        { icon: "listen", label: "Listen" },
+        { icon: "talk", label: "Talk time" },
+        ...(vocabulary ? [{ icon: "vocabulary", label: "Vocabulary" }] : []),
       ];
   }
 };
@@ -388,11 +388,11 @@ const PostOnboardingCircleIntroPage: React.FC<
                 <span className="text-brand-primary">{readerPossessive}</span>{" "}
                 first circle starts here
               </h1>
-              <p className="mt-4 text-lg leading-8 text-white/88">
+              <p className="mt-4 text-lg leading-relaxed text-white/88">
                 A <span className="font-semibold text-brand-primary">Circle</span> is
                 a big topic. Each Circle has smaller episodes called{" "}
                 <span className="font-semibold text-brand-primary">Dots</span>.
-                Complete every Dot and then teach Tomo about the topic.
+                Complete every Dot and then close the Circle by teaching Tomo what you learned.
               </p>
             </div>
           </div>
@@ -414,7 +414,7 @@ const PostOnboardingCircleIntroPage: React.FC<
               className="shrink-0"
             />
             <h2
-              className="font-display flex-1 text-3xl font-bold leading-none tracking-[-0.06em] text-black md:text-4xl"
+              className="font-display flex-1 text-3xl font-bold leading-none tracking-tight text-black md:text-4xl"
             >
               {book.title}
             </h2>
@@ -441,7 +441,7 @@ const PostOnboardingCircleIntroPage: React.FC<
               return (
                 <div
                   key={`${book.id}-dot-${dot.episode}`}
-                  className="w-full rounded-3xl border border-black bg-[#F2F2F2] px-4 py-4 text-left"
+                  className="w-full rounded-3xl border border-black/30 bg-white px-4 py-4 text-left"
                 >
                   <div className="flex items-start gap-4">
                     <CircleDotsSymbol
@@ -459,7 +459,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                       className="mt-1 shrink-0"
                     />
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium uppercase tracking-wider text-slate-500 md:text-base">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-black/50">
                         {tags.map((tag) => (
                           <span
                             key={`${dot.episode}-${tag.label}`}
@@ -470,12 +470,12 @@ const PostOnboardingCircleIntroPage: React.FC<
                           </span>
                         ))}
                       </div>
-                      <div className="mt-2 font-display text-xl font-bold leading-[1.02] text-[#111827] md:text-2xl">
+                      <div className="mt-2 font-display text-xl font-bold leading-[1.02] text-[#020617] md:text-2xl">
                         {dot.title || `Dot ${dot.episode}`}
                       </div>
                       <p className="mt-2 text-lg leading-7 text-black/78">
                         Tomo knows nothing.{" "}
-                        <span className="font-semibold text-[#F1A210]">
+                        <span className="font-semibold text-brand-primary">
                           {userName.trim().split(/\s+/)[0] || "You"}
                         </span>{" "}
                         has accepted the challenge of educating him.
@@ -488,7 +488,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                           aria-hidden="true"
                         />
                         <p className="min-w-0 leading-7">
-                          <span className="text-[#F1A210]">
+                          <span className="text-brand-primary">
                             {userName.trim().split(/\s+/)[0] || "You"}
                           </span>
                           <span>, I am counting on you!</span>
@@ -503,7 +503,7 @@ const PostOnboardingCircleIntroPage: React.FC<
             return (
               <div
                 key={`${book.id}-dot-${dot.episode}`}
-                className="w-full rounded-3xl bg-[#F2F2F2] px-4 py-4 text-left"
+                className="w-full rounded-3xl border border-black/10 bg-white px-4 py-4 text-left"
               >
                 <div className="flex items-start gap-4">
                   <CircleDotsSymbol
@@ -521,7 +521,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                     className="mt-1 shrink-0"
                   />
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium uppercase tracking-wider text-slate-500 md:text-base">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-black/50">
                       {tags.map((tag) => (
                         <span
                           key={`${dot.episode}-${tag.label}`}
@@ -537,7 +537,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-2 font-display text-xl font-bold leading-[1.02] text-[#111827] md:text-2xl">
+                    <div className="mt-2 font-display text-xl font-bold leading-[1.02] text-[#020617] md:text-2xl">
                       {dot.title || `Dot ${dot.episode}`}
                     </div>
                   </div>
@@ -551,7 +551,7 @@ const PostOnboardingCircleIntroPage: React.FC<
           type="button"
           onClick={() => handlePlayDot(firstDot)}
           disabled={!firstDot}
-          className="mt-2 inline-flex min-h-[52px] items-center justify-center rounded-xl bg-[#020617] px-6 py-3 text-lg font-bold text-white transition hover:bg-[#0b1020] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
         >
           Start Dot 1
         </button>

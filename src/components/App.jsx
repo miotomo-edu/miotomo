@@ -68,7 +68,9 @@ const isWithinWindow = (start, end) => {
 const App = ({ transportType, region = "" }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const [activeComponent, setActiveComponent] = useState(() =>
-    previewConfig?.screen === "circle-page"
+    previewConfig?.screen === "first-circle-intro"
+      ? "first-circle-intro"
+      : previewConfig?.screen === "circle-page"
       ? "circle"
       : previewConfig?.screen === "dot-complete" ||
           previewConfig?.screen === "circle-complete"
