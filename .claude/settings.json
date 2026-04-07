@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run code-review-graph update --quiet",
+            "command": "uv run code-review-graph update",
             "timeout": 5000
           }
         ]
@@ -18,8 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run code-review-graph status --json",
-            "timeout": 3000
+            "command": "uv run code-review-graph build",
+            "timeout": 30000
           }
         ]
       }
