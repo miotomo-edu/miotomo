@@ -235,17 +235,17 @@ const getDotTags = (
       return [
         {
           icon: "teach",
-          label: (typeName || "Teach time with Tomo").toUpperCase(),
+          label: typeName || "Teach time with Tomo",
         },
       ];
     case "debating":
       return [
-        { icon: "debate", label: (typeName || "Take a side").toUpperCase() },
+        { icon: "debate", label: typeName || "Take a side" },
       ];
     case "vocabulary":
-      return [{ icon: "vocabulary", label: "VOCABULARY" }];
+      return [{ icon: "vocabulary", label: "Vocabulary" }];
     case "spelling":
-      return [{ icon: "spelling", label: "SPELLING" }];
+      return [{ icon: "spelling", label: "Spelling" }];
     case "storytelling":
     case "mediation":
     case "talktime":
@@ -254,12 +254,12 @@ const getDotTags = (
         typeName &&
         !["storytelling", "mediation", "talktime"].includes(typeSlug || "")
       ) {
-        return [{ icon: "generic", label: typeName.toUpperCase() }];
+        return [{ icon: "generic", label: typeName }];
       }
       return [
-        { icon: "listen", label: "LISTEN" },
-        { icon: "talk", label: "TALK TIME" },
-        ...(vocabulary ? [{ icon: "vocabulary", label: "VOCABULARY" }] : []),
+        { icon: "listen", label: "Listen" },
+        { icon: "talk", label: "Talk time" },
+        ...(vocabulary ? [{ icon: "vocabulary", label: "Vocabulary" }] : []),
       ];
   }
 };
@@ -675,7 +675,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                             {tags.map((tag) => (
                               <span
                                 key={`${episode.episode}-${tag.label}`}
-                                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
+                                className="inline-flex items-center gap-1.5 text-xs font-medium"
                               >
                                 <LineTagIcon
                                   icon={tag.icon}
