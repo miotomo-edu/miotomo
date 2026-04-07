@@ -6,7 +6,6 @@ import { useCircleCover } from "../../hooks/useCircleCover";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import CircleCard from "../features/browse/CircleCard";
 import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
-import WelcomeSection from "./WelcomeSection";
 import { VocabularyIcon } from "../common/icons/VocabularyIcon";
 import { StarIcon } from "../common/icons/StarIcon";
 
@@ -215,17 +214,17 @@ const getDotTags = (
       return [
         {
           icon: "teach",
-          label: (typeName || "Teach time with Tomo").toUpperCase(),
+          label: typeName || "Teach time with Tomo",
         },
       ];
     case "debating":
       return [
-        { icon: "debate", label: (typeName || "Take a side").toUpperCase() },
+        { icon: "debate", label: typeName || "Take a side" },
       ];
     case "vocabulary":
-      return [{ icon: "vocabulary", label: "VOCABULARY" }];
+      return [{ icon: "vocabulary", label: "Vocabulary" }];
     case "spelling":
-      return [{ icon: "spelling", label: "SPELLING" }];
+      return [{ icon: "spelling", label: "Spelling" }];
     case "storytelling":
     case "mediation":
     case "talktime":
@@ -234,12 +233,12 @@ const getDotTags = (
         typeName &&
         !["storytelling", "mediation", "talktime"].includes(typeSlug || "")
       ) {
-        return [{ icon: "generic", label: typeName.toUpperCase() }];
+        return [{ icon: "generic", label: typeName }];
       }
       return [
-        { icon: "listen", label: "LISTEN" },
-        { icon: "talk", label: "TALK TIME" },
-        ...(vocabulary ? [{ icon: "vocabulary", label: "VOCABULARY" }] : []),
+        { icon: "listen", label: "Listen" },
+        { icon: "talk", label: "Talk time" },
+        ...(vocabulary ? [{ icon: "vocabulary", label: "Vocabulary" }] : []),
       ];
   }
 };
@@ -260,9 +259,9 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
     <section className="relative mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
       <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
         <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
-          <span className="text-xl text-brand-primary" aria-hidden="true">
-            ★
-          </span>
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-brand-primary" fill="currentColor">
+            <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.3l-3.7 1.9.7-4.1-3-2.9 4.2-.7z" />
+          </svg>
           <span>Today&apos;s Mission</span>
         </div>
         <div className="mt-5 flex items-center gap-4">
@@ -289,7 +288,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
                 {tags.map((tag) => (
                   <span
                     key={`${episode}-${tag.label}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium"
                   >
                     <LineTagIcon
                       icon={tag.icon}
@@ -960,12 +959,9 @@ const CirclePage: React.FC<CirclePageProps> = ({
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
-      <div className="w-full bg-white px-6">
-        <WelcomeSection userName={userName} />
-      </div>
       <header
         className="sticky top-0 w-full overflow-hidden"
-        style={{ height: "80vh" }}
+        style={{ height: "62vh" }}
       >
         <div className="absolute inset-0 z-0">
           <div
@@ -1045,7 +1041,12 @@ const CirclePage: React.FC<CirclePageProps> = ({
             onPlay={() => handlePlay(nextEpisode.episode)}
           />
         ) : null}
-        <div className="mt-4 flex flex-col">
+        {episodeCount > 0 && (
+          <h2 className="font-display mb-3 text-2xl font-bold text-[#020617]">
+            All Dots
+          </h2>
+        )}
+        <div className="mt-0 flex flex-col">
           {episodes.map((episode, index) => {
             const title = episode.title || `Dot ${episode.episode}`;
             const typeName = typeNamesByEpisode[episode.episode] || "";
@@ -1068,6 +1069,53 @@ const CirclePage: React.FC<CirclePageProps> = ({
             const isCurrent =
               shouldShowTodayMission &&
               nextEpisode?.episode === episode.episode;
+            if (isCurrent) {
+              return (
+                <React.Fragment key={episode.episode}>
+                  <div className="flex w-full items-start gap-4 rounded-3xl px-4 py-4 ring-2 ring-brand-primary/50 bg-brand-primary/[0.06]">
+                    <CircleDotsSymbol
+                      totalDots={episodeCount}
+                      completedDots={completedDotCount}
+                      currentDot={episode.episode}
+                      label={episode.episode}
+                      size={52}
+                      ringColor="#0a1024"
+                      inactiveDotFill="#0a1024"
+                      inactiveDotStroke="#0a1024"
+                      completedDotFill="#FAC304"
+                      completedDotStroke="#FAC304"
+                      labelColor="#0a1024"
+                      className="shrink-0 self-start"
+                    />
+                    <div className="py-1">
+                      <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-2.5 py-0.5 text-xs font-bold text-black">
+                        <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3" fill="currentColor">
+                          <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                        </svg>
+                        Now playing
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-black/50">
+                        {tags.map((tag) => (
+                          <span
+                            key={`${episode.episode}-${tag.label}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-medium"
+                          >
+                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
+                            <span>{tag.label}</span>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="font-display text-2xl font-bold leading-tight text-black">
+                        {title}
+                      </div>
+                    </div>
+                  </div>
+                  {index < episodes.length - 1 && (
+                    <div className="my-3 h-px w-full bg-black/8" />
+                  )}
+                </React.Fragment>
+              );
+            }
             const hasStarted =
               (progressStatus?.listening_status &&
                 progressStatus.listening_status !== "not_started") ||
@@ -1112,7 +1160,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                         {tags.map((tag) => (
                           <span
                             key={`${episode.episode}-${tag.label}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium"
                           >
                             <LineTagIcon
                               icon={tag.icon}
