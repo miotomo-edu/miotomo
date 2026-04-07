@@ -26,6 +26,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    The GitHub Pages workflow expects the same variables (store them as repository secrets). The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
 4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the Daily SDK; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; the default path shows the full onboarding flow and uses Small WebRTC unless `transport=daily` is set.
 5. **Preview hard-to-reach completion screens** – Use `?preview=` for direct UI entry during development:
+   - `?skipOnboarding=1&preview=first-circle-intro`
    - `?skipOnboarding=1&preview=circle-page`
    - `?skipOnboarding=1&preview=vocab-intro`
    - `?skipOnboarding=1&preview=vocab-game`
@@ -35,6 +36,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    - `?skipOnboarding=1&preview=spelling-intro`
    - `?skipOnboarding=1&preview=spelling-game`
    - `?skipOnboarding=1&preview=spelling-complete`
+   - `first-circle-intro` uses the student's demo circle when available
    - `circle-page` uses the current student circle when browse data is available
    - Optional params: `previewName=Sam`, `previewDot=3`, `previewTotalDots=6`, `previewBookTitle=Ocean Secrets`, `studentId=...`
 
