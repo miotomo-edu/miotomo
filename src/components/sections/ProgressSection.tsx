@@ -144,6 +144,13 @@ const ProgressSkeleton: React.FC = () => (
 );
 const weekLetters = ["M", "T", "W", "T", "F", "S", "S"];
 
+const getPossessiveName = (value?: string) => {
+  const firstName = value?.trim().split(/\s+/)[0] ?? "";
+  if (!firstName) return "Your";
+  if (firstName.toLowerCase().endsWith("s")) return `${firstName}'`;
+  return `${firstName}'s`;
+};
+
 const getWordMonogram = (value: string) =>
   value
     .split(/\s+/)
@@ -208,8 +215,9 @@ const getCategoryTone = (name: string) => {
   };
 };
 
-const ProgressSection: React.FC<{ conversationId: string }> = ({
+const ProgressSection: React.FC<{ conversationId: string; userName?: string }> = ({
   conversationId,
+  userName = "",
 }) => {
   const [view, setView] = useState<"week" | "month" | "year">("week");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -255,6 +263,7 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
   }
 
   const { today, week } = mapMetricsToProgress(data.metrics, data.utterances);
+  const progressTitle = `${getPossessiveName(userName)} progress`;
 
   const categoryIcon = (name: string) => {
     if (name === "Cognitive Skills") return (
@@ -285,71 +294,68 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
         <div className="mb-6 rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,235,0.92))] px-5 py-5 shadow-card">
           <div className="flex flex-col gap-5">
             <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#8b6b2f]">
-                learning ledger
-              </p>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h1 className="font-display text-4xl font-bold leading-none text-[#171411]">
-                    Progress
-                  </h1>
-                  <p className="mt-2 max-w-[24rem] text-sm leading-relaxed text-[#6f6256]">
-                    A brighter canvas for Tomo&apos;s learning signals, with
-                    warm cards and dark anchors carrying the contrast.
-                  </p>
-                </div>
-                <div className="rounded-[24px] bg-[#171411] px-4 py-3 text-right text-[#f7f1e8] shadow-elevated">
-                  <div className="text-xs font-semibold uppercase tracking-widest text-[#f0d59d]">
+              <h1 className="font-display text-4xl font-bold leading-none text-[#171411]">
+                {progressTitle}
+              </h1>
+              <div className="mt-3 flex items-start justify-between gap-4">
+                <p className="max-w-[24rem] flex-1 text-sm leading-relaxed text-[#6f6256]">
+                  Stronger story connections, richer vocabulary, and more
+                  confident answers are showing up in the latest sessions.
+                </p>
+                <div className="w-fit shrink-0 rounded-[20px] bg-[#171411] px-3.5 py-2.5 text-right text-[#f7f1e8] shadow-elevated">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-[#f0d59d]">
                     active streak
                   </div>
-                  <div className="mt-1 font-display text-3xl font-bold leading-none text-brand-primary">
+                  <div className="mt-1 font-display text-2xl font-bold leading-none text-brand-primary">
                     {week?.streak ?? 0}
                   </div>
-                  <div className="mt-1 text-xs text-[#d8cdbd]">sessions</div>
+                  <div className="mt-0.5 text-[10px] text-[#d8cdbd]">
+                    sessions
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="inline-flex rounded-full border border-black/10 bg-[#f7f2ea] p-1 shadow-xs">
-                {(["week", "month", "year"] as const).map((v) => {
-                  const isActive = view === v;
-                  return (
-                    <button
-                      key={v}
-                      onClick={() => setView(v)}
-                      className={`cursor-pointer rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest transition duration-200 ${
-                        isActive
-                          ? "bg-[#171411] text-[#f7f1e8] shadow-sm"
-                          : "text-[#7b7264] hover:text-[#171411]"
-                      }`}
-                    >
-                      {v === "week" ? "This Week" : v}
-                    </button>
-                  );
-                })}
-              </div>
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="inline-flex w-fit rounded-full border border-black/10 bg-[#f7f2ea] p-1 shadow-xs">
+            {(["week", "month", "year"] as const).map((v) => {
+              const isActive = view === v;
+              return (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`cursor-pointer rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest transition duration-200 ${
+                    isActive
+                      ? "bg-[#171411] text-[#f7f1e8] shadow-sm"
+                      : "text-[#7b7264] hover:text-[#171411]"
+                  }`}
+                >
+                  {v === "week" ? "This Week" : v}
+                </button>
+              );
+            })}
+          </div>
 
-              <div className="flex flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
-                {weekLetters.map((letter, index) => {
-                  const todayIndex = new Date().getDay();
-                  const mappedIndex = (index + 1) % 7;
-                  const isToday = mappedIndex === todayIndex;
-                  return (
-                    <span
-                      key={`${letter}-${index}`}
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold shadow-xs ring-1 sm:h-11 sm:w-11 sm:text-sm ${
-                        isToday
-                          ? "bg-brand-primary text-[#171411] ring-brand-primary"
-                          : "bg-[#f7f2ea] text-[#8b7d70] ring-black/10"
-                      }`}
-                    >
-                      {letter}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="flex flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
+            {weekLetters.map((letter, index) => {
+              const todayIndex = new Date().getDay();
+              const mappedIndex = (index + 1) % 7;
+              const isToday = mappedIndex === todayIndex;
+              return (
+                <span
+                  key={`${letter}-${index}`}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold shadow-xs ring-1 sm:h-11 sm:w-11 sm:text-sm ${
+                    isToday
+                      ? "bg-brand-primary text-[#171411] ring-brand-primary"
+                      : "bg-[#f7f2ea] text-[#8b7d70] ring-black/10"
+                  }`}
+                >
+                  {letter}
+                </span>
+              );
+            })}
           </div>
         </div>
 
@@ -358,25 +364,10 @@ const ProgressSection: React.FC<{ conversationId: string }> = ({
             {today && (
               <>
                 <CardSection
-                  title={`${conversationDayLabel} Superpower`}
+                  title="Session Highlights"
                   contentClassName="space-y-4 rounded-[30px] bg-[#161316] p-5 text-[#f7f1e8] shadow-hero"
                   titleClassName="text-[#161414]"
                 >
-                  <div className="rounded-[24px] border border-white/10 bg-white/5 px-4 py-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-[#f0d59d]">
-                          Tomo noticed
-                        </div>
-                        <p className="mt-2 max-w-[22rem] text-sm leading-relaxed text-[#d8cdbd]">
-                          {today.superpower.subtitle}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-brand-primary px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[#171411]">
-                        live signal
-                      </div>
-                    </div>
-                  </div>
                   <div className="space-y-3">
                     {today.superpower.skills.map((s, i) => (
                       <div

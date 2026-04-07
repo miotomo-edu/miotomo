@@ -558,7 +558,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   </h1>
                   <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-3xl">
                     <span className="h-3 w-3 shrink-0 rounded-full bg-brand-primary" />
-                    <span className="truncate">{`Dot ${activeEpisodeNumber} · ${activeDotTitle}`}</span>
+                    <span className="truncate">{activeDotTitle}</span>
                   </div>
                 </div>
                 {totalDots > 0 ? (
@@ -636,13 +636,6 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                         ? "Resume"
                         : "Play";
                     const showRowButton = isCompleted || isCurrent;
-                    const durationLabel =
-                      episode.typeSlug !== "teachtime" &&
-                      episode.typeSlug !== "debating" &&
-                      Number.isFinite(episode.duration) &&
-                      (episode.duration ?? 0) > 0
-                        ? formatDuration(episode.duration as number)
-                        : null;
                     const tags = getDotTags(
                       episode.typeSlug,
                       episode.typeName,
@@ -674,14 +667,6 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                         />
 
                         <div className="min-w-0 flex-1">
-                          {isCurrent ? (
-                            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-primary">
-                              Today's mission
-                            </div>
-                          ) : null}
-                          <div className="font-display text-2xl font-bold leading-tight">
-                            {episode.title || `Dot ${episode.episode}`}
-                          </div>
                           <div
                             className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
                               isCurrent ? "text-white/60" : "text-black/50"
@@ -702,50 +687,9 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                               </span>
                             ))}
                           </div>
-                          {durationLabel || isCurrent ? (
-                            <div
-                              className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
-                                isCurrent ? "text-white/60" : "text-black/50"
-                              }`}
-                            >
-                              {durationLabel ? (
-                                <span
-                                  className={`inline-flex items-center gap-1.5 ${
-                                    isCurrent ? "text-white/85" : "text-black"
-                                  }`}
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    viewBox="0 0 24 24"
-                                    className="h-[0.95em] w-[0.95em] shrink-0"
-                                    fill="none"
-                                  >
-                                    <circle
-                                      cx="12"
-                                      cy="13"
-                                      r="7"
-                                      stroke="currentColor"
-                                      strokeWidth="1.7"
-                                    />
-                                    <path
-                                      d="M12 13V9.8M12 13L14.5 14.6"
-                                      stroke="currentColor"
-                                      strokeWidth="1.7"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M9.7 3.5h4.6"
-                                      stroke="currentColor"
-                                      strokeWidth="1.7"
-                                      strokeLinecap="round"
-                                    />
-                                  </svg>
-                                  <span>{durationLabel}</span>
-                                </span>
-                              ) : null}
-                            </div>
-                          ) : null}
+                          <div className="mt-2 font-display text-2xl font-bold leading-tight">
+                            {episode.title || `Dot ${episode.episode}`}
+                          </div>
                         </div>
 
                         {showRowButton ? (

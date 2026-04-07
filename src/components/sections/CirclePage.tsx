@@ -38,7 +38,6 @@ type NextDotCardProps = {
   typeName?: string;
   typeSlug?: string;
   vocabulary?: boolean;
-  durationLabel?: string;
   onPlay: () => void;
 };
 
@@ -253,7 +252,6 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
   typeName,
   typeSlug,
   vocabulary,
-  durationLabel,
   onPlay,
 }) => {
   const tags = getDotTags(typeSlug, typeName, vocabulary);
@@ -284,9 +282,6 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
               className="shrink-0 self-start md:h-[68px] md:w-[68px]"
             />
             <div className="min-w-0">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-primary">
-                Today's mission
-              </div>
               <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
                 {title}
               </div>
@@ -304,38 +299,6 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
                   </span>
                 ))}
               </div>
-              {durationLabel ? (
-                <div className="mt-1 flex items-center gap-1.5 text-sm text-white/72 md:text-base">
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    className="h-[0.95em] w-[0.95em] shrink-0 text-white/85"
-                    fill="none"
-                  >
-                    <circle
-                      cx="12"
-                      cy="13"
-                      r="7"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                    />
-                    <path
-                      d="M12 13V9.8M12 13L14.5 14.6"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M9.7 3.5h4.6"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span>{durationLabel}</span>
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
@@ -1077,16 +1040,6 @@ const CirclePage: React.FC<CirclePageProps> = ({
             completedDots={completedDotCount}
             title={nextEpisode.title || `Dot ${nextEpisode.episode}`}
             typeName={typeNamesByEpisode[nextEpisode.episode] || undefined}
-            durationLabel={(() => {
-              const typeSlug = typeSlugsByEpisode[nextEpisode.episode];
-              const durationValue = durationsByEpisode[nextEpisode.episode];
-              if (typeSlug === "teachtime" || typeSlug === "debating") {
-                return undefined;
-              }
-              return Number.isFinite(durationValue) && durationValue > 0
-                ? formatDuration(durationValue)
-                : undefined;
-            })()}
             typeSlug={typeSlugsByEpisode[nextEpisode.episode] || undefined}
             vocabulary={vocabularyByEpisode[nextEpisode.episode]}
             onPlay={() => handlePlay(nextEpisode.episode)}
@@ -1152,13 +1105,6 @@ const CirclePage: React.FC<CirclePageProps> = ({
                     />
                     <div className="py-1">
                       <div
-                        className={`font-display text-2xl font-bold leading-tight ${
-                          isCurrent ? "text-white" : "text-black"
-                        }`}
-                      >
-                        {title}
-                      </div>
-                      <div
                         className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
                           isCurrent ? "text-white/60" : "text-black/50"
                         }`}
@@ -1184,44 +1130,13 @@ const CirclePage: React.FC<CirclePageProps> = ({
                           </span>
                         ) : null}
                       </div>
-                      {durationLabel ? (
-                        <div
-                          className={`mt-1 flex items-center gap-1.5 text-sm ${
-                            isCurrent ? "text-white/60" : "text-black/50"
-                          }`}
-                        >
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 24"
-                            className={`h-[0.95em] w-[0.95em] shrink-0 ${
-                              isCurrent ? "text-white/85" : "text-black"
-                            }`}
-                            fill="none"
-                          >
-                            <circle
-                              cx="12"
-                              cy="13"
-                              r="7"
-                              stroke="currentColor"
-                              strokeWidth="1.7"
-                            />
-                            <path
-                              d="M12 13V9.8M12 13L14.5 14.6"
-                              stroke="currentColor"
-                              strokeWidth="1.7"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M9.7 3.5h4.6"
-                              stroke="currentColor"
-                              strokeWidth="1.7"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <span>{durationLabel}</span>
-                        </div>
-                      ) : null}
+                      <div
+                        className={`font-display text-2xl font-bold leading-tight ${
+                          isCurrent ? "text-white" : "text-black"
+                        }`}
+                      >
+                        {title}
+                      </div>
                       {showRowButton ? (
                         <div className="mt-3">
                           <button
