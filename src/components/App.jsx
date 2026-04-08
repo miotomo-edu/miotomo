@@ -48,6 +48,13 @@ const shouldSkipOnboarding = () => {
   return value === "1" || value === "true";
 };
 
+const shouldEnableScreenshotMode = () => {
+  if (typeof window === "undefined") return false;
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("screenshotMode");
+  return value === "1" || value === "true";
+};
+
 const isWithinWindow = (start, end) => {
   const now = Date.now();
   if (start) {
@@ -67,6 +74,7 @@ const isWithinWindow = (start, end) => {
 
 const App = ({ transportType, region = "" }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
+  const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
   const [activeComponent, setActiveComponent] = useState(() =>
     previewConfig?.screen === "first-circle-intro"
       ? "first-circle-intro"
@@ -245,6 +253,20 @@ const App = ({ transportType, region = "" }) => {
       window.clearInterval(wakeInterval);
     };
   }, [wakeAnalytics]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return undefined;
+
+    html.classList.toggle("screenshot-mode", screenshotMode);
+    body.classList.toggle("screenshot-mode", screenshotMode);
+
+    return () => {
+      html.classList.remove("screenshot-mode");
+      body.classList.remove("screenshot-mode");
+    };
+  }, [screenshotMode]);
 
   useEffect(() => {
     if (previewConfig?.userName) return;
@@ -711,12 +733,13 @@ const App = ({ transportType, region = "" }) => {
 
   return (
     <div
-      className={`app-mobile-shell ${characterBgClass}`}
+      className={`app-mobile-shell ${screenshotMode ? "app-screenshot-shell" : ""} ${characterBgClass}`}
       style={appShellStyle}
     >
       <Layout
         mainRef={mainRef}
         disableScroll={isInteractiveView}
+        screenshotMode={screenshotMode}
         withBottomNav={
           activeComponent !== "landing" &&
           activeComponent !== "onboarding" &&
@@ -732,7 +755,9 @@ const App = ({ transportType, region = "" }) => {
         {activeComponent === "landing" ? (
           renderComponent()
         ) : (
-          <div className="h-full min-h-0">{renderComponent()}</div>
+          <div className={screenshotMode ? "" : "h-full min-h-0"}>
+            {renderComponent()}
+          </div>
         )}
       </Layout>
 
@@ -757,6 +782,7 @@ const App = ({ transportType, region = "" }) => {
         activeComponent !== "demo-subscribe" && (
           <BottomNavBar
             onItemClick={handleNavigationClick}
+            className={screenshotMode ? "screenshot-mode-bottom-nav" : ""}
             activeComponentName={
               activeComponent === "first-circle-intro" ||
               activeComponent === "dot-complete" ||
