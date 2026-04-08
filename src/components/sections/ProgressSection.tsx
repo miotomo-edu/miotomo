@@ -61,7 +61,7 @@ const CardSection: React.FC<CardSectionProps> = ({
   title,
   icon,
   children,
-  contentClassName = "rounded-[28px] border border-black/10 bg-[#f6efe5] p-5 shadow-card",
+  contentClassName = "rounded-[28px] border border-black/10 bg-[#f6efe5] p-5",
   titleClassName = "text-[#161414]",
 }) => (
   <div className="space-y-3">
@@ -92,7 +92,7 @@ const SkeletonCardSection: React.FC<{ rows?: number }> = ({ rows = 2 }) => (
       <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
       <Shimmer className="h-5 w-36" />
     </div>
-    <div className="space-y-3 rounded-[28px] border border-black/10 bg-[#f6efe5] p-5 shadow-card">
+    <div className="space-y-3 rounded-[28px] border border-black/10 bg-[#f6efe5] p-5">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center justify-between">
           <Shimmer className="h-4 w-2/3" />
@@ -128,7 +128,7 @@ const ProgressSkeleton: React.FC = () => (
             <span className="inline-block h-5 w-1.5 shrink-0 rounded-full bg-black/[0.07]" />
             <Shimmer className="h-5 w-28" />
           </div>
-          <div className="rounded-[28px] bg-[#151316] p-5 shadow-hero">
+          <div className="rounded-[28px] bg-[#151316] p-5">
             <div className="flex items-center gap-3">
               <Shimmer className="h-12 w-12 rounded-2xl bg-white/10" />
               <div className="space-y-1.5">
@@ -291,7 +291,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
       <div className="pointer-events-none absolute inset-x-[-15%] top-[-4rem] h-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(250,195,4,0.22),rgba(250,195,4,0)_72%)] blur-2xl" />
       <div className="pointer-events-none absolute right-[-4rem] top-24 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,236,223,0.9),rgba(244,236,223,0)_70%)]" />
       <div className="relative">
-        <div className="mb-6 rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,235,0.92))] px-5 py-5 shadow-card">
+        <div className="mb-6 rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,235,0.92))] px-5 py-5">
           <div className="flex flex-col gap-5">
             <div className="space-y-2">
               <h1 className="font-display text-4xl font-bold leading-none text-[#171411]">
@@ -302,7 +302,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                   Stronger story connections, richer vocabulary, and more
                   confident answers are showing up in the latest sessions.
                 </p>
-                <div className="w-fit shrink-0 rounded-[20px] bg-[#171411] px-3.5 py-2.5 text-right text-[#f7f1e8] shadow-elevated">
+                <div className="w-fit shrink-0 rounded-[20px] bg-[#171411] px-3.5 py-2.5 text-right text-[#f7f1e8]">
                   <div className="text-[10px] font-semibold uppercase tracking-widest text-[#f0d59d]">
                     active streak
                   </div>
@@ -319,7 +319,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
         </div>
 
         <div className="mb-6 flex flex-col gap-4">
-          <div className="inline-flex w-fit rounded-full border border-black/10 bg-[#f7f2ea] p-1 shadow-xs">
+          <div className="inline-flex w-fit rounded-full border border-black/10 bg-[#f7f2ea] p-1">
             {(["week", "month", "year"] as const).map((v) => {
               const isActive = view === v;
               return (
@@ -328,7 +328,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                   onClick={() => setView(v)}
                   className={`cursor-pointer rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest transition duration-200 ${
                     isActive
-                      ? "bg-[#171411] text-[#f7f1e8] shadow-sm"
+                      ? "bg-[#171411] text-[#f7f1e8]"
                       : "text-[#7b7264] hover:text-[#171411]"
                   }`}
                 >
@@ -346,7 +346,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
               return (
                 <span
                   key={`${letter}-${index}`}
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold shadow-xs ring-1 sm:h-11 sm:w-11 sm:text-sm ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-1 sm:h-11 sm:w-11 sm:text-sm ${
                     isToday
                       ? "bg-brand-primary text-[#171411] ring-brand-primary"
                       : "bg-[#f7f2ea] text-[#8b7d70] ring-black/10"
@@ -365,17 +365,17 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
               <>
                 <CardSection
                   title="Session Highlights"
-                  contentClassName="space-y-4 rounded-[30px] bg-[#161316] p-5 text-[#f7f1e8] shadow-hero"
+                  contentClassName="space-y-4 rounded-[30px] bg-[#161316] p-5 text-[#f7f1e8]"
                   titleClassName="text-[#161414]"
                 >
                   <div className="space-y-3">
                     {today.superpower.skills.map((s, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded-[24px] border border-white/10 bg-white/8 px-4 py-3 shadow-sm backdrop-blur-sm"
+                        className="flex items-center justify-between rounded-[24px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur-sm"
                       >
                         <div className="flex items-center gap-5">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-primary shadow-glow-gold">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-primary">
                             <img
                               src={iconMap[i] ?? bookSquareIcon}
                               alt=""
@@ -401,7 +401,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                     {today.progress.map((p, i) => (
                       <div
                         key={i}
-                        className="rounded-[24px] border border-black/8 bg-white px-4 py-4 shadow-xs"
+                        className="rounded-[24px] border border-black/8 bg-white px-4 py-4"
                       >
                         <div className="mb-2 flex items-center justify-between gap-3">
                           <span className="text-sm font-semibold text-[#352e28]">
@@ -433,9 +433,9 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                       {today.newSkills.map((s, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-3 rounded-[24px] border border-[#f0ddba] bg-[linear-gradient(180deg,#fffaf0,#f9f0de)] px-4 py-4 shadow-xs"
+                          className="flex items-center gap-3 rounded-[24px] border border-[#f0ddba] bg-[linear-gradient(180deg,#fffaf0,#f9f0de)] px-4 py-4"
                         >
-                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#171411] font-display text-sm font-bold text-[#f7f1e8] shadow-sm">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#171411] font-display text-sm font-bold text-[#f7f1e8]">
                             {getWordMonogram(s.word)}
                           </span>
                           <span className="text-sm leading-relaxed text-[#352e28]">
@@ -459,7 +459,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                     ].map((text, index) => (
                       <li
                         key={text}
-                        className="flex items-start gap-3 rounded-[22px] border border-black/8 bg-white px-4 py-3 shadow-xs"
+                        className="flex items-start gap-3 rounded-[22px] border border-black/8 bg-white px-4 py-3"
                       >
                         <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs font-bold text-[#171411]">
                           {index + 1}
@@ -476,11 +476,11 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
               <>
                 <CardSection
                   title="Weekly Streak"
-                  contentClassName="rounded-[30px] bg-[linear-gradient(135deg,#161316_0%,#2a241f_52%,#3b3227_100%)] p-5 text-white shadow-hero"
+                  contentClassName="rounded-[30px] bg-[linear-gradient(135deg,#161316_0%,#2a241f_52%,#3b3227_100%)] p-5 text-white"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#fff2ca] font-display text-3xl font-bold text-[#171411] shadow-elevated">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#fff2ca] font-display text-3xl font-bold text-[#171411]">
                         {week.streak}
                       </span>
                       <div>
@@ -507,7 +507,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                       key={i}
                       title={cat.name}
                       icon={categoryIcon(cat.name)}
-                      contentClassName={`overflow-hidden rounded-[28px] border border-black/10 ${tone.shell} shadow-card`}
+                      contentClassName={`overflow-hidden rounded-[28px] border border-black/10 ${tone.shell}`}
                     >
                       <button
                         type="button"
@@ -545,7 +545,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
                           {cat.subskills.map((s, j) => (
                             <div
                               key={j}
-                              className={`flex items-center justify-between rounded-[24px] ${tone.body} px-4 py-3 shadow-xs ring-1 ring-black/[0.06]`}
+                              className={`flex items-center justify-between rounded-[24px] ${tone.body} px-4 py-3 ring-1 ring-black/[0.06]`}
                             >
                               <div className="flex items-center gap-3">
                                 <span
@@ -587,7 +587,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
         {view === "month" && (
           <div className="space-y-6">
             <CardSection title="Monthly Summary">
-              <div className="rounded-[24px] border border-black/8 bg-white px-4 py-4 shadow-xs">
+              <div className="rounded-[24px] border border-black/8 bg-white px-4 py-4">
                 <p className="text-sm leading-relaxed text-[#6f6256]">
                   Monthly insights will appear here soon.
                 </p>
@@ -599,7 +599,7 @@ const ProgressSection: React.FC<{ conversationId: string; userName?: string }> =
         {view === "year" && (
           <div className="space-y-6">
             <CardSection title="Yearly Summary">
-              <div className="rounded-[24px] border border-black/8 bg-white px-4 py-4 shadow-xs">
+              <div className="rounded-[24px] border border-black/8 bg-white px-4 py-4">
                 <p className="text-sm leading-relaxed text-[#6f6256]">
                   Yearly insights will appear here soon.
                 </p>
