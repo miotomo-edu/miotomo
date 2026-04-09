@@ -527,9 +527,9 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
             </div>
           </div>
 
-          <div className="relative z-20 flex min-h-screen flex-col justify-between px-5 pb-8 pt-6 text-white md:px-8 md:pb-10 md:pt-8">
+          <div className="relative z-20 flex min-h-screen flex-col justify-between pb-8 pt-6 text-white md:pb-10 md:pt-8">
             {showOpenCircle ? (
-              <div className="flex justify-end">
+              <div className="flex justify-end px-5 md:px-8">
                 <button
                   type="button"
                   onClick={() =>
@@ -544,64 +544,48 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
             <div className="flex-1" />
 
-            <div className="border-t border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] px-1 pb-0 pt-7 md:pt-8">
-              <div className="flex items-end justify-between gap-4">
+            <div className="w-full border-t border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
+              <div className="flex items-end justify-between gap-4 px-5 md:px-8">
                 <div className="min-w-0 max-w-[19rem] md:max-w-[28rem]">
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/72 backdrop-blur-md md:text-xs">
-                    <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
-                    Continue talking
-                  </div>
                   <h1
                     className="font-display max-w-[11ch] text-left text-[2.8rem] font-bold leading-[0.94] text-white md:text-[5.25rem]"
                     style={{ textShadow: "rgba(0, 0, 0, 0.42) 0px 10px 28px" }}
                   >
                     {item.book.title}
                   </h1>
-                  <div className="mt-4 max-w-[30rem] text-sm leading-6 text-white/72 md:text-base md:leading-7">
-                    Start where the conversation is waiting, then scroll for the full circle library below.
-                  </div>
                   <div className="mt-5 flex items-center gap-3 text-lg font-medium text-white/90 md:text-[1.75rem]">
-                    <span className="truncate">{activeDotTitle}</span>
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
+                    <span className="truncate">{`Dot ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
                   </div>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-3">
-                  {totalDots > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsExpanded((current) => !current)}
-                      aria-expanded={isExpanded}
-                      aria-label={
-                        isExpanded ? "Hide dots" : `See all ${totalDots} dots`
-                      }
-                      className="flex h-16 w-16 items-center justify-center rounded-full border border-white/28 bg-white/8 text-white backdrop-blur-md transition duration-300 hover:bg-white/14 active:scale-[0.97]"
+                {totalDots > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded((current) => !current)}
+                    aria-expanded={isExpanded}
+                    aria-label={
+                      isExpanded ? "Hide dots" : `See all ${totalDots} dots`
+                    }
+                    className="flex h-16 w-16 items-center justify-center rounded-full border border-white/28 bg-white/8 text-white backdrop-blur-md transition duration-300 hover:bg-white/14 active:scale-[0.97]"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 20 20"
+                      className={`h-6 w-6 transition-transform duration-300 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                      fill="none"
                     >
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 20 20"
-                        className={`h-6 w-6 transition-transform duration-300 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                      >
-                        <path
-                          d="M4.5 7.5L10 13l5.5-5.5"
-                          stroke="currentColor"
-                          strokeWidth="2.4"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  ) : null}
-                  <div className="rounded-[28px] border border-white/16 bg-black/22 px-4 py-3 text-right backdrop-blur-md">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/56 md:text-xs">
-                      Active dot
-                    </div>
-                    <div className="mt-1 font-display text-2xl font-bold leading-none text-white md:text-3xl">
-                      {activeEpisodeNumber}
-                    </div>
-                  </div>
-                </div>
+                      <path
+                        d="M4.5 7.5L10 13l5.5-5.5"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>

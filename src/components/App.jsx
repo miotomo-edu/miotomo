@@ -730,6 +730,7 @@ const App = ({ transportType, region = "" }) => {
                   : activeComponent === "first-circle-intro"
                     ? "bg-[#F4ECDF]"
                     : "";
+  const shouldShowBottomNav = false;
 
   return (
     <div
@@ -740,12 +741,7 @@ const App = ({ transportType, region = "" }) => {
         mainRef={mainRef}
         disableScroll={isInteractiveView}
         screenshotMode={screenshotMode}
-        withBottomNav={
-          activeComponent !== "landing" &&
-          activeComponent !== "onboarding" &&
-          activeComponent !== "first-circle-intro" &&
-          activeComponent !== "demo-subscribe"
-        }
+        withBottomNav={shouldShowBottomNav}
         fullHeight={
           activeComponent === "vocabulary-game" ||
           activeComponent === "parents"
@@ -776,13 +772,9 @@ const App = ({ transportType, region = "" }) => {
         />
       )}
 
-      {activeComponent !== "landing" &&
-        activeComponent !== "onboarding" &&
-        activeComponent !== "first-circle-intro" &&
-        activeComponent !== "demo-subscribe" && (
+      {shouldShowBottomNav && (
           <BottomNavBar
             onItemClick={handleNavigationClick}
-            className={screenshotMode ? "screenshot-mode-bottom-nav" : ""}
             activeComponentName={
               activeComponent === "first-circle-intro" ||
               activeComponent === "dot-complete" ||
@@ -790,7 +782,7 @@ const App = ({ transportType, region = "" }) => {
                 ? "library"
                 : activeComponent
             }
-            className={isInteractiveView ? "backdrop-blur-sm" : ""}
+            className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
           />
         )}
     </div>
