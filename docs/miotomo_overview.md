@@ -155,9 +155,9 @@ Handled categories include: distress disclosure, PII volunteering (name, address
 | Layer | Technology |
 |-------|-----------|
 | Framework | [Pipecat](https://pipecat.ai) (open-source voice AI pipeline) |
-| Speech-to-text | Deepgram (configurable: OpenAI, Google, Groq) |
-| LLM | OpenAI GPT-4o (configurable: Gemini, Groq) |
-| Text-to-speech | Deepgram or OpenAI (configurable) |
+| Speech-to-text | Speechmatics (configurable: Deepgram, OpenAI, Google, Groq) |
+| LLM | OpenAI (configurable: Gemini, Groq) |
+| Text-to-speech | InWorld or Smallest.ai (configurable: hume, cartesia) |
 | Transport | WebRTC via Daily, or SmallWebRTC |
 | Database | Supabase (PostgreSQL) — content, conversations, progress |
 | Deployment | Pipecat Cloud (containerized, per-session bot instances) |

@@ -362,6 +362,13 @@ const isWithinWindow = (start?: string | null, end?: string | null) => {
   return true;
 };
 
+const shouldUnlockCircleDots = () => {
+  if (typeof window === "undefined") return false;
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("unlockCircleDots");
+  return value === "1" || value === "true";
+};
+
 const CirclePage: React.FC<CirclePageProps> = ({
   book,
   studentId,
@@ -411,6 +418,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const coverUrl = useCircleCover(book.thumbnailUrl);
   const { data: browseData } = useBrowseCircles(studentId);
   const progressDot = Math.max(book?.progress ?? 1, 1);
+  const unlockCircleDots = useMemo(() => shouldUnlockCircleDots(), []);
 
   useEffect(() => {
     const target =
@@ -1121,7 +1129,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                 progressStatus.listening_status !== "not_started") ||
               (progressStatus?.talking_status &&
                 progressStatus.talking_status !== "not_started");
-            const showRowButton = isCompleted;
+            const showRowButton = isCompleted || unlockCircleDots;
             const playLabel = isCompleted
               ? "Listen again"
               : hasStarted
