@@ -505,7 +505,6 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
       {currentCircleItem ? (
         <CurrentCircleHero
           studentId={studentId}
-          collapseSignal={collapseHeroSignal}
           item={currentCircleItem}
           onOpenCircle={(book, chapter) =>
             onOpenCircle(book, Math.max(chapter || 1, 1))

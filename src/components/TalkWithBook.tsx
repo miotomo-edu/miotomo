@@ -2340,6 +2340,7 @@ export const TalkWithBook = ({
           chapter={chapter}
           subtitle={dotTitle || undefined}
           useSubtitleAsTitle
+          showBackButton={false}
           isDark
           onBack={() => {
             disconnectHere();

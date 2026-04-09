@@ -132,7 +132,14 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
   const backIcon = (
     <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" aria-hidden="true">
       <path
-        d="M12.5 4.5L7 10l5.5 5.5"
+        d="M5.5 5.5L14.5 14.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14.5 5.5L5.5 14.5"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -152,13 +159,15 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
   const navClassName =
     orientation === "vertical"
-      ? `fixed left-4 top-4 z-[90] flex flex-col items-center rounded-[999px] border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.26)] transition-[width,padding,background-color] duration-200 md:left-6 md:top-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] p-1"}`
+      ? `fixed right-4 top-4 z-[90] flex flex-col items-center rounded-[999px] border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.26)] transition-[width,padding,background-color] duration-200 md:right-6 md:top-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] p-1"}`
       : "bottom-navbar-fixed flex justify-around items-center h-16 z-10";
+  const shouldShowClosedAttentionBump =
+    orientation === "vertical" && !isBackMode && !isExpanded;
 
   return (
     <nav
       ref={navRef}
-      className={`${navClassName} ${className}`}
+      className={`${navClassName} ${shouldShowClosedAttentionBump ? "nav-attention-bump" : ""} ${className}`}
       style={baseStyle}
     >
       {orientation === "vertical" ? (

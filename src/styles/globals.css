@@ -163,6 +163,23 @@ body.screenshot-mode {
   backface-visibility: hidden;
 }
 
+@keyframes navAttentionReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.nav-attention-bump {
+  animation: navAttentionReveal 0.36s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
 /* Speech Bubbles Scroll Element */
 .scrollable-element {
   overflow: auto;
