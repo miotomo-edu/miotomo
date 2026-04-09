@@ -10,8 +10,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  overflow-y: hidden;
-  height: 100%;
+  overflow-y: auto;
+  height: auto;
   min-height: 100dvh;
   width: 100%;
   background: #000;
@@ -29,7 +29,7 @@ body.screenshot-mode {
 }
 
 #root {
-  height: 100%;
+  height: auto;
   min-height: 100dvh;
   background: #000;
   display: flex;
@@ -37,9 +37,7 @@ body.screenshot-mode {
 }
 
 .app-mobile-shell {
-  height: 100dvh;
   min-height: 100dvh;
-  overflow: hidden;
   position: relative;
   width: 100%;
   background: #fff;
@@ -56,7 +54,6 @@ body.screenshot-mode {
 
 .screenshot-mode .app-mobile-shell,
 .app-mobile-shell.app-screenshot-shell {
-  height: auto;
   min-height: 100dvh;
   overflow: visible;
 }
@@ -98,7 +95,7 @@ body.screenshot-mode {
 
 .scroll-container {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior: auto;
 }
 
 .screenshot-mode .scroll-container {
@@ -164,6 +161,23 @@ body.screenshot-mode {
   will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+@keyframes navAttentionReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.nav-attention-bump {
+  animation: navAttentionReveal 0.36s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+  transform-origin: center center;
+  will-change: transform, opacity;
 }
 
 /* Speech Bubbles Scroll Element */

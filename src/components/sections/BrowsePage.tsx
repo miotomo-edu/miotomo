@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import WelcomeSection from "./WelcomeSection";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import BrowseRow, { type BrowseRowItem } from "../features/browse/BrowseRow";
 import CategoryChips from "../features/browse/CategoryChips";
@@ -129,26 +128,13 @@ const BrowseRowSkeleton: React.FC = () => (
 );
 
 const BrowsePageSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-white px-4 pb-24 pt-0">
-    {/* WelcomeSection */}
-    <div className="flex items-center gap-4 pb-4 pt-6">
-      <S className="h-16 w-16 rounded-full" />
-      <S className="h-8 w-40" />
-    </div>
-    {/* CategoryChips */}
-    <div className="flex gap-2 pb-2">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <S key={i} className="h-9 w-20 rounded-full" />
-      ))}
-    </div>
-    {/* Hero card */}
-    <div className="my-4 space-y-4">
-      <S className="h-64 w-full rounded-[32px]" />
-    </div>
-    {/* Browse rows */}
-    <div className="space-y-10">
-      <BrowseRowSkeleton />
-      <BrowseRowSkeleton />
+  <div className="min-h-screen bg-white">
+    <S className="h-screen w-full rounded-none" />
+    <div className="relative z-10 -mt-8 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+      <div className="space-y-10">
+        <BrowseRowSkeleton />
+        <BrowseRowSkeleton />
+      </div>
     </div>
   </div>
 );
@@ -230,7 +216,8 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     const ids = new Set<string>();
     enrichedCircles.forEach((entry) => {
       const totalDots = Number(entry.circle.chapters ?? 0);
-      const completedDots = completedEpisodeCountByBook.get(entry.circle.id) ?? 0;
+      const completedDots =
+        completedEpisodeCountByBook.get(entry.circle.id) ?? 0;
       if (totalDots > 0 && completedDots >= totalDots) {
         ids.add(entry.circle.id);
       }
@@ -258,7 +245,8 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
       const bookId = row.circle_id;
       const episode = Number(row.episode ?? 0);
       const title = typeof row.title === "string" ? row.title.trim() : "";
-      if (!bookId || !Number.isFinite(episode) || episode <= 0 || !title) return;
+      if (!bookId || !Number.isFinite(episode) || episode <= 0 || !title)
+        return;
       const key = `${bookId}:${episode}`;
       if (!map.has(key)) {
         map.set(key, title);
@@ -409,13 +397,20 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
           badge: "REPLAY",
           totalDots: match.circle.chapters ?? 0,
           completedDots:
-            completedEpisodeCountByBook.get(bookId) ?? match.circle.chapters ?? 0,
+            completedEpisodeCountByBook.get(bookId) ??
+            match.circle.chapters ??
+            0,
           highlightCompleted: true,
         };
         return item;
       })
       .filter(Boolean) as BrowseRowItem[];
-  }, [data?.progressRows, enrichedCircles, completedBookIds, completedEpisodeCountByBook]);
+  }, [
+    data?.progressRows,
+    enrichedCircles,
+    completedBookIds,
+    completedEpisodeCountByBook,
+  ]);
 
   const newItems = useMemo(() => {
     return enrichedCircles
@@ -507,24 +502,22 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="space-y-10 px-4 pb-24 pt-0">
-        <div className="space-y-0">
-          <WelcomeSection userName={userName} />
-          {currentCircleItem ? (
-            <CurrentCircleHero
-              studentId={studentId}
-              collapseSignal={collapseHeroSignal}
-              item={currentCircleItem}
-              onOpenCircle={(book, chapter) =>
-                onOpenCircle(book, Math.max(chapter || 1, 1))
-              }
-              onPlay={onPlayEpisode}
-            />
-          ) : null}
-        </div>
+      {currentCircleItem ? (
+        <CurrentCircleHero
+          studentId={studentId}
+          item={currentCircleItem}
+          onOpenCircle={(book, chapter) =>
+            onOpenCircle(book, Math.max(chapter || 1, 1))
+          }
+          onPlay={onPlayEpisode}
+        />
+      ) : null}
 
+      <div className="relative z-10 space-y-10 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#020617]">Explore Circles</h2>
+          <h2 className="font-display text-2xl font-bold text-[#020617]">
+            Explore Circles
+          </h2>
           <div className="mt-2">
             <CategoryChips />
           </div>

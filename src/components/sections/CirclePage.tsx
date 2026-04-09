@@ -369,6 +369,19 @@ const shouldUnlockCircleDots = () => {
   return value === "1" || value === "true";
 };
 
+const getPageScrollTarget = (
+  scrollContainerRef?: React.RefObject<HTMLElement>,
+) => {
+  const element = scrollContainerRef?.current;
+  if (
+    element instanceof HTMLElement &&
+    element.scrollHeight - element.clientHeight > 8
+  ) {
+    return element;
+  }
+  return window;
+};
+
 const CirclePage: React.FC<CirclePageProps> = ({
   book,
   studentId,
@@ -421,10 +434,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const unlockCircleDots = useMemo(() => shouldUnlockCircleDots(), []);
 
   useEffect(() => {
-    const target =
-      scrollContainerRef?.current instanceof HTMLElement
-        ? scrollContainerRef.current
-        : window;
+    const target = getPageScrollTarget(scrollContainerRef);
     if (target && "scrollTo" in target) {
       target.scrollTo({ top: 0, left: 0, behavior: "auto" });
     } else if (target instanceof HTMLElement) {
@@ -637,10 +647,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   }, [studentId, book?.id]);
 
   useEffect(() => {
-    const target =
-      scrollContainerRef?.current instanceof HTMLElement
-        ? scrollContainerRef.current
-        : window;
+    const target = getPageScrollTarget(scrollContainerRef);
     let rafId = null;
 
     const updateScale = () => {
@@ -985,31 +992,6 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(244,238,224,0)_0%,rgba(27,29,22,0.08)_42%,rgba(12,14,12,0.86)_100%)]" />
         <div className="relative z-20 flex h-full flex-col px-6 py-6">
-          <div className="flex items-start">
-            <button
-              onClick={onBack}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-white/14 text-white backdrop-blur-md transition-colors duration-200 ease-in-out hover:bg-white/22"
-              aria-label="Back"
-              type="button"
-              style={{ flexShrink: 0 }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15.8327 10L4.16602 10.0003L9.99935 4.16699L4.16602 10.0003L9.99935 15.8337"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
           <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
             <h1
               className="font-display text-left text-5xl font-bold leading-[1.02] md:text-5xl"
