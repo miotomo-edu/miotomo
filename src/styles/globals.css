@@ -113,11 +113,12 @@ body.screenshot-mode {
   outline-offset: 2px;
 }
 
-/* Accessibility: respect reduced motion */
+/* Accessibility: respect reduced motion — stop looping animations but keep UI transitions */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation: none !important;
-    transition: none !important;
   }
 }
 

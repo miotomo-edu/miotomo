@@ -160,7 +160,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
   const navClassName =
     orientation === "vertical"
-      ? `fixed right-4 z-[90] flex flex-col items-center rounded-[999px] border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.26)] transition-[width,padding,background-color] duration-200 md:right-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] p-1"}`
+      ? `fixed right-4 z-[90] flex flex-col items-center rounded-[999px] border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.26)] transition-[width,padding,background-color] duration-200 md:right-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] h-[50px] p-1"}`
       : "bottom-navbar-fixed flex justify-around items-center h-16 z-10";
   const shouldShowClosedAttentionBump =
     orientation === "vertical" && !isBackMode && !isExpanded;
@@ -245,7 +245,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 return !current;
               })
             }
-            className={`flex w-full cursor-pointer flex-col items-center justify-center transition duration-200 hover:bg-white/[0.08] ${isExpanded ? isCompactExpanded ? "rounded-[18px] px-1 py-1.5" : "rounded-[18px] px-1.5 py-2" : "aspect-square rounded-full px-0.5 py-1"}`}
+            className={`flex w-full cursor-pointer flex-col items-center justify-center transition duration-200 hover:bg-white/[0.08] ${isExpanded ? isCompactExpanded ? "rounded-[18px] px-1 py-1.5" : "rounded-[18px] px-1.5 py-2" : "flex-1 rounded-full"}`}
             aria-expanded={isExpanded}
             aria-label={isExpanded ? "Collapse navigation" : "Expand navigation"}
           >
