@@ -10,24 +10,20 @@ const Layout = ({
   fullHeight = false,
   mainClassName = "",
 }) => {
-  const containerClassName = screenshotMode
-    ? "flex min-h-screen flex-col"
-    : "flex flex-col flex-1 h-full min-h-0";
-  const scrollBehaviorClassName = screenshotMode
-    ? "overflow-visible touch-auto"
-    : disableScroll
-      ? "overflow-hidden touch-none"
-      : "overflow-y-auto touch-pan-y";
+  const containerClassName = "flex min-h-screen flex-col";
+  const scrollBehaviorClassName = disableScroll
+    ? "h-screen overflow-hidden touch-none"
+    : "overflow-visible touch-auto";
   const bottomNavClassName =
     withBottomNav && !screenshotMode ? "with-bottom-nav" : "";
   const fullHeightClassName =
-    fullHeight && !screenshotMode ? "flex h-full flex-col" : "";
+    fullHeight && !disableScroll ? "flex min-h-screen flex-col" : "";
 
   return (
     <div className={containerClassName}>
       <main
         ref={mainRef}
-        className={`scroll-container safe-area-top ${bottomNavClassName} ${fullHeightClassName} ${screenshotMode ? "min-h-screen" : "flex-1 min-h-0"} ${scrollBehaviorClassName} ${mainClassName}`}
+        className={`scroll-container safe-area-top ${bottomNavClassName} ${fullHeightClassName} ${disableScroll ? "" : "min-h-screen"} ${scrollBehaviorClassName} ${mainClassName}`}
       >
         {children}
       </main>

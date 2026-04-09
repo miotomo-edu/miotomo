@@ -72,6 +72,13 @@ const isWithinWindow = (start, end) => {
   return true;
 };
 
+const getPageScrollTop = () => {
+  if (typeof window === "undefined") return 0;
+  const scrollingElement =
+    document.scrollingElement ?? document.documentElement;
+  return window.scrollY || scrollingElement.scrollTop || 0;
+};
+
 const App = ({ transportType, region = "" }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
@@ -355,10 +362,7 @@ const App = ({ transportType, region = "" }) => {
     (book, chapterValue) => {
       if (!book) return;
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
-      const scrollTarget = mainRef.current;
-      if (scrollTarget instanceof HTMLElement) {
-        scrollPositionsRef.current[activeComponent] = scrollTarget.scrollTop;
-      }
+      scrollPositionsRef.current[activeComponent] = getPageScrollTop();
       setSelectedBook(book);
       setSelectedChapter(resolvedChapter);
       setSelectedDotTypeSlug(null);
@@ -505,24 +509,14 @@ const App = ({ transportType, region = "" }) => {
   useEffect(() => {
     if (!isInteractiveView) return;
 
-    const scrollTargets = [mainRef.current, window, document.documentElement];
-
-    scrollTargets.forEach((target) => {
-      if (!target) return;
-      if ("scrollTo" in target) {
-        target.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      } else if (target instanceof HTMLElement) {
-        target.scrollTop = 0;
-      }
-    });
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [isInteractiveView, mainRef]);
 
   useEffect(() => {
     if (activeComponent === "circle" || isInteractiveView) return;
-    const scrollTarget = mainRef.current;
     const saved = scrollPositionsRef.current[activeComponent];
-    if (scrollTarget instanceof HTMLElement && typeof saved === "number") {
-      scrollTarget.scrollTo({ top: saved, left: 0, behavior: "auto" });
+    if (typeof saved === "number") {
+      window.scrollTo({ top: saved, left: 0, behavior: "auto" });
     }
   }, [activeComponent, isInteractiveView]);
 
@@ -730,7 +724,20 @@ const App = ({ transportType, region = "" }) => {
                   : activeComponent === "first-circle-intro"
                     ? "bg-[#F4ECDF]"
                     : "";
-  const shouldShowBottomNav = false;
+  const shouldShowBottomNav =
+    activeComponent !== "landing" &&
+    activeComponent !== "onboarding" &&
+    activeComponent !== "first-circle-intro" &&
+    activeComponent !== "demo-subscribe";
+  const navMode =
+    isInteractiveView || activeComponent === "circle" ? "back" : "navigation";
+  const handleFloatingNavBack = () => {
+    if (isInteractiveView) {
+      handleNavigationClick("circle");
+      return;
+    }
+    handleNavigationClick("library");
+  };
 
   return (
     <div
@@ -751,7 +758,7 @@ const App = ({ transportType, region = "" }) => {
         {activeComponent === "landing" ? (
           renderComponent()
         ) : (
-          <div className={screenshotMode ? "" : "h-full min-h-0"}>
+          <div className={isInteractiveView ? "h-full min-h-0" : ""}>
             {renderComponent()}
           </div>
         )}
@@ -775,6 +782,10 @@ const App = ({ transportType, region = "" }) => {
       {shouldShowBottomNav && (
           <BottomNavBar
             onItemClick={handleNavigationClick}
+            onBackClick={handleFloatingNavBack}
+            scrollContainerRef={mainRef}
+            orientation="vertical"
+            mode={navMode}
             activeComponentName={
               activeComponent === "first-circle-intro" ||
               activeComponent === "dot-complete" ||
