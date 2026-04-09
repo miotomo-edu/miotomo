@@ -128,15 +128,13 @@ const BrowseRowSkeleton: React.FC = () => (
 );
 
 const BrowsePageSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-white px-4 pb-24 pt-0">
-    {/* Hero card */}
-    <div className="my-4 space-y-4">
-      <S className="h-64 w-full rounded-[32px]" />
-    </div>
-    {/* Browse rows */}
-    <div className="space-y-10">
-      <BrowseRowSkeleton />
-      <BrowseRowSkeleton />
+  <div className="min-h-screen bg-white">
+    <S className="h-screen w-full rounded-none" />
+    <div className="relative z-10 -mt-8 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+      <div className="space-y-10">
+        <BrowseRowSkeleton />
+        <BrowseRowSkeleton />
+      </div>
     </div>
   </div>
 );
@@ -504,21 +502,19 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="space-y-10 px-4 pb-24 pt-0">
-        <div className="space-y-0">
-          {currentCircleItem ? (
-            <CurrentCircleHero
-              studentId={studentId}
-              collapseSignal={collapseHeroSignal}
-              item={currentCircleItem}
-              onOpenCircle={(book, chapter) =>
-                onOpenCircle(book, Math.max(chapter || 1, 1))
-              }
-              onPlay={onPlayEpisode}
-            />
-          ) : null}
-        </div>
+      {currentCircleItem ? (
+        <CurrentCircleHero
+          studentId={studentId}
+          collapseSignal={collapseHeroSignal}
+          item={currentCircleItem}
+          onOpenCircle={(book, chapter) =>
+            onOpenCircle(book, Math.max(chapter || 1, 1))
+          }
+          onPlay={onPlayEpisode}
+        />
+      ) : null}
 
+      <div className="relative z-10 space-y-10 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
         <div>
           <h2 className="font-display text-2xl font-bold text-[#020617]">
             Explore Circles
