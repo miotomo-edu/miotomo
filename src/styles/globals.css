@@ -113,11 +113,14 @@ body.screenshot-mode {
   outline-offset: 2px;
 }
 
-/* Accessibility: respect reduced motion — stop looping animations but keep UI transitions */
+/* Accessibility: stop only high-motion looping animations, keep UI transitions and subtle hints */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  .mic-pulse,
+  .hero-play-pulse,
+  .nav-attention-bump,
+  .animate-spin,
+  .animate-ping,
+  .slow-spin {
     animation: none !important;
   }
 }

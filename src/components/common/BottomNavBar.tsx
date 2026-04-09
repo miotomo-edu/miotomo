@@ -42,16 +42,16 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
       return undefined;
     }
 
-    const handlePointerDown = (event: PointerEvent) => {
+    const handleClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (navRef.current?.contains(target)) return;
       setIsExpanded(false);
     };
 
-    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("click", handleClick);
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("click", handleClick);
     };
   }, [isExpanded, orientation]);
 
