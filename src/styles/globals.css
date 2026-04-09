@@ -115,14 +115,9 @@ body.screenshot-mode {
 
 /* Accessibility: respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in,
-  .mic-pulse,
-  .slow-spin {
-    animation: none;
-  }
   * {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
   }
 }
 
