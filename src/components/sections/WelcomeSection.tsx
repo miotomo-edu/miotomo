@@ -19,16 +19,10 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => (
             className="rounded-full object-cover ring-4 ring-brand-primary/60"
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
           />
-          <span
-            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-bold shadow-sm"
-            aria-label="Star"
-          >
-            ★
-          </span>
         </div>
         <div className="flex flex-col justify-center">
           <h1 className="font-display text-3xl font-bold leading-none md:text-5xl">
-            Hi, {userName}!
+            {userName}
           </h1>
         </div>
       </div>

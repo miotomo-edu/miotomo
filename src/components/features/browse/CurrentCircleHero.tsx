@@ -239,9 +239,7 @@ const getDotTags = (
         },
       ];
     case "debating":
-      return [
-        { icon: "debate", label: typeName || "Take a side" },
-      ];
+      return [{ icon: "debate", label: typeName || "Take a side" }];
     case "vocabulary":
       return [{ icon: "vocabulary", label: "Vocabulary" }];
     case "spelling":
@@ -488,9 +486,6 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   return (
     <section>
-      <p className="font-display mb-3 text-2xl font-bold text-[#020617]">
-        Continue talking
-      </p>
       <div className="relative overflow-hidden rounded-[32px] bg-[#efe6da] shadow-stage ring-1 ring-black/10">
         <div className="relative min-h-[560px] overflow-hidden md:min-h-[700px]">
           {coverUrl ? (
@@ -557,8 +552,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     {item.book.title}
                   </h1>
                   <div className="mt-5 flex items-center gap-3 text-xl font-medium text-white/90 md:text-3xl">
-                    <span className="h-3 w-3 shrink-0 rounded-full bg-brand-primary" />
-                    <span className="truncate">{activeDotTitle}</span>
+                    <span className="truncate">Dot 1: {activeDotTitle}</span>
                   </div>
                 </div>
                 {totalDots > 0 ? (
