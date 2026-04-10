@@ -20,7 +20,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
   lightBackground = false,
 }) => {
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col overflow-hidden bg-black">
+    <div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-black">
       <div className="absolute inset-0">
         <img
           src={backgroundImage}
@@ -37,7 +37,7 @@ const PreGameScreen: React.FC<PreGameScreenProps> = ({
         )}
       </div>
 
-      <div className="relative z-10 flex h-full w-full flex-1 flex-col items-center justify-end px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
+      <div className="relative z-10 flex min-h-screen w-full flex-1 flex-col items-center justify-end px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(3rem+env(safe-area-inset-top))] text-center">
         <div className="flex w-full max-w-xl flex-col items-center gap-4">
           <h1
             className={`font-display max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl md:text-6xl ${

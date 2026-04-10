@@ -665,7 +665,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-white text-[#020617]">
+      <div className="flex min-h-screen w-full items-center justify-center bg-white text-[#020617]">
         <span className="text-sm uppercase tracking-super text-[#020617]/60">
           Loading vocab...
         </span>
@@ -675,7 +675,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (loadError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
         <span className="text-sm uppercase tracking-super text-[#020617]/60">
           {loadError}
         </span>
@@ -685,7 +685,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (!targetWord) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
         <span className="text-sm uppercase tracking-super text-[#020617]/60">
           No vocab words available.
         </span>
@@ -695,7 +695,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   if (showCompletionScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
         <div className="flex max-w-2xl flex-col items-center gap-5">
           <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
             Vocabulary Complete
@@ -723,7 +723,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-3xl items-center gap-3">
         <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-xl">
           WORDS

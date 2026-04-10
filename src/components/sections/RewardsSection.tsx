@@ -12,7 +12,7 @@ const RewardsSection: React.FC<RewardsSectionProps> = ({
   previewScreen,
 }) => {
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
+    <div className="flex min-h-screen w-full flex-col">
       <VisualVocabularyGame
         onComplete={onComplete}
         previewMode={previewScreen ?? null}

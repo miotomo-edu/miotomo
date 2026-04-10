@@ -304,7 +304,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
             <div className="flex-1" />
 
-            <div className="w-full border-t border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
+            <div className="w-full border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
               <div className="px-5 md:px-8">
                 <button
                   type="button"

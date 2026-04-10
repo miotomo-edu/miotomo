@@ -528,7 +528,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-white text-[#020617]">
+      <div className="flex min-h-screen w-full items-center justify-center bg-white text-[#020617]">
         <span className="text-sm uppercase tracking-super text-[#020617]/60">
           Loading spelling...
         </span>
@@ -538,7 +538,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (loadError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
         <span className="text-sm uppercase tracking-super text-[#020617]/60">
           {loadError}
         </span>
@@ -548,7 +548,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (!targetWord) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-white text-[#020617]">
         <span className="text-sm uppercase tracking-super text-[#020617]/60">
           No spelling words available.
         </span>
@@ -558,7 +558,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (showEndScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-6 bg-white px-6 py-10 text-center text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-6 bg-white px-6 py-10 text-center text-[#020617]">
         <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
           Flow Complete
         </div>
@@ -574,7 +574,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
 
   if (isCompletionPreview || showCompletionScreen) {
     return (
-      <div className="flex h-full min-h-full w-full flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-8 bg-white px-6 py-10 text-center text-[#020617]">
         <div className="flex max-w-2xl flex-col items-center gap-5">
           <div className="text-xs font-semibold uppercase tracking-super text-[#020617]/60">
             Spelling Complete
@@ -607,7 +607,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-1 flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
       <div className="relative flex w-full max-w-3xl items-center gap-3">
         <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-2xl">
           WORDS

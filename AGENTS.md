@@ -5,20 +5,24 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 
 ### Voice & Flow Notes
 - `skipOnboarding=1` (or `true`) in the URL opens the app directly on Library; default startup still shows Landing + Onboarding.
-- `screenshotMode=1` (or `true`) in the URL disables the in-app mobile scroller and makes the document itself scroll, which is useful for Chrome DevTools full-page screenshots.
+- The app now uses document-level page scrolling by default; `TalkWithBook` remains the main intentionally self-contained screen.
+- `screenshotMode=1` (or `true`) keeps the screenshot-friendly document-scrolling path for Chrome DevTools full-page captures.
 - `unlockCircleDots=1` (or `true`) in the URL exposes Play/Resume buttons for incomplete dots on `CirclePage`, even when they are not the current mission dot. Default progression remains linear when the flag is absent.
 - `preview=first-circle-intro|circle-page|vocab-intro|vocab-game|dot-complete|circle-complete|vocab-complete|spelling-intro|spelling-game|spelling-complete` opens the matching hard-to-reach UI directly for development. `first-circle-intro` should use the student's demo circle when available, and `circle-page` should use the current student circle when browse data is available. Optional params: `previewName`, `previewDot`, `previewTotalDots`, `previewBookTitle`, `studentId`.
 - After a reader taps a book anywhere in the Library/Home experience, open the circle page with the episode list; Play goes directly to the chat for the chosen episode.
+- Navigation is a floating top-right rail, closed by default. Tapping it expands the icon stack with labels; once expanded, it compacts after the user scrolls. On `CirclePage` and `TalkWithBook`, the rail becomes a floating close control instead of the nav list.
 - When Pipecat sends `celebration_sent`, the character avatar swaps to its thumbs-up art; only emit that event when the celebration should persist through the rest of the session.
 - Dot completion and phase status live in `dot_progress` (listening/talking statuses + elapsed seconds) and are updated by the frontend during intro/chat.
 - Intro audio is played locally; the avatar is not clickable during intro playback. Intro controls are enabled during intro and chat-paused, and disabled during chat-active.
 - Avatar pause/resume sends RTVI control messages (`pauseListening` with optional `reason`/`max_pause_s`, `resumeListening` on resume).
+- Pipecat teardown now runs best-effort on `pagehide`. If `VITE_PIPECAT_DISCONNECT_BEACON_URL` is set, the frontend also sends a session-ended beacon payload on page close/navigation; otherwise it falls back to `${VITE_DAILY_PROXY_URL}/disconnect-pipecat`.
 - The browse/home experience is built from `circles_catalog` + `books`, with `dot_progress` powering the Continue row.
+- The full-screen Browse hero no longer expands an inline dot list. The title area opens the current circle page, and the footer includes a down-chevron hint to signal there is more content below.
 - Vocabulary/Spelling games show `PreGameScreen` before gameplay; the CTA transitions into the game flow.
 - Warm-up pings run through `useAnalytics.wakeAnalytics()`: they call analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) on app start, every 45 seconds, and again on `BotReady` to reduce Render/edge cold starts.
 
 ## Build, Test, and Development Commands
-- `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport, `?skipOnboarding=1` to jump straight to Library for QA, `?preview=...` to jump straight to completion screens while styling/debugging them, `?screenshotMode=1` to force document-level scrolling for screenshots, and `?unlockCircleDots=1` to bypass Circle page row-level dot locking for QA.
+- `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport, `?skipOnboarding=1` to jump straight to Library for QA, `?preview=...` to jump straight to completion screens while styling/debugging them, `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit, and `?unlockCircleDots=1` to bypass Circle page row-level dot locking for QA.
 - `npm run build` – Produce the optimized bundle in `dist/`; this must succeed before a PR leaves draft.
 - `npm run preview` – Serve the built assets locally to smoke-test WebRTC flows.
 - `npm run lint` – Run ESLint over `ts,tsx`; fix or explain all findings.

@@ -9,6 +9,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePipecatClient } from "@pipecat-ai/client-react";
 import { RTVIEvent, RTVIMessage } from "@pipecat-ai/client-js";
 
+let activeSessionMetadata = null;
+
+const getRoomNameFromUrl = (roomUrl) => {
+  if (typeof roomUrl !== "string" || roomUrl.length === 0) return "";
+  try {
+    const parsed = new URL(roomUrl);
+    return parsed.pathname.replace(/^\/+/, "").split("/")[0] || "";
+  } catch (err) {
+    console.warn("Failed to parse room url:", err);
+    return "";
+  }
+};
+
 /**
  * Build the Small WebRTC offer URL from your current app state.
  * You can replace this with a server-side session setup if preferred.
@@ -58,10 +71,132 @@ const resolveEnvVar = (key) => {
   return value;
 };
 
+const resolveOptionalEnvVar = (key) => {
+  const value = import.meta.env?.[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+};
+
+const stopClientTracks = (client) => {
+  if (!client) return;
+  try {
+    const tracks = client.tracks();
+    if (!tracks) return;
+    console.log("🎤 Stopping media tracks...");
+    Object.values(tracks).forEach((track) => {
+      if (track && typeof track.stop === "function") {
+        try {
+          track.stop();
+        } catch (err) {
+          console.warn("Error stopping individual track:", err);
+        }
+      }
+    });
+  } catch (err) {
+    console.warn("Error stopping tracks:", err);
+  }
+};
+
+const notifySessionEnded = (reason = "pagehide") => {
+  if (activeSessionMetadata?.transportType !== "daily") {
+    return false;
+  }
+  const beaconUrl = activeSessionMetadata?.disconnectBeaconUrl;
+  if (!beaconUrl || typeof navigator === "undefined") return false;
+
+  const payload = JSON.stringify({
+    reason,
+    student_id: activeSessionMetadata.studentId || "",
+    student_name: activeSessionMetadata.userName || "",
+    chapter: activeSessionMetadata.chapter ?? "",
+    region: activeSessionMetadata.region || "",
+    room_name: activeSessionMetadata.roomName || "",
+    participant_id: activeSessionMetadata.participantId || "",
+    book_id: activeSessionMetadata.selectedBook?.id ?? "",
+    book: activeSessionMetadata.selectedBook?.title ?? "",
+    transport: activeSessionMetadata.transportType || "",
+    prompt:
+      activeSessionMetadata.botConfig?.metadata?.character?.prompt ?? "",
+    character_name:
+      activeSessionMetadata.botConfig?.metadata?.character?.name ?? "",
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const blob = new Blob([payload], { type: "application/json" });
+    if (navigator.sendBeacon(beaconUrl, blob)) {
+      return true;
+    }
+  } catch (err) {
+    console.warn("disconnect beacon failed:", err);
+  }
+
+  try {
+    fetch(beaconUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {});
+    return true;
+  } catch (err) {
+    console.warn("disconnect keepalive failed:", err);
+  }
+
+  return false;
+};
+
+const getDailyCallClient = (client) => {
+  const transport = client?.transport;
+  if (!transport || typeof transport !== "object") return null;
+  const dailyCallClient = transport.dailyCallClient;
+  return dailyCallClient && typeof dailyCallClient === "object"
+    ? dailyCallClient
+    : null;
+};
+
+const updateActiveDailyParticipant = (client) => {
+  if (!activeSessionMetadata) return null;
+  const dailyCallClient = getDailyCallClient(client);
+  if (!dailyCallClient || typeof dailyCallClient.participants !== "function") {
+    return null;
+  }
+
+  try {
+    const participants = dailyCallClient.participants();
+    const localParticipant = participants?.local;
+    const participantId =
+      localParticipant?.session_id || localParticipant?.user_id || "";
+
+    if (participantId) {
+      activeSessionMetadata = {
+        ...activeSessionMetadata,
+        participantId,
+      };
+      if (typeof window !== "undefined") {
+        window.__miotomoDailySession = {
+          roomName: activeSessionMetadata.roomName || "",
+          participantId,
+        };
+      }
+      console.log("📍 Daily session captured", {
+        roomName: activeSessionMetadata.roomName || "",
+        participantId,
+      });
+      return participantId;
+    }
+  } catch (err) {
+    console.warn("Failed to inspect Daily participants:", err);
+  }
+
+  return null;
+};
+
 export function usePipecatConnection(options = {}) {
   const client = usePipecatClient();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [dailyRoomName, setDailyRoomName] = useState("");
+  const [dailyParticipantId, setDailyParticipantId] = useState("");
   const connectingRef = useRef(false); // Track in-progress connection attempts
   const disconnectingRef = useRef(false); // Track in-progress disconnection
   const clientReadySentRef = useRef(false);
@@ -94,6 +229,32 @@ export function usePipecatConnection(options = {}) {
     });
   }, [client]);
 
+  useEffect(() => {
+    if (!client) return undefined;
+
+    const handlePageHide = () => {
+      if (!activeSessionMetadata) return;
+      stopClientTracks(client);
+      notifySessionEnded("pagehide");
+      try {
+        const disconnectPromise = client.disconnect?.();
+        if (
+          disconnectPromise &&
+          typeof disconnectPromise.catch === "function"
+        ) {
+          disconnectPromise.catch(() => {});
+        }
+      } catch (err) {
+        console.warn("Pagehide disconnect failed:", err);
+      }
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [client]);
+
   // Basic connection state listeners (keep other event bindings in your pages)
   useEffect(() => {
     if (!client) return;
@@ -103,6 +264,13 @@ export function usePipecatConnection(options = {}) {
       setIsConnected(true);
       setIsConnecting(false);
       connectingRef.current = false;
+      const capturedParticipantId = updateActiveDailyParticipant(client);
+      if (activeSessionMetadata?.roomName) {
+        setDailyRoomName(activeSessionMetadata.roomName);
+      }
+      if (capturedParticipantId) {
+        setDailyParticipantId(capturedParticipantId);
+      }
       if (client.state !== "ready") {
         sendClientReady();
       } else {
@@ -118,6 +286,9 @@ export function usePipecatConnection(options = {}) {
       disconnectingRef.current = false;
       clientReadySentRef.current = false;
       pendingMessagesRef.current = [];
+      activeSessionMetadata = null;
+      setDailyRoomName("");
+      setDailyParticipantId("");
     };
 
     const onConnecting = () => {
@@ -127,6 +298,13 @@ export function usePipecatConnection(options = {}) {
     };
 
     const onTransportStateChanged = (state) => {
+      const capturedParticipantId = updateActiveDailyParticipant(client);
+      if (activeSessionMetadata?.roomName) {
+        setDailyRoomName(activeSessionMetadata.roomName);
+      }
+      if (capturedParticipantId) {
+        setDailyParticipantId(capturedParticipantId);
+      }
       if (state === "connected") {
         sendClientReady();
       }
@@ -212,6 +390,24 @@ export function usePipecatConnection(options = {}) {
           dailyProxyUrl ?? resolveEnvVar("VITE_DAILY_PROXY_URL");
         const resolvedSmallWebRTCUrl =
           smallWebRTCOfferUrlBase ?? resolveEnvVar("VITE_SMALL_WEBRTC_URL");
+        const disconnectBeaconUrl =
+          resolveOptionalEnvVar("VITE_PIPECAT_DISCONNECT_BEACON_URL") ??
+          (resolvedDailyProxyUrl
+            ? `${resolvedDailyProxyUrl}/disconnect-pipecat`
+            : null);
+
+        activeSessionMetadata = {
+          botConfig,
+          userName,
+          studentId,
+          selectedBook,
+          chapter,
+          region,
+          transportType: botConfig?.transportType ?? "",
+          disconnectBeaconUrl,
+          roomName: "",
+          participantId: "",
+        };
 
         if (botConfig?.transportType === "daily") {
           // 1) Create Daily room/token via your proxy
@@ -238,10 +434,18 @@ export function usePipecatConnection(options = {}) {
             throw new Error(errData.error || `Daily HTTP ${response.status}`);
           }
           const { room_url, token } = await response.json();
+          const roomName = getRoomNameFromUrl(room_url);
+          activeSessionMetadata = {
+            ...activeSessionMetadata,
+            roomUrl: room_url,
+            roomName,
+          };
+          setDailyRoomName(roomName);
           // 2) Connect Pipecat client to Daily
           console.log("🔐 Daily credentials received", {
             room_url,
             hasToken: Boolean(token),
+            roomName,
           });
           await client.connect({ room_url, token });
         } else {
@@ -270,8 +474,11 @@ export function usePipecatConnection(options = {}) {
         }
       } catch (err) {
         console.error("Pipecat connect failed:", err);
+        activeSessionMetadata = null;
         connectingRef.current = false;
         setIsConnecting(false);
+        setDailyRoomName("");
+        setDailyParticipantId("");
         throw err;
       }
     },
@@ -294,25 +501,7 @@ export function usePipecatConnection(options = {}) {
     connectingRef.current = false;
 
     try {
-      // Force stop all media tracks first
-      try {
-        const tracks = client.tracks();
-        if (tracks) {
-          console.log("🎤 Stopping media tracks...");
-          Object.values(tracks).forEach((track) => {
-            if (track && typeof track.stop === "function") {
-              try {
-                track.stop();
-                console.log("✅ Stopped track:", track.kind);
-              } catch (e) {
-                console.warn("Error stopping individual track:", e);
-              }
-            }
-          });
-        }
-      } catch (trackErr) {
-        console.warn("Error stopping tracks:", trackErr);
-      }
+      stopClientTracks(client);
 
       // Now disconnect the client
       await client.disconnect();
@@ -323,9 +512,12 @@ export function usePipecatConnection(options = {}) {
     } catch (err) {
       console.error("Pipecat disconnect failed:", err);
     } finally {
+      activeSessionMetadata = null;
       disconnectingRef.current = false;
       setIsConnecting(false);
       setIsConnected(false);
+      setDailyRoomName("");
+      setDailyParticipantId("");
     }
   }, [client]);
 
@@ -361,6 +553,8 @@ export function usePipecatConnection(options = {}) {
     sendClientMessage,
     isConnected,
     isConnecting,
+    dailyRoomName,
+    dailyParticipantId,
   };
 }
 
