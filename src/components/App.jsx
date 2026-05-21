@@ -5,6 +5,10 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
+import { PipecatClientProvider } from "@pipecat-ai/client-react";
+import { PipecatClient } from "@pipecat-ai/client-js";
+import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport";
+import { DailyTransport } from "@pipecat-ai/daily-transport";
 
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
@@ -79,6 +83,100 @@ const getPageScrollTop = () => {
   return window.scrollY || scrollingElement.scrollTop || 0;
 };
 
+const InteractiveVoiceSession = ({
+  clientKey,
+  transportType,
+  shouldStartSession,
+  updatedBotConfig,
+  userName,
+  studentId,
+  selectedBook,
+  selectedChapter,
+  selectedDotTitle,
+  currentCharacter,
+  region,
+  talkDisconnectRef,
+  managerDisconnectRef,
+  shouldShowConnectionManager,
+  setShouldStartSession,
+  handleNavigationClick,
+  handleShowDotCompletion,
+}) => {
+  const client = useMemo(() => {
+    const transport =
+      transportType === "daily"
+        ? new DailyTransport()
+        : new SmallWebRTCTransport({
+            enableMic: true,
+            enableCam: false,
+          });
+
+    return new PipecatClient({
+      transport,
+      enableMic: true,
+      callbacks: {
+        onConnected: () => console.log("Pipecat connected"),
+        onBotConnected: (participant) =>
+          console.log(`Bot connected: ${JSON.stringify(participant)}`),
+        onBotReady: () => console.log("Bot ready to chat!"),
+        onUserTranscript: (data) => {
+          if (data.final) console.log("User said:", data.text);
+        },
+        onBotOutput: (data) => {
+          if (data.aggregated_by === "sentence") {
+            console.log("Bot said (sentence):", data.text);
+          }
+        },
+        onDisconnected: () => console.log("Disconnected"),
+        onBotDisconnected: () => console.log("Bot disconnected"),
+      },
+    });
+  }, [clientKey, transportType]);
+
+  useEffect(() => {
+    return () => {
+      setShouldStartSession(false);
+    };
+  }, [setShouldStartSession]);
+
+  return (
+    <PipecatClientProvider client={client}>
+      <VoiceBotProvider>
+        <TalkWithBook
+          botConfig={updatedBotConfig}
+          onNavigate={handleNavigationClick}
+          selectedBook={selectedBook}
+          chapter={selectedChapter}
+          dotTitle={selectedDotTitle}
+          currentCharacter={currentCharacter}
+          userName={userName}
+          studentId={studentId}
+          region={region}
+          showControlButton={false}
+          onDisconnectRequest={talkDisconnectRef}
+          connectionManagedExternally={shouldShowConnectionManager}
+          onRequestSessionStart={() => setShouldStartSession(true)}
+          onShowDotCompletion={handleShowDotCompletion}
+        />
+      </VoiceBotProvider>
+
+      {shouldShowConnectionManager && (
+        <PipecatConnectionManager
+          key={clientKey}
+          autoConnect={shouldStartSession}
+          botConfig={updatedBotConfig}
+          userName={userName}
+          studentId={studentId}
+          selectedBook={selectedBook}
+          chapter={selectedChapter}
+          region={region}
+          onDisconnectRef={managerDisconnectRef}
+        />
+      )}
+    </PipecatClientProvider>
+  );
+};
+
 const App = ({ transportType, region = "" }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
@@ -125,8 +223,9 @@ const App = ({ transportType, region = "" }) => {
   const [latestConversationId, setLatestConversationId] = useState(null);
   const [libraryHeroCollapseSignal, setLibraryHeroCollapseSignal] = useState(0);
 
-  // Used to trigger disconnect from BottomNavBar or when leaving interactive
-  const disconnectRef = useRef(null);
+  // Child screen owns graceful teardown; manager owns transport-level fallback cleanup.
+  const talkDisconnectRef = useRef(null);
+  const managerDisconnectRef = useRef(null);
 
   const [studentId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -471,10 +570,10 @@ const App = ({ transportType, region = "" }) => {
       setLibraryHeroCollapseSignal((prev) => prev + 1);
     }
     // CRITICAL: When leaving the talk screen, ensure full disconnect
-    if (activeComponent === "interactive" && disconnectRef.current) {
+    if (activeComponent === "interactive" && talkDisconnectRef.current) {
       console.log("🔌 Triggering disconnect from navigation");
       try {
-        await disconnectRef.current();
+        await talkDisconnectRef.current();
         // Give time for cleanup
         await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (err) {
@@ -642,24 +741,25 @@ const App = ({ transportType, region = "" }) => {
         );
       case "interactive":
         return (
-          <VoiceBotProvider>
-            <TalkWithBook
-              botConfig={updatedBotConfig}
-              onNavigate={handleNavigationClick}
-              selectedBook={selectedBook}
-              chapter={selectedChapter}
-              dotTitle={selectedDotTitle}
-              currentCharacter={currentCharacter}
-              userName={userName}
-              studentId={resolvedStudentId}
-              region={region}
-              showControlButton={false} // hide controls; autostart path
-              onDisconnectRequest={disconnectRef}
-              connectionManagedExternally={shouldShowConnectionManager}
-              onRequestSessionStart={() => setShouldStartSession(true)}
-              onShowDotCompletion={handleShowDotCompletion}
-            />
-          </VoiceBotProvider>
+          <InteractiveVoiceSession
+            clientKey={connectionKey}
+            transportType={transportType}
+            shouldStartSession={shouldStartSession}
+            updatedBotConfig={updatedBotConfig}
+            userName={userName}
+            studentId={resolvedStudentId}
+            selectedBook={selectedBook}
+            selectedChapter={selectedChapter}
+            selectedDotTitle={selectedDotTitle}
+            currentCharacter={currentCharacter}
+            region={region}
+            talkDisconnectRef={talkDisconnectRef}
+            managerDisconnectRef={managerDisconnectRef}
+            shouldShowConnectionManager={shouldShowConnectionManager}
+            setShouldStartSession={setShouldStartSession}
+            handleNavigationClick={handleNavigationClick}
+            handleShowDotCompletion={handleShowDotCompletion}
+          />
         );
       default:
         return <LandingPage />;
@@ -763,22 +863,6 @@ const App = ({ transportType, region = "" }) => {
           </div>
         )}
       </Layout>
-
-      {/* 🔌 Only pre-connect when on interactive screen */}
-      {shouldShowConnectionManager && (
-        <PipecatConnectionManager
-          key={connectionKey}
-          autoConnect={shouldStartSession}
-          botConfig={updatedBotConfig}
-          userName={userName}
-          studentId={studentId}
-          selectedBook={selectedBook}
-          chapter={selectedChapter}
-          region={region}
-          onDisconnectRef={disconnectRef}
-        />
-      )}
-
       {shouldShowBottomNav && (
           <BottomNavBar
             onItemClick={handleNavigationClick}

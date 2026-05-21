@@ -10,6 +10,7 @@ import { usePipecatClient } from "@pipecat-ai/client-react";
 import { RTVIEvent, RTVIMessage } from "@pipecat-ai/client-js";
 
 let activeSessionMetadata = null;
+let activeDisconnectPromise = null;
 
 const getRoomNameFromUrl = (roomUrl) => {
   if (typeof roomUrl !== "string" || roomUrl.length === 0) return "";
@@ -195,6 +196,7 @@ export function usePipecatConnection(options = {}) {
   const client = usePipecatClient();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [isTransportReady, setIsTransportReady] = useState(false);
   const [dailyRoomName, setDailyRoomName] = useState("");
   const [dailyParticipantId, setDailyParticipantId] = useState("");
   const connectingRef = useRef(false); // Track in-progress connection attempts
@@ -262,6 +264,7 @@ export function usePipecatConnection(options = {}) {
     const onConnected = () => {
       console.log("📡 Client connected event");
       setIsConnected(true);
+      setIsTransportReady(client.state === "ready");
       setIsConnecting(false);
       connectingRef.current = false;
       const capturedParticipantId = updateActiveDailyParticipant(client);
@@ -281,6 +284,7 @@ export function usePipecatConnection(options = {}) {
     const onDisconnected = () => {
       console.log("📡 Client disconnected event");
       setIsConnected(false);
+      setIsTransportReady(false);
       setIsConnecting(false);
       connectingRef.current = false;
       disconnectingRef.current = false;
@@ -294,6 +298,7 @@ export function usePipecatConnection(options = {}) {
     const onConnecting = () => {
       console.log("📡 Client connecting event");
       setIsConnecting(true);
+      setIsTransportReady(false);
       connectingRef.current = true;
     };
 
@@ -305,6 +310,7 @@ export function usePipecatConnection(options = {}) {
       if (capturedParticipantId) {
         setDailyParticipantId(capturedParticipantId);
       }
+      setIsTransportReady(state === "ready");
       if (state === "connected") {
         sendClientReady();
       }
@@ -338,6 +344,11 @@ export function usePipecatConnection(options = {}) {
       region = "",
     }) => {
       if (!client) throw new Error("Pipecat client missing");
+
+      if (activeDisconnectPromise) {
+        console.log("⏳ Waiting for previous disconnect to finish...");
+        await activeDisconnectPromise;
+      }
 
       // Check if client is already in a connected/connecting state
       const clientState = client.state;
@@ -477,6 +488,7 @@ export function usePipecatConnection(options = {}) {
         activeSessionMetadata = null;
         connectingRef.current = false;
         setIsConnecting(false);
+        setIsTransportReady(false);
         setDailyRoomName("");
         setDailyParticipantId("");
         throw err;
@@ -491,6 +503,12 @@ export function usePipecatConnection(options = {}) {
       return;
     }
 
+    if (activeDisconnectPromise) {
+      console.log("⏳ Reusing in-flight disconnect...");
+      await activeDisconnectPromise;
+      return;
+    }
+
     if (disconnectingRef.current) {
       console.log("🔄 Disconnect already in progress, skipping");
       return;
@@ -500,22 +518,33 @@ export function usePipecatConnection(options = {}) {
     disconnectingRef.current = true;
     connectingRef.current = false;
 
+    const disconnectPromise = (async () => {
+      try {
+        stopClientTracks(client);
+
+        // Now disconnect the client
+        await client.disconnect();
+        console.log("✅ Disconnected successfully");
+
+        // Give extra time for full cleanup
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      } catch (err) {
+        console.error("Pipecat disconnect failed:", err);
+      }
+    })();
+    activeDisconnectPromise = disconnectPromise;
+
     try {
-      stopClientTracks(client);
-
-      // Now disconnect the client
-      await client.disconnect();
-      console.log("✅ Disconnected successfully");
-
-      // Give extra time for full cleanup
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    } catch (err) {
-      console.error("Pipecat disconnect failed:", err);
+      await disconnectPromise;
     } finally {
+      if (activeDisconnectPromise === disconnectPromise) {
+        activeDisconnectPromise = null;
+      }
       activeSessionMetadata = null;
       disconnectingRef.current = false;
       setIsConnecting(false);
       setIsConnected(false);
+      setIsTransportReady(false);
       setDailyRoomName("");
       setDailyParticipantId("");
     }
@@ -553,6 +582,7 @@ export function usePipecatConnection(options = {}) {
     sendClientMessage,
     isConnected,
     isConnecting,
+    isTransportReady,
     dailyRoomName,
     dailyParticipantId,
   };

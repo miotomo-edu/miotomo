@@ -238,8 +238,14 @@ export const TalkWithBook = ({
   }, [agentVoiceAnalyser]);
 
   // Connection hook
-  const { connect, disconnect, sendClientMessage, isConnected, isConnecting } =
-    usePipecatConnection();
+  const {
+    connect,
+    disconnect,
+    sendClientMessage,
+    isConnected,
+    isConnecting,
+    isTransportReady,
+  } = usePipecatConnection();
 
   // Persist session metadata
   const characterModalities = useMemo(() => {
@@ -528,9 +534,12 @@ export const TalkWithBook = ({
       const overridePayload = hasOverride ? override?.payload : null;
 
       try {
-        enableMic(enabled);
         micEnabledRef.current = enabled;
         setIsMicEnabledUi(enabled);
+        if (!isTransportReady) {
+          return;
+        }
+        enableMic(enabled);
         if (enabled) {
           if (isConnected) {
             const payload = {
@@ -556,7 +565,13 @@ export const TalkWithBook = ({
         console.error("❌ Mic sync failed", e);
       }
     },
-    [enableMic, sendClientMessage, startListening, isConnected],
+    [
+      enableMic,
+      isConnected,
+      isTransportReady,
+      sendClientMessage,
+      startListening,
+    ],
   );
 
   // Wrap connect/disconnect to mark ownership
@@ -608,7 +623,9 @@ export const TalkWithBook = ({
 
     // Disable mic first
     try {
-      enableMic(false);
+      if (isTransportReady) {
+        enableMic(false);
+      }
     } catch (e) {
       console.warn("Failed to disable mic:", e);
     }
@@ -626,6 +643,7 @@ export const TalkWithBook = ({
   }, [
     disconnect,
     enableMic,
+    isTransportReady,
     stopIntroAudio,
     setPhase,
     updateListeningProgress,
@@ -1726,7 +1744,9 @@ export const TalkWithBook = ({
           phase === "intro_paused" ||
           phase === "intro_done");
       isDisconnectingRef.current = false;
-      enableMic(false);
+      if (isTransportReady) {
+        enableMic(false);
+      }
       micEnabledRef.current = false;
       userMutedRef.current = false;
       setIsMicEnabledUi(false);
@@ -1879,6 +1899,7 @@ export const TalkWithBook = ({
   }, [
     client,
     enableMic,
+    isTransportReady,
     addVoicebotMessage,
     startListening,
     startSpeaking,
@@ -2343,8 +2364,11 @@ export const TalkWithBook = ({
           showBackButton={false}
           isDark
           onBack={() => {
+            if (onNavigate) {
+              onNavigate("circle");
+              return;
+            }
             disconnectHere();
-            onNavigate?.("circle");
           }}
         />
       </div>
