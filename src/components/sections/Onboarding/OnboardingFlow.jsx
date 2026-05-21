@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import CreateAccount from "./CreateAccount";
 import TellUsMore from "./TellUsMore";
+import textureBg from "../../../assets/img/onboarding/texture-bg.png";
 
 function OnboardingFlow({ onFinish }) {
   const [step, setStep] = useState(0);
@@ -11,7 +12,14 @@ function OnboardingFlow({ onFinish }) {
   const handleDotClick = (index) => setStep(index);
 
   return (
-    <div className="flex h-full min-h-full w-full flex-col justify-between bg-white text-white">
+    <div
+      className="flex h-full min-h-full w-full flex-col justify-between bg-[#f6efe2] text-white"
+      style={{
+        backgroundImage: `url(${textureBg})`,
+        backgroundRepeat: "repeat",
+        backgroundSize: "280px auto",
+      }}
+    >
       {/* Dynamic section content */}
       <div className="flex min-h-0 flex-1 items-stretch overflow-y-auto">
         {step === 0 ? (

@@ -14,9 +14,9 @@ function TellUsMore({ onBack, onFinish }) {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-white text-left text-black">
+    <div className="flex min-h-screen w-full flex-col bg-transparent text-left text-black">
       <div
-        className="h-[40vh] min-h-[260px] w-full bg-white md:h-[46vh]"
+        className="h-[40vh] min-h-[260px] w-full bg-transparent md:h-[46vh]"
         style={{
           backgroundImage: `url(${createAccountImage})`,
           backgroundRepeat: "no-repeat",
