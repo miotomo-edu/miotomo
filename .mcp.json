@@ -1,5 +1,8 @@
 {
   "mcpServers": {
+    "penpot": {
+      "url": "https://design.penpot.app/mcp/stream?userToken=eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.6SFkdVIz37rE5SqzQjeLv2ROhykMX3u5CMFWp6fF1Y63Rw9CcscRhA.mZ0gP5PqxF3fVhqf.Ctz73LTTUADiETJnEwTpKNLfBK8KCZqL8wqyw9t2EL0cTt2u4d7EnYLrtkxglx7C_qBLE1wfbrkJm52rQsPhMbuMiX2YtosE-vm5UeK6-7iJkh9OUsgA_bq_FrclrhLORhAS4UDMowBo6TG527lYB65LoSt07vSIUXUQdHUjNNKV0rlIOBfkyFrgf48M_VB7jY4gEIYYCChg.n8fL9Ti1U5AFysU2Ax-oUQ"
+    },
     "code-review-graph": {
       "command": "uvx",
       "args": [

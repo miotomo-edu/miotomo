@@ -1,0 +1,126 @@
+@layer miotomo.tokens {
+  :root {
+    color-scheme: dark;
+
+    /* Brand source: Miotomo Landing.html + styles.css */
+    --mio-color-motara-950: #171222;
+    --mio-color-motara-900: #211b33;
+    --mio-color-motara-850: #2a2440;
+    --mio-color-motara-800: #322a4a;
+    --mio-color-motara-700: #3d3458;
+    --mio-color-motara-600: #51466d;
+
+    --mio-color-parchment-50: #fff8e9;
+    --mio-color-parchment-100: #f7edd7;
+    --mio-color-parchment-150: #f0e6cf;
+    --mio-color-parchment-250: #d8ccb0;
+    --mio-color-parchment-450: #9d93a8;
+
+    --mio-color-ochre-400: #d9a83c;
+    --mio-color-ochre-500: #bd8b22;
+    --mio-color-coral-400: #d9836a;
+    --mio-color-coral-500: #c76955;
+    --mio-color-terracotta-500: #b14f3e;
+    --mio-color-leaf-500: #8fa05c;
+    --mio-color-leaf-650: #6e7d42;
+    --mio-color-sky-500: #3f6f86;
+
+    --mio-bg-canvas: var(--mio-color-motara-850);
+    --mio-bg-canvas-deep: var(--mio-color-motara-950);
+    --mio-bg-surface: var(--mio-color-motara-800);
+    --mio-bg-surface-raised: var(--mio-color-motara-700);
+    --mio-bg-quiet: color-mix(in oklab, var(--mio-color-motara-800) 72%, black);
+    --mio-bg-inverse: var(--mio-color-parchment-150);
+
+    --mio-text-primary: var(--mio-color-parchment-150);
+    --mio-text-secondary: var(--mio-color-parchment-250);
+    --mio-text-muted: var(--mio-color-parchment-450);
+    --mio-text-inverse: #2a2620;
+
+    --mio-border-soft: color-mix(in oklab, var(--mio-color-parchment-150) 12%, transparent);
+    --mio-border-medium: color-mix(in oklab, var(--mio-color-parchment-150) 20%, transparent);
+    --mio-border-strong: color-mix(in oklab, var(--mio-color-parchment-150) 32%, transparent);
+
+    --mio-accent-primary: var(--mio-color-ochre-400);
+    --mio-accent-primary-hover: var(--mio-color-ochre-500);
+    --mio-accent-warm: var(--mio-color-coral-400);
+    --mio-accent-danger: var(--mio-color-terracotta-500);
+    --mio-accent-success: var(--mio-color-leaf-500);
+    --mio-accent-info: var(--mio-color-sky-500);
+
+    --mio-font-display: "Fraunces", "Newsreader", Georgia, serif;
+    --mio-font-body: "Nunito Sans", "Aptos", system-ui, sans-serif;
+    --mio-font-brand: "Satoshi", "Nunito Sans", system-ui, sans-serif;
+    --mio-font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+    --mio-step--1: clamp(0.8125rem, 0.78rem + 0.16vw, 0.9375rem);
+    --mio-step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    --mio-step-1: clamp(1.125rem, 1.04rem + 0.42vw, 1.375rem);
+    --mio-step-2: clamp(1.375rem, 1.2rem + 0.85vw, 1.875rem);
+    --mio-step-3: clamp(1.875rem, 1.55rem + 1.6vw, 2.75rem);
+    --mio-step-4: clamp(2.5rem, 1.85rem + 3vw, 4.75rem);
+    --mio-step-5: clamp(3rem, 2rem + 5vw, 7.25rem);
+
+    --mio-space-1: 0.25rem;
+    --mio-space-2: 0.5rem;
+    --mio-space-3: 0.75rem;
+    --mio-space-4: 1rem;
+    --mio-space-5: 1.25rem;
+    --mio-space-6: 1.5rem;
+    --mio-space-8: 2rem;
+    --mio-space-10: 2.5rem;
+    --mio-space-12: 3rem;
+    --mio-space-16: 4rem;
+    --mio-space-20: 5rem;
+    --mio-space-24: 6rem;
+
+    --mio-radius-xs: 0.375rem;
+    --mio-radius-sm: 0.5rem;
+    --mio-radius-md: 0.875rem;
+    --mio-radius-lg: 1.375rem;
+    --mio-radius-xl: 1.75rem;
+    --mio-radius-pill: 999px;
+
+    --mio-shadow-soft:
+      0 1px 0 rgba(255, 248, 233, 0.04),
+      0 18px 40px -24px rgba(8, 6, 16, 0.72);
+    --mio-shadow-raised:
+      0 1px 0 rgba(255, 248, 233, 0.08) inset,
+      0 24px 60px -28px rgba(8, 6, 16, 0.9);
+    --mio-shadow-focus:
+      0 0 0 3px color-mix(in oklab, var(--mio-accent-primary) 26%, transparent);
+
+    --mio-ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --mio-ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+    --mio-duration-fast: 140ms;
+    --mio-duration-base: 220ms;
+    --mio-duration-slow: 700ms;
+
+    --mio-page-max: 76rem;
+    --mio-reading-max: 58ch;
+    --mio-hit-target: 2.75rem;
+  }
+
+  [data-mio-theme="light"] {
+    color-scheme: light;
+    --mio-bg-canvas: #f0e6cf;
+    --mio-bg-canvas-deep: #e4d8ba;
+    --mio-bg-surface: #fff8e9;
+    --mio-bg-surface-raised: #f7edd7;
+    --mio-bg-quiet: #e8ddc4;
+    --mio-bg-inverse: var(--mio-color-motara-850);
+    --mio-text-primary: #2a2620;
+    --mio-text-secondary: color-mix(in oklab, #2a2620 78%, transparent);
+    --mio-text-muted: color-mix(in oklab, #2a2620 56%, transparent);
+    --mio-text-inverse: var(--mio-color-parchment-150);
+    --mio-border-soft: color-mix(in oklab, #2a2620 10%, transparent);
+    --mio-border-medium: color-mix(in oklab, #2a2620 18%, transparent);
+    --mio-border-strong: color-mix(in oklab, #2a2620 28%, transparent);
+    --mio-shadow-soft:
+      0 1px 0 rgba(42, 38, 32, 0.04),
+      0 18px 40px -24px rgba(42, 38, 32, 0.36);
+    --mio-shadow-raised:
+      0 1px 0 rgba(255, 255, 255, 0.7) inset,
+      0 24px 60px -28px rgba(42, 38, 32, 0.42);
+  }
+}

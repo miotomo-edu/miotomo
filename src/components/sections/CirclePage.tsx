@@ -8,6 +8,7 @@ import CircleCard from "../features/browse/CircleCard";
 import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
 import { VocabularyIcon } from "../common/icons/VocabularyIcon";
 import { StarIcon } from "../common/icons/StarIcon";
+import { getRuntimeBooleanParam } from "../../lib/runtimeParams";
 
 type CirclePageProps = {
   book: Book;
@@ -256,10 +257,10 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
   const tags = getDotTags(typeSlug, typeName, vocabulary);
 
   return (
-    <section className="relative mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
+    <section className="mio-surface relative mb-8 overflow-hidden rounded-[28px] border-parchment-150/14 bg-[linear-gradient(180deg,var(--mio-color-motara-800)_0%,var(--mio-color-motara-950)_100%)] text-parchment-150 shadow-raised">
       <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
-        <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
-          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-brand-primary" fill="currentColor">
+        <div className="flex items-center gap-3 text-lg font-medium text-parchment-250 md:text-xl">
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-ochre-400" fill="currentColor">
             <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.3l-3.7 1.9.7-4.1-3-2.9 4.2-.7z" />
           </svg>
           <span>Today&apos;s Mission</span>
@@ -272,19 +273,19 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
               currentDot={episode}
               label={episode}
               size={56}
-              ringColor="#ffffff"
-              inactiveDotFill="#ffffff"
-              inactiveDotStroke="#ffffff"
-              completedDotFill="#FAC304"
-              completedDotStroke="#FAC304"
-              labelColor="#ffffff"
+              ringColor="#f0e6cf"
+              inactiveDotFill="#f0e6cf"
+              inactiveDotStroke="#f0e6cf"
+              completedDotFill="#d9a83c"
+              completedDotStroke="#d9a83c"
+              labelColor="#f0e6cf"
               className="shrink-0 self-start md:h-[68px] md:w-[68px]"
             />
             <div className="min-w-0">
-              <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
+              <div className="font-display text-3xl font-semibold leading-tight md:text-4xl">
                 {title}
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/72 md:text-base">
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-parchment-250 md:text-base">
                 {tags.map((tag) => (
                   <span
                     key={`${episode}-${tag.label}`}
@@ -292,7 +293,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
                   >
                     <LineTagIcon
                       icon={tag.icon}
-                      className="h-[1.05em] w-[1.05em] shrink-0 text-white/85"
+                      className="h-[1.05em] w-[1.05em] shrink-0 text-parchment-250"
                     />
                     <span>{tag.label}</span>
                   </span>
@@ -306,7 +307,7 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
         type="button"
         onClick={onPlay}
         aria-label={`Play ${title}`}
-        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
+        className="absolute right-5 top-1/2 flex h-20 w-20 -translate-y-1/2 items-center justify-center rounded-full bg-ochre-400 text-motara-950 shadow-glow-gold transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
       >
         <svg
           aria-hidden="true"
@@ -363,10 +364,7 @@ const isWithinWindow = (start?: string | null, end?: string | null) => {
 };
 
 const shouldUnlockCircleDots = () => {
-  if (typeof window === "undefined") return false;
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("unlockCircleDots");
-  return value === "1" || value === "true";
+  return getRuntimeBooleanParam("unlockCircleDots");
 };
 
 const getPageScrollTarget = (
@@ -973,7 +971,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const completedDotCount = completedDots.length;
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-white">
+    <div className="mio-shell flex min-h-screen w-full flex-col">
       <header
         className="sticky top-0 w-full overflow-hidden"
         style={{ height: "62vh" }}
@@ -985,16 +983,16 @@ const CirclePage: React.FC<CirclePageProps> = ({
               backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
               backgroundSize: "cover",
               backgroundPosition: "center",
-              backgroundColor: coverUrl ? undefined : "#f3f4f6",
+              backgroundColor: coverUrl ? undefined : "var(--mio-color-motara-800)",
               transform: `translateY(${headerOffset}px) scale(${headerScale})`,
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(244,238,224,0)_0%,rgba(27,29,22,0.08)_42%,rgba(12,14,12,0.86)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,18,34,0)_0%,rgba(23,18,34,0.18)_42%,rgba(23,18,34,0.92)_100%)]" />
         <div className="relative z-20 flex h-full flex-col px-6 py-6">
           <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
             <h1
-              className="font-display text-left text-5xl font-bold leading-[1.02] md:text-5xl"
+              className="font-display text-left text-5xl font-semibold leading-tight text-parchment-150 md:text-5xl"
               style={{ textShadow: "0 6px 14px rgba(0,0,0,1)" }}
             >
               {book.title}
@@ -1003,19 +1001,19 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
       </header>
 
-      <section className="relative z-10 -mt-16 bg-white px-6 pb-24 pt-8">
+      <section className="relative z-10 -mt-16 bg-motara-850 px-6 pb-24 pt-8">
         <div className="flex items-center justify-between">
           {isLoading && (
-            <span className="text-sm text-black/45 md:text-base">
+            <span className="text-sm text-parchment-450 md:text-base">
               Loading...
             </span>
           )}
         </div>
         {loadError && (
-          <div className="mt-3 text-sm text-red-600">{loadError}</div>
+          <div className="mt-3 text-sm text-terracotta-500">{loadError}</div>
         )}
         {!episodeCount && (
-          <div className="mt-4 text-sm text-black/45">
+          <div className="mt-4 text-sm text-parchment-450">
             No episodes available yet.
           </div>
         )}
@@ -1032,7 +1030,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
           />
         ) : null}
         {episodeCount > 0 && (
-          <h2 className="font-display mb-3 text-2xl font-bold text-[#020617]">
+          <h2 className="mb-3 font-display text-2xl font-semibold text-parchment-150">
             All Dots
           </h2>
         )}
@@ -1062,46 +1060,46 @@ const CirclePage: React.FC<CirclePageProps> = ({
             if (isCurrent) {
               return (
                 <React.Fragment key={episode.episode}>
-                  <div className="flex w-full items-start gap-4 rounded-3xl px-4 py-4 ring-2 ring-brand-primary/50 bg-brand-primary/[0.06]">
+                  <div className="flex w-full items-start gap-4 rounded-3xl bg-ochre-400/[0.08] px-4 py-4 ring-2 ring-ochre-400/45">
                     <CircleDotsSymbol
                       totalDots={episodeCount}
                       completedDots={completedDotCount}
                       currentDot={episode.episode}
                       label={episode.episode}
                       size={52}
-                      ringColor="#0a1024"
-                      inactiveDotFill="#0a1024"
-                      inactiveDotStroke="#0a1024"
-                      completedDotFill="#FAC304"
-                      completedDotStroke="#FAC304"
-                      labelColor="#0a1024"
+                      ringColor="#f0e6cf"
+                      inactiveDotFill="#f0e6cf"
+                      inactiveDotStroke="#f0e6cf"
+                      completedDotFill="#d9a83c"
+                      completedDotStroke="#d9a83c"
+                      labelColor="#f0e6cf"
                       className="shrink-0 self-start"
                     />
                     <div className="py-1">
-                      <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-2.5 py-0.5 text-xs font-bold text-black">
+                      <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-ochre-400 px-2.5 py-0.5 text-xs font-bold text-motara-950">
                         <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3" fill="currentColor">
                           <path d="M4 2.5v11l9-5.5-9-5.5z" />
                         </svg>
                         Now playing
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-black/50">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-parchment-250">
                         {tags.map((tag) => (
                           <span
                             key={`${episode.episode}-${tag.label}`}
                             className="inline-flex items-center gap-1.5 text-xs font-medium"
                           >
-                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
+                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-parchment-150" />
                             <span>{tag.label}</span>
                           </span>
                         ))}
                       </div>
-                      <div className="font-display text-2xl font-bold leading-tight text-black">
+                      <div className="font-display text-2xl font-semibold leading-tight text-parchment-150">
                         {title}
                       </div>
                     </div>
                   </div>
                   {index < episodes.length - 1 && (
-                    <div className="my-3 h-px w-full bg-black/8" />
+                    <div className="my-3 h-px w-full bg-parchment-150/10" />
                   )}
                 </React.Fragment>
               );
@@ -1122,8 +1120,8 @@ const CirclePage: React.FC<CirclePageProps> = ({
                 <div
                   className={`flex w-full items-start justify-between rounded-3xl px-4 py-4 transition md:px-5 md:py-5 ${
                     isCurrent
-                      ? "bg-black text-white shadow-elevated"
-                      : "bg-white/78 text-black"
+                      ? "bg-motara-950 text-parchment-150 shadow-elevated"
+                      : "bg-motara-800/78 text-parchment-150"
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -1133,18 +1131,18 @@ const CirclePage: React.FC<CirclePageProps> = ({
                       currentDot={episode.episode}
                       label={episode.episode}
                       size={52}
-                      ringColor={isCurrent ? "#ffffff" : "#0a1024"}
-                      inactiveDotFill={isCurrent ? "#ffffff" : "#0a1024"}
-                      inactiveDotStroke={isCurrent ? "#ffffff" : "#0a1024"}
-                      completedDotFill="#FAC304"
-                      completedDotStroke="#FAC304"
-                      labelColor={isCurrent ? "#ffffff" : "#0a1024"}
+                      ringColor="#f0e6cf"
+                      inactiveDotFill="#f0e6cf"
+                      inactiveDotStroke="#f0e6cf"
+                      completedDotFill="#d9a83c"
+                      completedDotStroke="#d9a83c"
+                      labelColor="#f0e6cf"
                       className="shrink-0 self-start md:h-[60px] md:w-[60px]"
                     />
                     <div className="py-1">
                       <div
                         className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
-                          isCurrent ? "text-white/60" : "text-black/50"
+                          "text-parchment-250"
                         }`}
                       >
                         {tags.map((tag) => (
@@ -1155,14 +1153,14 @@ const CirclePage: React.FC<CirclePageProps> = ({
                             <LineTagIcon
                               icon={tag.icon}
                               className={`h-[1.05em] w-[1.05em] shrink-0 ${
-                                isCurrent ? "text-white/85" : "text-black"
+                                "text-parchment-250"
                               }`}
                             />
                             <span>{tag.label}</span>
                           </span>
                         ))}
                         {isCompleted ? (
-                          <span className="font-semibold text-[#b07b00]">
+                          <span className="font-semibold text-ochre-400">
                             {tags.length > 0 ? "· " : ""}
                             Completed
                           </span>
@@ -1170,7 +1168,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                       </div>
                       <div
                         className={`font-display text-2xl font-bold leading-tight ${
-                          isCurrent ? "text-white" : "text-black"
+                          "text-parchment-150"
                         }`}
                       >
                         {title}
@@ -1181,7 +1179,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                             type="button"
                             onClick={() => handlePlay(episode.episode)}
                             disabled={isUpdating}
-                            className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
+                            className="inline-flex items-center gap-2 rounded-full bg-parchment-150/10 px-4 py-2.5 text-sm font-semibold text-parchment-150 transition hover:bg-parchment-150/18 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
                           >
                             <svg
                               aria-hidden="true"
@@ -1200,7 +1198,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   <div className="flex items-center gap-3" />
                 </div>
                 {index < episodes.length - 1 && (
-                  <div className="my-3 h-px w-full bg-black/8" />
+                  <div className="my-3 h-px w-full bg-parchment-150/10" />
                 )}
               </React.Fragment>
             );
@@ -1208,7 +1206,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
         {continueItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">Continue</h3>
+            <h3 className="font-display text-lg font-semibold text-parchment-150">Continue</h3>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {continueItems.map((item) => (
                 <CircleCard
@@ -1227,7 +1225,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         )}
         {showRecommendationSections && relatedItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">
+            <h3 className="font-display text-lg font-semibold text-parchment-150">
               You might also like
             </h3>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -1247,7 +1245,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         )}
         {showRecommendationSections && differentItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">
+            <h3 className="font-display text-lg font-semibold text-parchment-150">
               Try something different
             </h3>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

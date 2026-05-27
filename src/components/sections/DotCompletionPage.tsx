@@ -87,7 +87,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
   }, [remainingDots]);
 
   return (
-    <div className="h-full min-h-0 bg-white px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-6 text-[#020617] md:px-7 md:pb-24 md:pt-6 lg:px-10">
+    <div className="mio-shell h-full min-h-0 px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-6 text-parchment-150 md:px-7 md:pb-24 md:pt-6 lg:px-10">
       <div className="flex h-full min-h-0 w-full flex-col">
         <section className="flex h-full min-h-0 flex-1 flex-col py-2 md:h-full md:min-h-0 md:grid md:grid-cols-[minmax(0,0.66fr)_minmax(0,0.34fr)] md:grid-rows-[auto_minmax(0,1fr)_auto] md:items-start md:gap-x-8 md:gap-y-5 lg:gap-x-12 lg:gap-y-8">
           <div className="flex flex-col md:col-start-1 md:row-start-1 md:w-full md:max-w-[42rem]">
@@ -99,28 +99,28 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                   currentDot={completedEpisode}
                   label={completedEpisode}
                   size={52}
-                  ringColor="#0a1024"
-                  inactiveDotFill="#0a1024"
-                  inactiveDotStroke="#0a1024"
-                  completedDotFill="#FAC304"
-                  completedDotStroke="#FAC304"
-                  labelColor="#0a1024"
+                  ringColor="#f0e6cf"
+                  inactiveDotFill="#f0e6cf"
+                  inactiveDotStroke="#f0e6cf"
+                  completedDotFill="#d9a83c"
+                  completedDotStroke="#d9a83c"
+                  labelColor="#f0e6cf"
                   className="md:h-[64px] md:w-[64px]"
                 />
-                <p className="font-display text-2xl font-bold leading-[1.02] tracking-[-0.03em] text-[#020617] md:text-3xl lg:text-3xl">
+                <p className="font-display text-2xl font-semibold leading-tight text-parchment-150 md:text-3xl lg:text-3xl">
                   {`Dot ${completedEpisode} completed`}
                 </p>
               </div>
 
               <div className="mt-6 md:mt-5 lg:mt-8">
-                <h1 className="font-display text-4xl font-bold leading-[0.94] tracking-[-0.05em] text-[#020617] md:max-w-[11ch] md:text-5xl md:leading-[0.88] lg:text-5xl">
+                <h1 className="font-display text-4xl font-semibold leading-none text-parchment-150 md:max-w-[11ch] md:text-5xl lg:text-5xl">
                   {remainingDots === 0
                     ? `Circle complete, ${firstName}!`
                     : `You completed a Dot, ${firstName}!`}
                 </h1>
-                <p className="mt-3 max-w-[20ch] text-xl leading-[1.45] text-[#020617]/82 md:max-w-[22ch] md:text-2xl lg:max-w-[20ch] lg:text-2xl">
+                <p className="mt-3 max-w-[20ch] text-xl leading-[1.45] text-parchment-250 md:max-w-[22ch] md:text-2xl lg:max-w-[20ch] lg:text-2xl">
                   {remainingMessage}
-                  <svg aria-hidden="true" viewBox="0 0 16 16" className="ml-1.5 inline-block h-[0.85em] w-[0.85em] align-[-0.05em] text-brand-primary" fill="currentColor">
+                  <svg aria-hidden="true" viewBox="0 0 16 16" className="ml-1.5 inline-block h-[0.85em] w-[0.85em] align-[-0.05em] text-ochre-400" fill="currentColor">
                     <path d="M8 0l1.2 5.5L14 6.5l-4.2 3.2 1.4 5.3L8 12l-3.2 3 1.4-5.3L2 6.5l4.8-1L8 0z" />
                   </svg>
                 </p>
@@ -187,15 +187,15 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 currentDot={nextEpisode}
                 label={nextEpisode ?? completedEpisode}
                 size={52}
-                ringColor="#0a1024"
-                inactiveDotFill="#0a1024"
-                inactiveDotStroke="#0a1024"
-                completedDotFill="#FAC304"
-                completedDotStroke="#FAC304"
-                labelColor="#0a1024"
+                  ringColor="#f0e6cf"
+                  inactiveDotFill="#f0e6cf"
+                  inactiveDotStroke="#f0e6cf"
+                  completedDotFill="#d9a83c"
+                  completedDotStroke="#d9a83c"
+                  labelColor="#f0e6cf"
                 className="md:h-[64px] md:w-[64px]"
               />
-              <p className="text-2xl leading-[1.2] text-[#020617] md:max-w-[18ch] md:text-2xl lg:max-w-[16ch] lg:text-3xl">
+              <p className="text-2xl leading-snug text-parchment-250 md:max-w-[18ch] md:text-2xl lg:max-w-[16ch] lg:text-3xl">
                 {nextEpisode ? (
                   <>
                     Come back tomorrow for{" "}
@@ -215,7 +215,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                     ? onPreviewNextDot(book, nextEpisode)
                     : onPreviewNextDot(book, completedEpisode)
                 }
-                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
+                className="mio-button inline-flex min-h-[52px] w-full text-lg md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
               >
                 {nextEpisode
                   ? `Take a peek at Dot ${nextEpisode}`
@@ -233,7 +233,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
               ? onPreviewNextDot(book, nextEpisode)
               : onPreviewNextDot(book, completedEpisode)
           }
-          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97]"
+          className="mio-button inline-flex min-h-[52px] w-full text-lg"
         >
           {nextEpisode
             ? `Take a peek at Dot ${nextEpisode}`

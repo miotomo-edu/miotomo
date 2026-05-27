@@ -246,7 +246,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
   return (
     <section>
-      <div className="relative w-full overflow-hidden bg-[#0d0d0b]">
+      <div className="relative w-full overflow-hidden bg-motara-950">
         <div className="relative min-h-screen overflow-hidden">
           {coverUrl ? (
             <img
@@ -255,7 +255,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               className="absolute inset-0 h-full w-full object-cover object-center"
             />
           ) : (
-            <div className="absolute inset-0 bg-[#d8d4c3]" />
+            <div className="absolute inset-0 bg-motara-800" />
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,8,7,0.18)_0%,rgba(8,8,7,0.06)_24%,rgba(8,8,7,0.22)_48%,rgba(8,8,7,0.82)_78%,rgba(6,6,5,0.96)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_24%,rgba(255,245,210,0.22)_0%,rgba(255,255,255,0)_34%)]" />
@@ -266,14 +266,14 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
             <div className="pointer-events-none relative flex h-28 w-28 items-center justify-center md:h-36 md:w-36">
               <span
                 aria-hidden="true"
-                className="hero-play-pulse absolute inset-0 rounded-full border border-[rgba(250,195,4,0.55)] bg-[radial-gradient(circle,rgba(250,195,4,0.22)_0%,rgba(250,195,4,0.08)_48%,rgba(250,195,4,0)_72%)]"
+                className="hero-play-pulse absolute inset-0 rounded-full border border-ochre-400/55 bg-[radial-gradient(circle,rgba(217,168,60,0.24)_0%,rgba(217,168,60,0.1)_48%,rgba(217,168,60,0)_72%)]"
               />
               <button
                 type="button"
                 onClick={handleHeroPlay}
                 disabled={isUpdating}
                 aria-label={`Play ${activeDotTitle}`}
-                className="pointer-events-auto relative z-10 group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36"
+                className="pointer-events-auto group relative z-10 flex h-28 w-28 items-center justify-center rounded-full bg-ochre-400 text-motara-950 shadow-hero shadow-glow-gold transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36"
               >
                 <svg
                   aria-hidden="true"
@@ -287,7 +287,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
             </div>
           </div>
 
-          <div className="relative z-20 flex min-h-screen flex-col justify-between pb-8 pt-6 text-white md:pb-10 md:pt-8">
+          <div className="relative z-20 flex min-h-screen flex-col justify-between pt-6 text-white md:pt-8">
             {showOpenCircle ? (
               <div className="flex justify-end px-5 md:px-8">
                 <button
@@ -295,7 +295,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   onClick={() =>
                     onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
                   }
-                  className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-super text-white backdrop-blur-md transition hover:bg-white/22"
+                  className="rounded-full border border-parchment-150/35 bg-parchment-150/12 px-4 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-parchment-150 backdrop-blur-md transition hover:bg-parchment-150/20"
                 >
                   Open circle
                 </button>
@@ -304,7 +304,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
             <div className="flex-1" />
 
-            <div className="w-full border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
+            <div className="w-full border-parchment-150/12 bg-[linear-gradient(180deg,rgba(23,18,34,0)_0%,rgba(23,18,34,0.34)_12%,rgba(23,18,34,0.9)_100%)] pb-0 pt-7 md:pt-8">
               <div className="px-5 md:px-8">
                 <button
                   type="button"
@@ -315,17 +315,17 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   aria-label={`Open ${item.book.title}`}
                 >
                   <h1
-                    className="font-display max-w-[11ch] text-left text-[2.8rem] font-bold leading-[0.94] text-white md:text-[5.25rem]"
+                    className="font-display max-w-[11ch] text-left text-5xl font-semibold leading-none text-parchment-150 md:text-5xl"
                     style={{ textShadow: "rgba(0, 0, 0, 0.42) 0px 10px 28px" }}
                   >
                     {item.book.title}
                   </h1>
-                  <div className="mt-5 flex items-center gap-3 text-lg font-medium text-white/90 md:text-[1.75rem]">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
+                  <div className="mt-5 flex items-center gap-3 text-lg font-medium text-parchment-250 md:text-2xl">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-ochre-400 shadow-[0_0_14px_rgba(217,168,60,0.7)]" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
                   </div>
                 </button>
-                <div className="pointer-events-none mt-5 flex justify-center text-white/82">
+                <div className="pointer-events-none mt-5 flex justify-center text-parchment-250">
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 20 20"

@@ -33,7 +33,7 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
         className="inline-block h-5 w-1.5 flex-shrink-0 rounded-full bg-brand-primary"
         aria-hidden="true"
       />
-      <h2 className="font-display text-xl font-bold text-gray-900 md:text-3xl">
+      <h2 className="font-display text-xl font-semibold text-parchment-150 md:text-3xl">
         {title}
       </h2>
     </div>
@@ -55,10 +55,10 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
             />
           ))}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-motara-850 to-transparent" />
       </div>
     ) : (
-      <div className="rounded-2xl border border-dashed border-black/10 bg-white/60 px-4 py-6 text-sm font-medium text-gray-500 md:text-lg">
+      <div className="rounded-2xl border border-dashed border-parchment-150/14 bg-parchment-150/8 px-4 py-6 text-sm font-medium text-parchment-250 md:text-lg">
         {emptyMessage || "No circles yet."}
       </div>
     )}

@@ -34,6 +34,10 @@ import { useAnalytics } from "../hooks/useAnalytics";
 import { useBrowseCircles } from "../hooks/useBrowseCircles";
 import { characterData } from "../lib/characters";
 import { getPreviewConfig } from "../lib/previewMode";
+import {
+  getRuntimeBooleanParam,
+  getRuntimeQueryParam,
+} from "../lib/runtimeParams";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
@@ -46,10 +50,7 @@ const normalizeDotTypeSlug = (value) => {
 };
 
 const shouldSkipOnboarding = () => {
-  if (typeof window === "undefined") return false;
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("skipOnboarding");
-  return value === "1" || value === "true";
+  return getRuntimeBooleanParam("skipOnboarding");
 };
 
 const shouldEnableScreenshotMode = () => {
@@ -228,40 +229,7 @@ const App = ({ transportType, region = "" }) => {
   const managerDisconnectRef = useRef(null);
 
   const [studentId] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromSearch = params.get("studentId");
-    if (fromSearch) return fromSearch;
-
-    const overridePath = params.get("p");
-    const pathSource =
-      typeof overridePath === "string" && overridePath.length > 0
-        ? overridePath
-        : window.location.pathname;
-    const pathParts = pathSource.split("/").filter((part) => part.length > 0);
-    for (let i = 0; i < pathParts.length; i += 1) {
-      const part = pathParts[i];
-      const lower = part.toLowerCase();
-      if (lower === "studentid" && pathParts[i + 1]) {
-        return decodeURIComponent(pathParts[i + 1]);
-      }
-      if (part.includes("=")) {
-        const [key, value] = part.split("=");
-        if (key?.toLowerCase() === "studentid" && value) {
-          return decodeURIComponent(value);
-        }
-      }
-    }
-
-    const rawHash = window.location.hash || "";
-    const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
-    const hashQuery = hash.includes("?")
-      ? hash.split("?")[1]
-      : hash.includes("=")
-        ? hash
-        : "";
-    if (!hashQuery) return "";
-    const hashParams = new URLSearchParams(hashQuery);
-    return hashParams.get("studentId") || "";
+    return getRuntimeQueryParam("studentId") || "";
   });
 
   const resolvedStudentId =
@@ -804,26 +772,30 @@ const App = ({ transportType, region = "" }) => {
 
   const mainBackgroundClass =
     activeComponent === "vocabulary-game"
-      ? "bg-[#2F2C2F]"
+      ? "bg-motara-950"
       : activeComponent === "parents"
-        ? "bg-[#F6EFE2]"
+        ? "bg-parchment-100"
       : activeComponent === "progress"
-        ? "bg-white"
+        ? "bg-motara-850"
         : activeComponent === "onboarding"
-          ? "bg-white"
+          ? "bg-motara-850"
           : activeComponent === "interactive"
-            ? "bg-black"
+            ? "bg-motara-950"
             : activeComponent === "demo-subscribe"
-              ? "bg-[#F6EFE2]"
+              ? "bg-parchment-100"
               : activeComponent === "dot-complete"
-                ? "bg-white"
+                ? "bg-motara-850"
                 : activeComponent === "library" ||
                     activeComponent === "home" ||
                     activeComponent === "circle"
                   ? "bg-library"
                   : activeComponent === "first-circle-intro"
-                    ? "bg-[#F4ECDF]"
+                    ? "bg-motara-850"
                     : "";
+  const shellTheme =
+    activeComponent === "parents" || activeComponent === "demo-subscribe"
+      ? "light"
+      : undefined;
   const shouldShowBottomNav =
     activeComponent !== "landing" &&
     activeComponent !== "onboarding" &&
@@ -842,6 +814,7 @@ const App = ({ transportType, region = "" }) => {
   return (
     <div
       className={`app-mobile-shell ${screenshotMode ? "app-screenshot-shell" : ""} ${characterBgClass}`}
+      data-mio-theme={shellTheme}
       style={appShellStyle}
     >
       <Layout

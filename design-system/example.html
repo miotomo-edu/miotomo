@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Miotomo Design System Example</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./components.css" />
+  </head>
+  <body>
+    <main class="mio-shell">
+      <div class="mio-wrap mio-stack" style="padding-block: var(--mio-space-8)">
+        <header class="mio-cluster" style="justify-content: space-between">
+          <a class="mio-brand" href="#">
+            <span class="mio-brand-mark" aria-hidden="true"></span>
+            <span>Miotomo</span>
+          </a>
+          <button class="mio-button" data-variant="quiet">Parent view</button>
+        </header>
+
+        <section class="mio-surface mio-panel" data-raised="true">
+          <div class="mio-stack">
+            <span class="mio-eyebrow">Next mission</span>
+            <h1 class="mio-title-lg">Help Tomo understand ancient Rome.</h1>
+            <p class="mio-lede">Listen to Dot 3, meet the senator and soldier, then teach Tomo what actually mattered.</p>
+            <div class="mio-cluster">
+              <button class="mio-button">Start Dot</button>
+              <button class="mio-button" data-variant="quiet">Review badge</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="mio-session-rail" aria-label="Session phases">
+          <article class="mio-session-step" aria-current="step">
+            <span class="mio-eyebrow">01</span>
+            <p>Warm-up</p>
+          </article>
+          <article class="mio-session-step">
+            <span class="mio-eyebrow">02</span>
+            <p>Core practice</p>
+          </article>
+          <article class="mio-session-step">
+            <span class="mio-eyebrow">03</span>
+            <p>Consolidation</p>
+          </article>
+          <article class="mio-session-step">
+            <span class="mio-eyebrow">04</span>
+            <p>Wrap</p>
+          </article>
+        </section>
+
+        <section class="mio-surface mio-panel">
+          <div class="mio-cluster" style="align-items: center; justify-content: space-between">
+            <div class="mio-stack">
+              <span class="mio-chip">Listening</span>
+              <h2 class="mio-title-md">Tell Tomo why roads changed Rome.</h2>
+              <p class="mio-lede">Use your own words. Tomo only learns what you can explain out loud.</p>
+            </div>
+            <div class="mio-voice-orb" data-state="listening" aria-label="Listening"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

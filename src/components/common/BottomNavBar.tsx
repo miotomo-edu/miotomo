@@ -150,7 +150,9 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
   const baseStyle: React.CSSProperties = {
     backgroundColor:
-      orientation === "vertical" ? "rgba(30, 30, 30, 0.58)" : "#000000",
+      orientation === "vertical"
+        ? "color-mix(in oklab, var(--mio-color-motara-950) 78%, transparent)"
+        : "var(--mio-color-motara-950)",
     backdropFilter: orientation === "vertical" ? "blur(24px) saturate(1.15)" : undefined,
     WebkitBackdropFilter:
       orientation === "vertical" ? "blur(24px) saturate(1.15)" : undefined,
@@ -160,8 +162,8 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
   const navClassName =
     orientation === "vertical"
-      ? `fixed right-4 z-[90] flex flex-col items-center rounded-[999px] border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.26)] transition-[width,padding,background-color] duration-200 md:right-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] h-[50px] p-1"}`
-      : "bottom-navbar-fixed flex justify-around items-center h-16 z-10";
+      ? `fixed right-4 z-[90] flex flex-col items-center rounded-full border border-parchment-150/15 shadow-raised transition-[width,padding,background-color] duration-200 md:right-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] h-[50px] p-1"}`
+      : "bottom-navbar-fixed z-10 flex h-16 items-center justify-around bg-motara-950";
   const shouldShowClosedAttentionBump =
     orientation === "vertical" && !isBackMode && !isExpanded;
 
@@ -203,22 +205,26 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                   <button
                     key={`${item.componentName}-before-${index}`}
                     onClick={() => handleButtonClick(item.componentName)}
-                    className={`group flex w-full cursor-pointer flex-col items-center justify-center rounded-[18px] transition duration-200 hover:bg-white/[0.08] ${isCompactExpanded ? "px-1 py-1.5" : "px-1.5 py-2"}`}
+                    className={`group flex w-full cursor-pointer flex-col items-center justify-center rounded-[14px] transition duration-200 hover:bg-parchment-150/[0.08] ${isCompactExpanded ? "px-1 py-1.5" : "px-1.5 py-2"}`}
                     type="button"
                     aria-current={isActive ? "page" : undefined}
                   >
                     <span
                       className="flex items-center justify-center transition-colors duration-150"
                       style={{
-                        color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                        color: isActive
+                          ? "var(--mio-accent-primary)"
+                          : "color-mix(in oklab, var(--mio-text-primary) 58%, transparent)",
                       }}
                     >
                       {icon}
                     </span>
                     <span
-                      className={`text-[10px] font-semibold uppercase tracking-[0.18em] transition-all duration-150 ${isCompactExpanded ? "max-h-0 overflow-hidden opacity-0" : "max-h-4 opacity-100"}`}
+                      className={`font-mono text-xs font-semibold uppercase tracking-widest transition-all duration-150 ${isCompactExpanded ? "max-h-0 overflow-hidden opacity-0" : "max-h-4 opacity-100"}`}
                       style={{
-                        color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                        color: isActive
+                          ? "var(--mio-accent-primary)"
+                          : "color-mix(in oklab, var(--mio-text-primary) 58%, transparent)",
                         fontWeight: isActive ? 700 : 400,
                       }}
                     >
@@ -227,7 +233,9 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                     <span
                       className={`block rounded-full transition-all duration-150 ${isCompactExpanded ? "mt-0.5 h-0.5 w-4" : "mt-1 h-1 w-5"}`}
                       style={{
-                        backgroundColor: isActive ? "#FAC304" : "transparent",
+                        backgroundColor: isActive
+                          ? "var(--mio-accent-primary)"
+                          : "transparent",
                       }}
                       aria-hidden="true"
                     />
@@ -245,25 +253,25 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 return !current;
               })
             }
-            className={`flex w-full cursor-pointer flex-col items-center justify-center transition duration-200 hover:bg-white/[0.08] ${isExpanded ? isCompactExpanded ? "rounded-[18px] px-1 py-1.5" : "rounded-[18px] px-1.5 py-2" : "flex-1 rounded-full"}`}
+            className={`flex w-full cursor-pointer flex-col items-center justify-center transition duration-200 hover:bg-parchment-150/[0.08] ${isExpanded ? isCompactExpanded ? "rounded-[14px] px-1 py-1.5" : "rounded-[14px] px-1.5 py-2" : "flex-1 rounded-full"}`}
             aria-expanded={isExpanded}
             aria-label={isExpanded ? "Collapse navigation" : "Expand navigation"}
           >
             <span
               className="flex items-center justify-center transition-colors duration-150"
-              style={{ color: "#FAC304" }}
+              style={{ color: "var(--mio-accent-primary)" }}
             >
               {triggerIcon}
             </span>
             {isExpanded ? (
               <>
                 <span
-                  className={`text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FAC304] transition-all duration-150 ${isCompactExpanded ? "max-h-0 overflow-hidden opacity-0" : "mt-1 max-h-4 opacity-100"}`}
+                  className={`font-mono text-xs font-semibold uppercase tracking-widest text-ochre-400 transition-all duration-150 ${isCompactExpanded ? "max-h-0 overflow-hidden opacity-0" : "mt-1 max-h-4 opacity-100"}`}
                 >
                   {activeItem?.label ?? "Menu"}
                 </span>
                 <span
-                  className={`block rounded-full bg-[#FAC304] transition-all duration-150 ${isCompactExpanded ? "mt-0.5 h-0.5 w-4" : "mt-1 h-1 w-5"}`}
+                  className={`block rounded-full bg-ochre-400 transition-all duration-150 ${isCompactExpanded ? "mt-0.5 h-0.5 w-4" : "mt-1 h-1 w-5"}`}
                   aria-hidden="true"
                 />
               </>
@@ -284,22 +292,26 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                   <button
                     key={`${item.componentName}-after-${index}`}
                     onClick={() => handleButtonClick(item.componentName)}
-                    className={`group flex w-full cursor-pointer flex-col items-center justify-center rounded-[18px] transition duration-200 hover:bg-white/[0.08] ${isCompactExpanded ? "px-1 py-1.5" : "px-1.5 py-2"}`}
+                    className={`group flex w-full cursor-pointer flex-col items-center justify-center rounded-[14px] transition duration-200 hover:bg-parchment-150/[0.08] ${isCompactExpanded ? "px-1 py-1.5" : "px-1.5 py-2"}`}
                     type="button"
                     aria-current={isActive ? "page" : undefined}
                   >
                     <span
                       className="flex items-center justify-center transition-colors duration-150"
                       style={{
-                        color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                        color: isActive
+                          ? "var(--mio-accent-primary)"
+                          : "color-mix(in oklab, var(--mio-text-primary) 58%, transparent)",
                       }}
                     >
                       {icon}
                     </span>
                     <span
-                      className={`text-[10px] font-semibold uppercase tracking-[0.18em] transition-all duration-150 ${isCompactExpanded ? "max-h-0 overflow-hidden opacity-0" : "max-h-4 opacity-100"}`}
+                      className={`font-mono text-xs font-semibold uppercase tracking-widest transition-all duration-150 ${isCompactExpanded ? "max-h-0 overflow-hidden opacity-0" : "max-h-4 opacity-100"}`}
                       style={{
-                        color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                        color: isActive
+                          ? "var(--mio-accent-primary)"
+                          : "color-mix(in oklab, var(--mio-text-primary) 58%, transparent)",
                         fontWeight: isActive ? 700 : 400,
                       }}
                     >
@@ -308,7 +320,9 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
                     <span
                       className={`block rounded-full transition-all duration-150 ${isCompactExpanded ? "mt-0.5 h-0.5 w-4" : "mt-1 h-1 w-5"}`}
                       style={{
-                        backgroundColor: isActive ? "#FAC304" : "transparent",
+                        backgroundColor: isActive
+                          ? "var(--mio-accent-primary)"
+                          : "transparent",
                       }}
                       aria-hidden="true"
                     />
@@ -335,22 +349,26 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
           <button
             key={index}
             onClick={() => handleButtonClick(item.componentName)}
-            className={`group flex cursor-pointer flex-col items-center justify-center rounded-[22px] transition duration-200 ${orientation === "vertical" ? "w-full gap-1 px-2 py-3 hover:bg-white/[0.08]" : "p-2"}`}
+            className={`group flex cursor-pointer flex-col items-center justify-center rounded-[14px] transition duration-200 ${orientation === "vertical" ? "w-full gap-1 px-2 py-3 hover:bg-parchment-150/[0.08]" : "p-2"}`}
             type="button"
             aria-current={isActive ? "page" : undefined}
           >
             <span
               className={`flex items-center justify-center transition-colors duration-150 ${orientation === "vertical" ? "" : "mb-1"}`}
               style={{
-                color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                color: isActive
+                  ? "var(--mio-accent-primary)"
+                  : "color-mix(in oklab, var(--mio-text-primary) 58%, transparent)",
               }}
             >
               {icon}
             </span>
             <span
-              className={`transition-colors duration-150 ${orientation === "vertical" ? "text-[10px] font-semibold uppercase tracking-[0.18em]" : "text-xs"}`}
+              className={`transition-colors duration-150 ${orientation === "vertical" ? "font-mono text-xs font-semibold uppercase tracking-widest" : "text-xs"}`}
               style={{
-                color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
+                color: isActive
+                  ? "var(--mio-accent-primary)"
+                  : "color-mix(in oklab, var(--mio-text-primary) 58%, transparent)",
                 fontWeight: isActive ? 700 : 400,
               }}
             >
@@ -359,7 +377,9 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <span
               className={`block rounded-full transition-all duration-150 ${orientation === "vertical" ? "mt-1 h-1 w-5" : "mt-1 h-1 w-1"}`}
               style={{
-                backgroundColor: isActive ? "#FAC304" : "transparent",
+                backgroundColor: isActive
+                  ? "var(--mio-accent-primary)"
+                  : "transparent",
               }}
               aria-hidden="true"
             />

@@ -7,7 +7,7 @@ function CreateAccount({ onNext, onFinish }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-transparent text-left text-black">
+    <div className="flex min-h-screen w-full flex-col bg-transparent text-left text-parchment-150">
       <div
         className="h-[40vh] min-h-[260px] w-full bg-transparent md:h-[46vh]"
         style={{
@@ -19,14 +19,15 @@ function CreateAccount({ onNext, onFinish }) {
       />
 
       <div className="flex-1 px-6 pb-8 pt-6 md:pb-10">
-        <div className="mx-auto w-full max-w-sm text-left">
-          <h1 className="mb-6 font-display text-3xl font-bold leading-tight text-black">
+        <div className="mio-panel mio-surface mx-auto w-full max-w-sm text-left" data-raised="true">
+          <p className="mio-eyebrow mb-2">Parent setup</p>
+          <h1 className="mb-6 font-display text-3xl font-semibold leading-tight text-parchment-150">
             Create child account
           </h1>
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-black/60">
+              <label className="mb-1 block text-sm font-medium text-parchment-250">
                 Email
               </label>
               <input
@@ -34,12 +35,12 @@ function CreateAccount({ onNext, onFinish }) {
                 placeholder="parent@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border-2 border-black/20 bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+                className="mio-input text-lg"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-black/60">
+              <label className="mb-1 block text-sm font-medium text-parchment-250">
                 Password
               </label>
               <div className="relative">
@@ -48,12 +49,13 @@ function CreateAccount({ onNext, onFinish }) {
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border-2 border-black/20 bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+                  className="mio-input pr-12 text-lg"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-parchment-450 transition hover:text-parchment-150"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   <svg
                     aria-hidden="true"
@@ -82,16 +84,16 @@ function CreateAccount({ onNext, onFinish }) {
 
             <button
               onClick={onNext}
-              className="mt-6 w-full rounded-full bg-black py-4 text-lg font-semibold text-white"
+              className="mio-button mt-6 w-full text-lg"
             >
               Next
             </button>
 
-            <p className="mt-4 text-center text-sm text-black/70">
+            <p className="mt-4 text-center text-sm text-parchment-250">
               Already have an account?{" "}
               <button
                 onClick={onFinish}
-                className="font-semibold text-black underline hover:no-underline"
+                className="cursor-pointer font-semibold text-ochre-400 underline hover:no-underline"
               >
                 Sign in
               </button>

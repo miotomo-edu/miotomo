@@ -14,7 +14,7 @@ function TellUsMore({ onBack, onFinish }) {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-transparent text-left text-black">
+    <div className="flex min-h-screen w-full flex-col bg-transparent text-left text-parchment-150">
       <div
         className="h-[40vh] min-h-[260px] w-full bg-transparent md:h-[46vh]"
         style={{
@@ -26,7 +26,7 @@ function TellUsMore({ onBack, onFinish }) {
       />
       <button
         onClick={onBack}
-        className="absolute left-6 top-6 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 transition-colors duration-200 ease-in-out hover:bg-white"
+        className="absolute left-6 top-6 z-30 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-parchment-150/20 bg-motara-950/70 text-parchment-150 backdrop-blur-md transition-colors duration-200 ease-in-out hover:bg-motara-800"
         aria-label="Back"
         type="button"
       >
@@ -39,7 +39,7 @@ function TellUsMore({ onBack, onFinish }) {
         >
           <path
             d="M15.8327 10L4.16602 10.0003L9.99935 4.16699L4.16602 10.0003L9.99935 15.8337"
-            stroke="black"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -47,14 +47,15 @@ function TellUsMore({ onBack, onFinish }) {
         </svg>
       </button>
       <div className="flex-1 px-6 pb-10 pt-6">
-        <div className="mx-auto w-full max-w-sm text-left">
-          <h1 className="mb-6 font-display text-3xl font-bold leading-tight text-black">
+        <div className="mio-panel mio-surface mx-auto w-full max-w-sm text-left" data-raised="true">
+          <p className="mio-eyebrow mb-2">Reader profile</p>
+          <h1 className="mb-6 font-display text-3xl font-semibold leading-tight text-parchment-150">
             Tell us about your child
           </h1>
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-black/60">
+              <label className="mb-1 block text-sm font-medium text-parchment-250">
                 Child's Name
               </label>
               <input
@@ -62,18 +63,18 @@ function TellUsMore({ onBack, onFinish }) {
                 placeholder="First name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full rounded-xl border-2 border-black/20 bg-white px-4 py-3 text-lg text-black placeholder-gray-400 focus:outline-none"
+                className="mio-input text-lg"
               />
             </div>
             <div className="relative">
-              <label className="mb-1 block text-sm font-medium text-black/60">
+              <label className="mb-1 block text-sm font-medium text-parchment-250">
                 Age
               </label>
               <select
                 name="age"
                 value={form.age}
                 onChange={handleChange}
-                className="w-full appearance-none rounded-xl border-2 border-black/20 bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+                className="mio-input appearance-none pr-10 text-lg"
               >
                 <option value="">Select age</option>
                 {[6, 7, 8, 9, 10, 11, 12].map((age) => (
@@ -90,7 +91,7 @@ function TellUsMore({ onBack, onFinish }) {
               >
                 <path
                   d="M1 1L6 6L11 1"
-                  stroke="black"
+                  stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -98,14 +99,14 @@ function TellUsMore({ onBack, onFinish }) {
               </svg>
             </div>
             <div className="relative">
-              <label className="mb-1 block text-sm font-medium text-black/60">
+              <label className="mb-1 block text-sm font-medium text-parchment-250">
                 Level of English
               </label>
               <select
                 name="year"
                 value={form.year}
                 onChange={handleChange}
-                className="w-full appearance-none rounded-xl border-2 border-black/20 bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+                className="mio-input appearance-none pr-10 text-lg"
               >
                 <option value="">Grade</option>
                 {[1, 2, 3, 4, 5, 6].map((y) => (
@@ -123,7 +124,7 @@ function TellUsMore({ onBack, onFinish }) {
               >
                 <path
                   d="M1 1L6 6L11 1"
-                  stroke="black"
+                  stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -131,14 +132,14 @@ function TellUsMore({ onBack, onFinish }) {
               </svg>
             </div>
             <div className="relative">
-              <label className="mb-1 block text-sm font-medium text-black/60">
+              <label className="mb-1 block text-sm font-medium text-parchment-250">
                 Country
               </label>
               <select
                 name="country"
                 value={form.country}
                 onChange={handleChange}
-                className="w-full appearance-none rounded-xl border-2 border-black/20 bg-white px-4 py-3 pr-10 text-lg text-black focus:outline-none"
+                className="mio-input appearance-none pr-10 text-lg"
               >
                 <option value="">Select country</option>
                 <option value="Italy">Italy</option>
@@ -155,7 +156,7 @@ function TellUsMore({ onBack, onFinish }) {
               >
                 <path
                   d="M1 1L6 6L11 1"
-                  stroke="black"
+                  stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -166,7 +167,7 @@ function TellUsMore({ onBack, onFinish }) {
 
           <button
             onClick={onFinish}
-            className="mt-8 w-full rounded-full bg-black py-4 text-lg font-semibold text-white"
+            className="mio-button mt-8 w-full text-lg"
           >
             Finish
           </button>

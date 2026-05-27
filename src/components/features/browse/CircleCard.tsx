@@ -15,10 +15,10 @@ type CircleCardProps = {
 };
 
 const badgeStyle = (badge: string): string => {
-  if (badge === "NEW") return "bg-emerald-500 text-white";
-  if (badge === "REPLAY") return "bg-sky-500 text-white";
-  if (badge === "Continue") return "bg-amber-400 text-black";
-  return "bg-black/80 text-white";
+  if (badge === "NEW") return "bg-leaf-500 text-parchment-50";
+  if (badge === "REPLAY") return "bg-sky-500 text-parchment-50";
+  if (badge === "Continue") return "bg-ochre-400 text-motara-950";
+  return "bg-motara-950/85 text-parchment-50";
 };
 
 const CircleCard: React.FC<CircleCardProps> = ({
@@ -38,10 +38,10 @@ const CircleCard: React.FC<CircleCardProps> = ({
     <button
       type="button"
       onClick={onSelect}
-      className="group flex w-40 shrink-0 flex-col gap-2 text-left md:w-64 md:gap-3"
+      className="group flex w-40 shrink-0 cursor-pointer flex-col gap-2 text-left md:w-64 md:gap-3"
       aria-label={`Open circle: ${book.title}`}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-white/70 ring-1 ring-black/10">
+      <div className="mio-media relative aspect-[2/3] w-full overflow-hidden rounded-[22px] bg-motara-800 ring-1 ring-parchment-150/12">
         {coverUrl ? (
           <img
             src={coverUrl}
@@ -49,7 +49,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-200 text-sm font-semibold text-gray-600">
+          <div className="flex h-full w-full items-center justify-center bg-motara-700 text-sm font-semibold text-parchment-250">
             No cover
           </div>
         )}
@@ -63,15 +63,15 @@ const CircleCard: React.FC<CircleCardProps> = ({
       </div>
       <div className="space-y-0.5">
         {kicker ? (
-          <div className="text-xs font-semibold uppercase tracking-wide text-gray-600 md:text-sm">
+          <div className="font-mono text-xs font-medium uppercase tracking-widest text-parchment-450 md:text-sm">
             {kicker}
           </div>
         ) : null}
-        <div className="font-display text-sm font-semibold text-gray-900 md:text-xl">
+        <div className="font-display text-sm font-semibold text-parchment-150 md:text-xl">
           {book.title}
         </div>
         {meta ? (
-          <div className="text-xs font-medium text-gray-500 md:text-base">
+          <div className="text-xs font-medium text-parchment-450 md:text-base">
             {meta}
           </div>
         ) : null}

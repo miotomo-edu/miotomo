@@ -106,13 +106,13 @@ const scoreSort = (a: Book, b: Book, scores: Record<string, number>) =>
 
 // -------- Skeleton --------
 const S: React.FC<{ className?: string }> = ({ className = "" }) => (
-  <div className={`animate-pulse rounded-xl bg-black/[0.07] ${className}`} />
+  <div className={`animate-pulse rounded-xl bg-parchment-150/12 ${className}`} />
 );
 
 const BrowseRowSkeleton: React.FC = () => (
   <div className="space-y-3">
     <div className="flex items-center gap-2.5">
-      <div className="h-5 w-1.5 rounded-full bg-black/[0.07]" />
+      <div className="h-5 w-1.5 rounded-full bg-parchment-150/12" />
       <S className="h-5 w-32" />
     </div>
     <div className="flex gap-4 overflow-hidden">
@@ -128,9 +128,9 @@ const BrowseRowSkeleton: React.FC = () => (
 );
 
 const BrowsePageSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-white">
+  <div className="mio-shell min-h-screen">
     <S className="h-screen w-full rounded-none" />
-    <div className="relative z-10 -mt-8 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+    <div className="relative z-10 -mt-8 bg-motara-850 px-4 pb-24 pt-8">
       <div className="space-y-10">
         <BrowseRowSkeleton />
         <BrowseRowSkeleton />
@@ -497,11 +497,11 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   if (error) {
-    return <div className="p-6 text-gray-600">Error loading circles.</div>;
+    return <div className="mio-shell p-6 text-parchment-250">Error loading circles.</div>;
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="mio-shell min-h-screen">
       {currentCircleItem ? (
         <CurrentCircleHero
           studentId={studentId}
@@ -513,9 +513,10 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         />
       ) : null}
 
-      <div className="relative z-10 space-y-10 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+      <div className="relative z-10 space-y-10 bg-motara-850 px-4 pb-24 pt-8">
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#020617]">
+          <p className="mio-eyebrow mb-2">Library</p>
+          <h2 className="font-display text-2xl font-semibold text-parchment-150">
             Explore Circles
           </h2>
           <div className="mt-2">

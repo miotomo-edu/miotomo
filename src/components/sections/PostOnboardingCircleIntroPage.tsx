@@ -351,7 +351,7 @@ const PostOnboardingCircleIntroPage: React.FC<
 
   if (isLoadingBrowse || isLoadingDots) {
     return (
-      <div className="min-h-screen bg-white px-6 py-8 text-black/60">
+      <div className="mio-shell min-h-screen px-6 py-8 text-parchment-250">
         Loading your first circle...
       </div>
     );
@@ -359,39 +359,39 @@ const PostOnboardingCircleIntroPage: React.FC<
 
   if (!book) {
     return (
-      <div className="min-h-screen bg-white px-6 py-8 text-black/60">
+      <div className="mio-shell min-h-screen px-6 py-8 text-parchment-250">
         Demo circle not available.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white px-6 pb-28 pt-6 text-black">
+    <div className="mio-shell min-h-screen px-6 pb-28 pt-6 text-parchment-150">
       <div className="flex w-full flex-col gap-6">
-        <section className="overflow-hidden rounded-3xl bg-[linear-gradient(180deg,#020617_0%,#0b1020_100%)] px-5 py-6 text-white">
+        <section className="mio-surface overflow-hidden rounded-3xl border-parchment-150/14 bg-[linear-gradient(180deg,var(--mio-color-motara-800)_0%,var(--mio-color-motara-950)_100%)] px-5 py-6 text-parchment-150" data-raised="true">
           <div className="flex items-start gap-4">
             <CircleDotsSymbol
               totalDots={Math.max(totalDots, 1)}
               completedDots={completedDots}
               currentDot={null}
               size={52}
-              ringColor="#ffffff"
-              inactiveDotFill="#ffffff"
-              inactiveDotStroke="#ffffff"
-              completedDotFill="#FAC304"
-              completedDotStroke="#FAC304"
-              labelColor="#ffffff"
+              ringColor="#f0e6cf"
+              inactiveDotFill="#f0e6cf"
+              inactiveDotStroke="#f0e6cf"
+              completedDotFill="#d9a83c"
+              completedDotStroke="#d9a83c"
+              labelColor="#f0e6cf"
               className="shrink-0"
             />
             <div className="min-w-0">
-              <h1 className="font-display text-3xl font-bold leading-[1.02] tracking-[-0.03em] text-white">
-                <span className="text-brand-primary">{readerPossessive}</span>{" "}
+              <h1 className="font-display text-3xl font-semibold leading-tight text-parchment-150">
+                <span className="text-ochre-400">{readerPossessive}</span>{" "}
                 first circle starts here
               </h1>
-              <p className="mt-4 text-lg leading-relaxed text-white/88">
-                A <span className="font-semibold text-brand-primary">Circle</span> is
+              <p className="mt-4 text-lg leading-relaxed text-parchment-250">
+                A <span className="font-semibold text-ochre-400">Circle</span> is
                 a big topic. Each Circle has smaller episodes called{" "}
-                <span className="font-semibold text-brand-primary">Dots</span>.
+                <span className="font-semibold text-ochre-400">Dots</span>.
                 Complete every Dot and then close the Circle by teaching Tomo what you learned.
               </p>
             </div>
@@ -405,16 +405,16 @@ const PostOnboardingCircleIntroPage: React.FC<
               completedDots={completedDots}
               currentDot={null}
               size={54}
-              ringColor="#0a1024"
-              inactiveDotFill="#0a1024"
-              inactiveDotStroke="#0a1024"
-              completedDotFill="#FAC304"
-              completedDotStroke="#FAC304"
-              labelColor="#0a1024"
+              ringColor="#f0e6cf"
+              inactiveDotFill="#f0e6cf"
+              inactiveDotStroke="#f0e6cf"
+              completedDotFill="#d9a83c"
+              completedDotStroke="#d9a83c"
+              labelColor="#f0e6cf"
               className="shrink-0"
             />
             <h2
-              className="font-display flex-1 text-3xl font-bold leading-none tracking-tight text-black md:text-4xl"
+              className="flex-1 font-display text-3xl font-semibold leading-none text-parchment-150 md:text-4xl"
             >
               {book.title}
             </h2>
@@ -422,7 +422,7 @@ const PostOnboardingCircleIntroPage: React.FC<
         </section>
 
         {dotsError ? (
-          <div className="rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+          <div className="rounded-3xl border border-terracotta-500/30 bg-terracotta-500/10 px-4 py-4 text-sm text-parchment-250">
             Could not load the dots for this circle.
           </div>
         ) : null}
@@ -441,7 +441,7 @@ const PostOnboardingCircleIntroPage: React.FC<
               return (
                 <div
                   key={`${book.id}-dot-${dot.episode}`}
-                  className="w-full rounded-3xl border border-black/30 bg-white px-4 py-4 text-left"
+                  className="w-full rounded-3xl border border-ochre-400/34 bg-motara-800/88 px-4 py-4 text-left shadow-soft"
                 >
                   <div className="flex items-start gap-4">
                     <CircleDotsSymbol
@@ -450,37 +450,37 @@ const PostOnboardingCircleIntroPage: React.FC<
                       currentDot={dot.episode}
                       label={dot.episode}
                       size={48}
-                      ringColor="#0a1024"
-                      inactiveDotFill="#0a1024"
-                      inactiveDotStroke="#0a1024"
-                      completedDotFill="#FAC304"
-                      completedDotStroke="#FAC304"
-                      labelColor="#0a1024"
+                      ringColor="#f0e6cf"
+                      inactiveDotFill="#f0e6cf"
+                      inactiveDotStroke="#f0e6cf"
+                      completedDotFill="#d9a83c"
+                      completedDotStroke="#d9a83c"
+                      labelColor="#f0e6cf"
                       className="mt-1 shrink-0"
                     />
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-black/50">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-parchment-250">
                         {tags.map((tag) => (
                           <span
                             key={`${dot.episode}-${tag.label}`}
                             className="inline-flex items-center gap-1.5"
                           >
-                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
+                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-parchment-150" />
                             <span>{tag.label}</span>
                           </span>
                         ))}
                       </div>
-                      <div className="mt-2 font-display text-xl font-bold leading-[1.02] text-[#020617] md:text-2xl">
+                      <div className="mt-2 font-display text-xl font-semibold leading-tight text-parchment-150 md:text-2xl">
                         {dot.title || `Dot ${dot.episode}`}
                       </div>
-                      <p className="mt-2 text-lg leading-7 text-black/78">
+                      <p className="mt-2 text-lg leading-7 text-parchment-250">
                         Tomo knows nothing.{" "}
-                        <span className="font-semibold text-brand-primary">
+                        <span className="font-semibold text-ochre-400">
                           {userName.trim().split(/\s+/)[0] || "You"}
                         </span>{" "}
                         has accepted the challenge of educating him.
                       </p>
-                      <div className="mt-4 flex items-start gap-2 text-lg font-semibold text-[#1d1b20]">
+                      <div className="mt-4 flex items-start gap-2 text-lg font-semibold text-parchment-150">
                         <img
                           src={tomoIcon}
                           alt=""
@@ -488,7 +488,7 @@ const PostOnboardingCircleIntroPage: React.FC<
                           aria-hidden="true"
                         />
                         <p className="min-w-0 leading-7">
-                          <span className="text-brand-primary">
+                          <span className="text-ochre-400">
                             {userName.trim().split(/\s+/)[0] || "You"}
                           </span>
                           <span>, I am counting on you!</span>
@@ -503,7 +503,7 @@ const PostOnboardingCircleIntroPage: React.FC<
             return (
               <div
                 key={`${book.id}-dot-${dot.episode}`}
-                className="w-full rounded-3xl border border-black/10 bg-white px-4 py-4 text-left"
+                className="w-full rounded-3xl border border-parchment-150/12 bg-motara-800/78 px-4 py-4 text-left shadow-soft"
               >
                 <div className="flex items-start gap-4">
                   <CircleDotsSymbol
@@ -512,32 +512,32 @@ const PostOnboardingCircleIntroPage: React.FC<
                     currentDot={dot.episode}
                     label={dot.episode}
                     size={48}
-                    ringColor="#0a1024"
-                    inactiveDotFill="#0a1024"
-                    inactiveDotStroke="#0a1024"
-                    completedDotFill="#FAC304"
-                    completedDotStroke="#FAC304"
-                    labelColor="#0a1024"
+                    ringColor="#f0e6cf"
+                    inactiveDotFill="#f0e6cf"
+                    inactiveDotStroke="#f0e6cf"
+                    completedDotFill="#d9a83c"
+                    completedDotStroke="#d9a83c"
+                    labelColor="#f0e6cf"
                     className="mt-1 shrink-0"
                   />
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-black/50">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-parchment-250">
                       {tags.map((tag) => (
                         <span
                           key={`${dot.episode}-${tag.label}`}
                           className="inline-flex items-center gap-1.5"
                         >
-                          <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
+                          <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-parchment-150" />
                           <span>{tag.label}</span>
                         </span>
                       ))}
                       {isCompleted ? (
-                        <span className="font-semibold text-[#b07b00]">
+                        <span className="font-semibold text-ochre-400">
                           Completed
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-2 font-display text-xl font-bold leading-[1.02] text-[#020617] md:text-2xl">
+                    <div className="mt-2 font-display text-xl font-semibold leading-tight text-parchment-150 md:text-2xl">
                       {dot.title || `Dot ${dot.episode}`}
                     </div>
                   </div>
@@ -551,7 +551,7 @@ const PostOnboardingCircleIntroPage: React.FC<
           type="button"
           onClick={() => handlePlayDot(firstDot)}
           disabled={!firstDot}
-          className="mt-2 inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mio-button mt-2 inline-flex min-h-[52px] w-full text-lg disabled:cursor-not-allowed disabled:opacity-60"
         >
           Start Dot 1
         </button>

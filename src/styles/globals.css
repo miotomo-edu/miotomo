@@ -1,8 +1,12 @@
 @import "tailwindcss";
+@import "../../design-system/components.css";
 @config "../../tailwind.config.cjs";
 
 :root {
-  --font-display: "Baloo 2", "Nunito", sans-serif;
+  --font-display: var(--mio-font-display);
+  --font-body: var(--mio-font-body);
+  --font-brand: var(--mio-font-brand);
+  --font-mono: var(--mio-font-mono);
 }
 
 html,
@@ -14,8 +18,9 @@ body {
   height: auto;
   min-height: 100dvh;
   width: 100%;
-  background: #000;
-  font-family: "Nunito", sans-serif;
+  background: var(--mio-bg-canvas-deep);
+  color: var(--mio-text-primary);
+  font-family: var(--mio-font-body);
   font-optical-sizing: auto;
   font-style: normal;
   -webkit-overflow-scrolling: touch;
@@ -31,7 +36,7 @@ body.screenshot-mode {
 #root {
   height: auto;
   min-height: 100dvh;
-  background: #000;
+  background: var(--mio-bg-canvas-deep);
   display: flex;
   flex-direction: column;
 }
@@ -40,7 +45,7 @@ body.screenshot-mode {
   min-height: 100dvh;
   position: relative;
   width: 100%;
-  background: #fff;
+  background: var(--mio-bg-canvas);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   display: flex;
@@ -104,12 +109,12 @@ body.screenshot-mode {
 }
 
 .bg-library {
-  background: #fff;
+  background: var(--mio-bg-canvas);
 }
 
 /* Accessibility: keyboard focus ring */
 :focus-visible {
-  outline: 2px solid #FAC304;
+  outline: 2px solid var(--mio-accent-primary);
   outline-offset: 2px;
 }
 
@@ -196,7 +201,7 @@ body.screenshot-mode {
 }
 
 .logo {
-  font-family: "Exo 2", sans-serif;
+  font-family: var(--mio-font-brand);
   font-optical-sizing: auto;
 }
 
@@ -376,7 +381,7 @@ body.screenshot-mode {
 
 @media (min-width: 1367px) {
   body {
-    background: #836e6e;
+    background: var(--mio-bg-canvas-deep);
   }
   .app-mobile-shell {
     width: min(402px, 100vw, calc(100vh * 402 / 874));
@@ -386,7 +391,7 @@ body.screenshot-mode {
     max-height: 100vh;
     margin: 0 auto;
     border-radius: 24px;
-    background: #fff;
+    background: var(--mio-bg-canvas);
     overflow: hidden;
     position: relative;
     display: flex;

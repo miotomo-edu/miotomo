@@ -21,6 +21,7 @@ import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { supabase } from "../hooks/integrations/supabase/client";
 import { useDotProgress } from "../hooks/useDotProgress";
+import { getRuntimeBooleanParam } from "../lib/runtimeParams";
 
 const discussionBackgroundAssets = import.meta.glob(
   "../assets/img/discussion/**/*.png",
@@ -163,10 +164,7 @@ export const TalkWithBook = ({
     useState(null);
 
   const disableProgressTracking = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    const params = new URLSearchParams(window.location.search);
-    const value = params.get("disable_progress_tracking");
-    return value === "1" || value === "true";
+    return getRuntimeBooleanParam("disable_progress_tracking");
   }, []);
 
   const {
@@ -2341,20 +2339,20 @@ export const TalkWithBook = ({
 
   return (
     <div
-      className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass} bg-black text-white`}
+      className={`inset-0 flex min-h-screen flex-col overflow-hidden bg-motara-950 text-parchment-150 transition-colors duration-500 ${characterBgClass}`}
       style={talkBackgroundStyle}
       ref={backgroundRef}
     >
       {/* Bottom scrim for audio controls */}
       <div
-        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none"
+        className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-t from-motara-950 via-motara-950/75 to-transparent"
         style={{
           top: gradientTop ? `${gradientTop}px` : "44vh",
           height: gradientHeight ? `${gradientHeight}px` : "11vh",
         }}
       />
       {/* Top scrim — ensures header text is legible on any background image */}
-      <div className="absolute inset-x-0 top-0 h-52 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-gradient-to-b from-motara-950/85 via-motara-950/45 to-transparent" />
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
@@ -2373,7 +2371,7 @@ export const TalkWithBook = ({
         />
       </div>
 
-      <div className="flex-1 px-6 pt-4 overflow-hidden text-white">
+      <div className="flex-1 overflow-hidden px-6 pt-4 text-parchment-150">
         <div className="h-full w-full">{renderedServerContent}</div>
       </div>
 
@@ -2408,7 +2406,7 @@ export const TalkWithBook = ({
               audioControlsDisabled ? "opacity-40" : "opacity-100"
             }`}
           >
-            <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
+            <div className="flex items-center justify-between font-mono text-sm font-semibold text-parchment-150 md:text-xl">
               <span>{introPlayedLabel}</span>
               <span>{introRemainingNegativeLabel}</span>
             </div>
@@ -2418,7 +2416,7 @@ export const TalkWithBook = ({
                   type="button"
                   onClick={toggleIntroPlayback}
                   aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
-                  className="p-1 text-white disabled:opacity-40"
+                  className="cursor-pointer p-1 text-parchment-150 transition hover:text-ochre-400 disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={audioControlsDisabled}
                 >
                   {isIntroPlaying ? (
@@ -2457,16 +2455,16 @@ export const TalkWithBook = ({
                 }
                 aria-label="Intro playback position"
                 style={{
-                  background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
+                  background: `linear-gradient(to right, var(--mio-accent-primary) ${introProgressPercent}%, rgba(240, 230, 207, 0.3) ${introProgressPercent}%)`,
                 }}
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-parchment-150 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-parchment-150 md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
               />
               {showIntroControls && (
                 <button
                   type="button"
                   onClick={() => interruptIntroPlayback()}
                   aria-label="Stop intro"
-                  className="p-1 text-white disabled:opacity-40"
+                  className="cursor-pointer p-1 text-parchment-150 transition hover:text-coral-400 disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={disableStop || audioControlsDisabled}
                 >
                   <svg
@@ -2488,7 +2486,7 @@ export const TalkWithBook = ({
             {!isConnected && !isConnecting && (
               <button
                 onClick={connectHere}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+                className="mio-button"
               >
                 Start Conversation
               </button>
@@ -2496,7 +2494,7 @@ export const TalkWithBook = ({
             {isConnecting && (
               <button
                 disabled
-                className="px-4 py-2 bg-gray-400 text-white rounded"
+                className="mio-button opacity-60"
               >
                 Connecting...
               </button>
@@ -2504,7 +2502,7 @@ export const TalkWithBook = ({
             {isConnected && (
               <button
                 onClick={disconnectHere}
-                className="px-4 py-2 bg-red-500 text-white rounded"
+                className="mio-button bg-terracotta-500 text-parchment-50"
               >
                 End Conversation
               </button>
@@ -2516,7 +2514,7 @@ export const TalkWithBook = ({
           <button
             type="button"
             onClick={handleShowDotCompletion}
-            className="text-sm font-medium text-white/70 underline-offset-4 underline transition hover:text-white md:text-base"
+            className="text-sm font-medium text-parchment-250 underline underline-offset-4 transition hover:text-parchment-150 md:text-base"
           >
             Next
           </button>

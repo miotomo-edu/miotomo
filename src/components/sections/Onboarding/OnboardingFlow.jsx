@@ -13,7 +13,7 @@ function OnboardingFlow({ onFinish }) {
 
   return (
     <div
-      className="flex h-full min-h-full w-full flex-col justify-between bg-[#f6efe2] text-white"
+      className="mio-shell flex h-full min-h-full w-full flex-col justify-between text-parchment-150"
       style={{
         backgroundImage: `url(${textureBg})`,
         backgroundRepeat: "repeat",

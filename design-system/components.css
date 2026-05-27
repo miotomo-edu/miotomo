@@ -1,0 +1,415 @@
+@import "./tokens.css";
+
+@layer miotomo.base, miotomo.components, miotomo.utilities;
+
+@layer miotomo.base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--mio-bg-canvas);
+    color: var(--mio-text-primary);
+    font-family: var(--mio-font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background: var(--mio-bg-canvas);
+  }
+
+  img,
+  svg,
+  canvas,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    color: var(--mio-text-primary);
+    font-family: var(--mio-font-display);
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    color: var(--mio-text-secondary);
+    text-wrap: pretty;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 0;
+    box-shadow: var(--mio-shadow-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer miotomo.components {
+  .mio-shell {
+    min-height: 100svh;
+    color: var(--mio-text-primary);
+    background:
+      radial-gradient(72rem 36rem at 72% -8%, color-mix(in oklab, var(--mio-accent-info) 18%, transparent), transparent 62%),
+      linear-gradient(180deg, color-mix(in oklab, var(--mio-bg-canvas) 92%, black), var(--mio-bg-canvas));
+  }
+
+  .mio-wrap {
+    width: min(var(--mio-page-max), 92vw);
+    margin-inline: auto;
+  }
+
+  .mio-stack {
+    display: grid;
+    gap: var(--mio-space-6);
+  }
+
+  .mio-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mio-space-3);
+  }
+
+  .mio-brand {
+    display: inline-flex;
+    min-height: var(--mio-hit-target);
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--mio-text-primary);
+    font-family: var(--mio-font-brand);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-decoration: none;
+  }
+
+  .mio-brand-mark {
+    position: relative;
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: 50% 50% 48% 52% / 55% 55% 45% 45%;
+    background: var(--mio-accent-success);
+    box-shadow: 0 0 0 0.375rem color-mix(in oklab, var(--mio-accent-success) 13%, transparent);
+  }
+
+  .mio-brand-mark::before {
+    content: "";
+    position: absolute;
+    top: 0.3125rem;
+    right: 0.25rem;
+    left: 0.25rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background: var(--mio-text-primary);
+  }
+
+  .mio-eyebrow {
+    color: var(--mio-text-muted);
+    font-family: var(--mio-font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .mio-title-xl {
+    font-size: var(--mio-step-5);
+    line-height: 0.98;
+  }
+
+  .mio-title-lg {
+    font-size: var(--mio-step-4);
+  }
+
+  .mio-title-md {
+    font-size: var(--mio-step-3);
+  }
+
+  .mio-lede {
+    max-width: var(--mio-reading-max);
+    color: var(--mio-text-secondary);
+    font-size: var(--mio-step-1);
+    line-height: 1.52;
+  }
+
+  .mio-surface {
+    border: 1px solid var(--mio-border-soft);
+    border-radius: var(--mio-radius-lg);
+    background: var(--mio-bg-surface);
+    box-shadow: var(--mio-shadow-soft);
+  }
+
+  .mio-surface[data-raised="true"] {
+    background: var(--mio-bg-surface-raised);
+    box-shadow: var(--mio-shadow-raised);
+  }
+
+  .mio-panel {
+    padding: clamp(var(--mio-space-5), 3vw, var(--mio-space-8));
+  }
+
+  .mio-card {
+    display: grid;
+    gap: var(--mio-space-4);
+    min-height: 13.5rem;
+    padding: var(--mio-space-6);
+    border: 1px solid var(--mio-border-soft);
+    border-radius: var(--mio-radius-md);
+    background: color-mix(in oklab, var(--mio-bg-surface) 86%, transparent);
+    transition:
+      transform var(--mio-duration-base) var(--mio-ease-standard),
+      border-color var(--mio-duration-base) var(--mio-ease-standard),
+      background var(--mio-duration-base) var(--mio-ease-standard);
+  }
+
+  .mio-card:hover {
+    transform: translateY(-0.125rem);
+    border-color: var(--mio-border-medium);
+    background: var(--mio-bg-surface-raised);
+  }
+
+  .mio-button {
+    position: relative;
+    display: inline-flex;
+    min-height: var(--mio-hit-target);
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.75rem 1.125rem;
+    border: 1px solid transparent;
+    border-radius: var(--mio-radius-pill);
+    background: var(--mio-accent-primary);
+    color: #2a2620;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-decoration: none;
+    transition:
+      transform var(--mio-duration-fast) var(--mio-ease-snappy),
+      background var(--mio-duration-base) var(--mio-ease-standard),
+      border-color var(--mio-duration-base) var(--mio-ease-standard);
+  }
+
+  .mio-button:hover {
+    background: var(--mio-accent-primary-hover);
+    transform: translateY(-0.0625rem);
+  }
+
+  .mio-button:active {
+    transform: scale(0.96);
+  }
+
+  .mio-button[data-variant="quiet"] {
+    border-color: var(--mio-border-medium);
+    background: transparent;
+    color: var(--mio-text-primary);
+  }
+
+  .mio-button[data-variant="inverse"] {
+    background: var(--mio-bg-inverse);
+    color: var(--mio-text-inverse);
+  }
+
+  .mio-input {
+    min-height: var(--mio-hit-target);
+    width: 100%;
+    border: 1px solid var(--mio-border-soft);
+    border-radius: var(--mio-radius-md);
+    background: color-mix(in oklab, var(--mio-bg-surface) 70%, transparent);
+    color: var(--mio-text-primary);
+    padding: 0.875rem 1rem;
+    transition:
+      background var(--mio-duration-base) var(--mio-ease-standard),
+      border-color var(--mio-duration-base) var(--mio-ease-standard),
+      box-shadow var(--mio-duration-base) var(--mio-ease-standard);
+  }
+
+  .mio-input::placeholder {
+    color: var(--mio-text-muted);
+  }
+
+  .mio-input:hover,
+  .mio-input:focus {
+    border-color: var(--mio-border-medium);
+    background: var(--mio-bg-surface);
+  }
+
+  .mio-chip {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--mio-border-soft);
+    border-radius: var(--mio-radius-pill);
+    background: color-mix(in oklab, var(--mio-bg-surface) 76%, transparent);
+    color: var(--mio-text-secondary);
+    font-family: var(--mio-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .mio-chip::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--mio-accent-warm);
+  }
+
+  .mio-progress {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .mio-progress-track {
+    overflow: hidden;
+    height: 0.625rem;
+    border-radius: var(--mio-radius-pill);
+    background: color-mix(in oklab, var(--mio-text-primary) 10%, transparent);
+  }
+
+  .mio-progress-value {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--mio-accent-success), var(--mio-accent-primary));
+  }
+
+  .mio-stat {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mio-media {
+    overflow: hidden;
+    border-radius: var(--mio-radius-lg);
+    background: var(--mio-bg-quiet);
+    outline: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  [data-mio-theme="light"] .mio-media {
+    outline-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .mio-voice-orb {
+    position: relative;
+    display: grid;
+    width: clamp(7rem, 16vw, 11rem);
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 48% 36%, var(--mio-color-parchment-50) 0 16%, transparent 17%),
+      radial-gradient(circle at 50% 52%, var(--mio-accent-success) 0 42%, var(--mio-color-leaf-650) 68%);
+    box-shadow:
+      0 0 0 0.75rem color-mix(in oklab, var(--mio-accent-success) 11%, transparent),
+      0 2rem 4rem -2rem rgba(0, 0, 0, 0.62);
+  }
+
+  .mio-voice-orb[data-state="listening"] {
+    animation: mio-orb-pulse 1.8s var(--mio-ease-standard) infinite;
+  }
+
+  .mio-session-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: var(--mio-space-3);
+  }
+
+  .mio-session-step {
+    min-height: 5rem;
+    padding: var(--mio-space-4);
+    border: 1px solid var(--mio-border-soft);
+    border-radius: var(--mio-radius-md);
+    background: color-mix(in oklab, var(--mio-bg-surface) 76%, transparent);
+  }
+
+  .mio-session-step[aria-current="step"] {
+    border-color: color-mix(in oklab, var(--mio-accent-primary) 54%, transparent);
+    background: color-mix(in oklab, var(--mio-accent-primary) 14%, var(--mio-bg-surface));
+  }
+
+  @keyframes mio-orb-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow:
+        0 0 0 0.75rem color-mix(in oklab, var(--mio-accent-success) 11%, transparent),
+        0 2rem 4rem -2rem rgba(0, 0, 0, 0.62);
+    }
+    50% {
+      transform: scale(1.035);
+      box-shadow:
+        0 0 0 1.25rem color-mix(in oklab, var(--mio-accent-success) 18%, transparent),
+        0 2rem 4rem -2rem rgba(0, 0, 0, 0.62);
+    }
+  }
+}
+
+@layer miotomo.utilities {
+  .mio-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .mio-balance {
+    text-wrap: balance;
+  }
+
+  .mio-pretty {
+    text-wrap: pretty;
+  }
+
+  .mio-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mio-reveal {
+    opacity: 0;
+    transform: translateY(1.75rem);
+    transition:
+      opacity var(--mio-duration-slow) var(--mio-ease-standard),
+      transform var(--mio-duration-slow) var(--mio-ease-standard);
+  }
+
+  .mio-reveal[data-visible="true"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

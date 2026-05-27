@@ -5,8 +5,44 @@ module.exports = {
     extend: {
       fontFamily: {
         display: ["var(--font-display)", "Nunito", "sans-serif"],
+        body: ["var(--font-body)", "Nunito Sans", "sans-serif"],
+        brand: ["var(--font-brand)", "Satoshi", "sans-serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "monospace"],
       },
       colors: {
+        motara: {
+          950: "#171222",
+          900: "#211b33",
+          850: "#2a2440",
+          800: "#322a4a",
+          700: "#3d3458",
+          600: "#51466d",
+        },
+        parchment: {
+          50: "#fff8e9",
+          100: "#f7edd7",
+          150: "#f0e6cf",
+          250: "#d8ccb0",
+          450: "#9d93a8",
+        },
+        ochre: {
+          400: "#d9a83c",
+          500: "#bd8b22",
+        },
+        coral: {
+          400: "#d9836a",
+          500: "#c76955",
+        },
+        leaf: {
+          500: "#8fa05c",
+          650: "#6e7d42",
+        },
+        sky: {
+          500: "#3f6f86",
+        },
+        terracotta: {
+          500: "#b14f3e",
+        },
         gray: {
           25: "#FBFBFF",
           200: "#E1E1E5",
