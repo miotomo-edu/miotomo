@@ -49,18 +49,8 @@ const resolveDiscussionBackground = ({
 
   if (bookId) {
     if (customFilename) {
-      if (isTeachtime) {
-        candidates.push(
-          `../assets/img/discussion/${bookId}/teachtime/${orientationPrefix}${customFilename}`,
-        );
-      }
       candidates.push(
         `../assets/img/discussion/${bookId}/${orientationPrefix}${customFilename}`,
-      );
-    }
-    if (isTeachtime) {
-      candidates.push(
-        `../assets/img/discussion/${bookId}/teachtime/${orientationPrefix}${filename}`,
       );
     }
     candidates.push(
