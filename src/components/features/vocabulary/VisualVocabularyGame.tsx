@@ -926,6 +926,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const showRetryHint =
     showMicButton && phase === "feedback" && !isCorrectSolved && !hasFailedMax;
   const isRecorderArming = phase === "recording" && !isRecording && !isGrading;
+  const showGradingIndicator = isGrading && phase === "grading";
   const promptText = (() => {
     if (phase === "feedback") {
       if (isCorrectSolved) return "Well done, ready for the next word?";
@@ -1186,7 +1187,52 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             {promptText}
           </div>
           <div className="flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
-            {showNextButton ? (
+            {showGradingIndicator ? (
+              <div
+                className="relative flex h-full w-full items-center justify-center rounded-full bg-[#020617]/[0.05] text-[#020617] ring-2 ring-black/10"
+                aria-label="Grading your answer"
+              >
+                <svg
+                  viewBox="0 0 64 64"
+                  className="h-16 w-16 text-[#020617]/75 md:h-20 md:w-20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <g className="origin-center animate-spin">
+                    <circle cx="24" cy="24" r="8" />
+                    <path d="M24 10v4" />
+                    <path d="M24 34v4" />
+                    <path d="M10 24h4" />
+                    <path d="M34 24h4" />
+                    <path d="m14.1 14.1 2.8 2.8" />
+                    <path d="m31.1 31.1 2.8 2.8" />
+                    <path d="m14.1 33.9 2.8-2.8" />
+                    <path d="m31.1 16.9 2.8-2.8" />
+                  </g>
+                  <g
+                    className="slow-spin"
+                    style={{ transformOrigin: "41px 41px", animationDuration: "1.9s" }}
+                  >
+                    <circle cx="41" cy="41" r="6.5" />
+                    <path d="M41 30v3.5" />
+                    <path d="M41 48.5V52" />
+                    <path d="M30 41h3.5" />
+                    <path d="M48.5 41H52" />
+                    <path d="m33.2 33.2 2.4 2.4" />
+                    <path d="m46.4 46.4 2.4 2.4" />
+                    <path d="m33.2 48.8 2.4-2.4" />
+                    <path d="m46.4 35.6 2.4-2.4" />
+                  </g>
+                </svg>
+                <span className="absolute -bottom-8 text-xs font-bold uppercase tracking-[0.24em] text-[#020617]/55 md:-bottom-10 md:text-sm">
+                  Grading
+                </span>
+              </div>
+            ) : showNextButton ? (
               <button
                 type="button"
                 onClick={handleNextWord}
