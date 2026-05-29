@@ -6,6 +6,7 @@ import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
 import VisualSpellingGame from "../spelling/VisualSpellingGame";
 import type { PreviewScreen } from "../../../lib/previewMode";
+import type { Book } from "../../sections/LibrarySection";
 
 type Attempt = {
   text: string;
@@ -34,17 +35,27 @@ type VisualVocabularyGameProps = {
     | "spelling-game"
     | "spelling-complete"
   > | null;
+  selectedBook?: Book | null;
+  selectedChapter?: number | null;
 };
 
 const TEST_CIRCLE_ID = "ff7f12ca-78e4-4987-9d2c-63a68694a1b1";
 const TEST_DOT = 1;
 const MAX_ATTEMPTS = 3;
 const SAMPLE_RATE = 16000;
+const RECORDING_COUNTDOWN_SECONDS = 3;
 const buildWsUrl = (targetWord: string) => {
   const encoded = encodeURIComponent((targetWord || "").toLowerCase());
 
   return `wss://miotomo-vocabulary.onrender.com/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
-  // return `ws://localhost:8001/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
+  // return `ws://localhost:8000/v1/vocab/grade?sample_rate=${SAMPLE_RATE}&target_word=${encoded}`;
+};
+
+const blobToHexPreview = async (blob: Blob, bytes = 8) => {
+  const buffer = await blob.slice(0, bytes).arrayBuffer();
+  return Array.from(new Uint8Array(buffer))
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join(" ");
 };
 
 const parseFeedbackTextMap = (value: unknown) => {
@@ -69,6 +80,8 @@ const parseFeedbackTextMap = (value: unknown) => {
 const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   onComplete,
   previewMode = null,
+  selectedBook = null,
+  selectedChapter = null,
 }) => {
   const isPreviewMode = Boolean(previewMode);
   const isVocabularyPreview =
@@ -111,6 +124,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const [hasListened, setHasListened] = useState(false);
   const [showIntro, setShowIntro] = useState(() => !previewMode);
   const [showSpellingGame, setShowSpellingGame] = useState(false);
+  const [armingCountdown, setArmingCountdown] = useState<number | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const sentChunkCountRef = useRef(0);
@@ -120,6 +134,16 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastTranscriptRef = useRef("");
+  const awaitingServerCloseRef = useRef(false);
+  const wsReadyRef = useRef(false);
+  const startMessageSentRef = useRef(false);
+  const firstChunkLoggedRef = useRef(false);
+  const stopAfterRecorderFlushRef = useRef(false);
+  const sessionSequenceRef = useRef(0);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
+  const countdownCompleteRef = useRef(false);
 
   useEffect(() => {
     if (!isPreviewMode) return;
@@ -209,38 +233,8 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   useEffect(() => {
     let isActive = true;
 
-    const fetchWords = async () => {
-      if (!isPreviewMode) {
-        setIsLoading(true);
-        setLoadError(null);
-      }
-      const { data, error } = await supabase
-        .from("vocab_items")
-        .select(
-          "word_id,target_word,context_text,context_audio_url,tomo_prompt_text,definition,language,feedback_text_map,active,created_at,index",
-        )
-        .eq("circle_id", TEST_CIRCLE_ID)
-        .eq("dot", TEST_DOT)
-        .order("index", { ascending: true })
-        .order("created_at", { ascending: true })
-        .limit(1);
-
-      if (!error) {
-        console.log("Vocab items response", data);
-      }
-
-      if (!isActive) return;
-
-      if (error) {
-        console.error("Failed to load vocab words:", error);
-        if (!isPreviewMode) {
-          setLoadError("Unable to load vocabulary words.");
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      const vocabItems = Array.isArray(data)
+    const normalizeVocabRows = (data: any[] | null | undefined) =>
+      Array.isArray(data)
         ? data
             .filter(
               (row) =>
@@ -259,6 +253,67 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               language: row.language ?? null,
             }))
         : [];
+
+    const fetchWords = async () => {
+      if (!isPreviewMode) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
+      const runtimeCircleId =
+        typeof selectedBook?.id === "string" && selectedBook.id.length > 0
+          ? selectedBook.id
+          : null;
+      const runtimeDot = Number(selectedChapter);
+
+      const loadForTarget = async (circleId: string, dot: number) =>
+        supabase
+          .from("vocab_items")
+          .select(
+            "word_id,target_word,context_text,context_audio_url,tomo_prompt_text,definition,language,feedback_text_map,active,created_at,index",
+          )
+          .eq("circle_id", circleId)
+          .eq("dot", dot)
+          .order("index", { ascending: true })
+          .order("created_at", { ascending: true });
+
+      let data = null;
+      let error = null;
+
+      if (runtimeCircleId && Number.isFinite(runtimeDot) && runtimeDot > 0) {
+        const runtimeResult = await loadForTarget(runtimeCircleId, runtimeDot);
+        error = runtimeResult.error;
+        data = runtimeResult.data;
+
+        const runtimeItems = normalizeVocabRows(runtimeResult.data);
+        if (!runtimeResult.error && runtimeItems.length > 0) {
+          data = runtimeResult.data;
+        } else {
+          const fallbackResult = await loadForTarget(TEST_CIRCLE_ID, TEST_DOT);
+          error = fallbackResult.error;
+          data = fallbackResult.data;
+        }
+      } else {
+        const fallbackResult = await loadForTarget(TEST_CIRCLE_ID, TEST_DOT);
+        error = fallbackResult.error;
+        data = fallbackResult.data;
+      }
+
+      if (!error) {
+        console.log("Vocab items response", data);
+      }
+
+      if (!isActive) return;
+
+      if (error) {
+        console.error("Failed to load vocab words:", error);
+        if (!isPreviewMode) {
+          setLoadError("Unable to load vocabulary words.");
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      const vocabItems = normalizeVocabRows(data);
 
       setItems(vocabItems);
       setCurrentWordIndex(0);
@@ -295,7 +350,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     return () => {
       isActive = false;
     };
-  }, [isPreviewMode, isVocabularyPreview, previewMode]);
+  }, [
+    isPreviewMode,
+    isVocabularyPreview,
+    previewMode,
+    selectedBook?.id,
+    selectedChapter,
+  ]);
 
   useEffect(() => {
     if (typingTimeoutRef.current) {
@@ -350,24 +411,105 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     setIsRecording(false);
   };
 
-  const stopRecording = async (sendClose = true) => {
-    console.log("Vocab mic: stopping");
+  const closeSocketImmediately = (socket: WebSocket, sendClose: boolean) => {
+    awaitingServerCloseRef.current = false;
+    wsReadyRef.current = false;
+    startMessageSentRef.current = false;
+    wsRef.current = null;
+    socket.onopen = null;
+    socket.onmessage = null;
+    socket.onerror = null;
+    socket.onclose = null;
+    if (sendClose && socket.readyState === WebSocket.OPEN) {
+      socket.send("close");
+    }
+    if (
+      socket.readyState === WebSocket.OPEN ||
+      socket.readyState === WebSocket.CONNECTING
+    ) {
+      socket.close();
+    }
+  };
+
+  const clearWsStatusInterval = () => {
     if (logIntervalRef.current) {
       clearInterval(logIntervalRef.current);
       logIntervalRef.current = null;
     }
+  };
+
+  const clearRecordingCountdown = () => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    countdownCompleteRef.current = false;
+    setArmingCountdown(null);
+  };
+
+  const resetForRetry = (nextMessage: string) => {
+    clearWsStatusInterval();
+    clearRecordingCountdown();
     stopMicCapture();
+    awaitingServerCloseRef.current = false;
+    stopAfterRecorderFlushRef.current = false;
+    wsReadyRef.current = false;
+    startMessageSentRef.current = false;
+    setIsGrading(false);
+    setFeedbackKey(null);
+    setMessage(nextMessage);
+    setPhase("revealed");
+  };
+
+  const stopRecording = async (
+    sendClose = true,
+    awaitServerResponse = false,
+  ) => {
+    console.log("Vocab mic: stopping");
     if (wsRef.current) {
+      const socket = wsRef.current;
       try {
-        if (sendClose && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send("close");
+        const recorder = mediaRecorderRef.current;
+        const recorderIsActive = recorder && recorder.state !== "inactive";
+
+        if (awaitServerResponse && recorderIsActive) {
+          stopAfterRecorderFlushRef.current = true;
+          awaitingServerCloseRef.current = true;
+          setIsGrading(true);
+          setPhase("grading");
+          stopMicCapture();
+          return;
         }
-        wsRef.current.close();
+
+        clearWsStatusInterval();
+        stopMicCapture();
+
+        if (
+          sendClose &&
+          awaitServerResponse &&
+          socket.readyState === WebSocket.OPEN
+        ) {
+          awaitingServerCloseRef.current = true;
+          setIsGrading(true);
+          setPhase("grading");
+          socket.send("close");
+          return;
+        }
+
+        closeSocketImmediately(socket, sendClose);
       } catch (err) {
         console.warn("Failed to close vocab socket:", err);
       }
-      wsRef.current = null;
+      return;
     }
+
+    clearWsStatusInterval();
+    clearRecordingCountdown();
+    stopMicCapture();
+    awaitingServerCloseRef.current = false;
+    stopAfterRecorderFlushRef.current = false;
+    wsReadyRef.current = false;
+    startMessageSentRef.current = false;
   };
 
   useEffect(() => {
@@ -416,12 +558,54 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
 
   const startRecording = async () => {
     if (isRecording || (phase !== "revealed" && phase !== "feedback")) return;
-    console.log("Vocab mic: starting");
+    sessionSequenceRef.current += 1;
+    const sessionId = sessionSequenceRef.current;
+    console.log(`[Vocab ${sessionId}] starting session`);
     setMessage("");
     setFeedbackKey(null);
     setPhase("recording");
+    setIsGrading(false);
+    firstChunkLoggedRef.current = false;
+    stopAfterRecorderFlushRef.current = false;
+    awaitingServerCloseRef.current = false;
+    wsReadyRef.current = false;
+    startMessageSentRef.current = false;
+    clearRecordingCountdown();
+    setArmingCountdown(RECORDING_COUNTDOWN_SECONDS);
 
     try {
+      const maybeStartRecorder = () => {
+        const recorder = mediaRecorderRef.current;
+        if (
+          recorder &&
+          recorder.state === "inactive" &&
+          wsReadyRef.current &&
+          startMessageSentRef.current &&
+          countdownCompleteRef.current
+        ) {
+          console.log(
+            `[Vocab ${sessionId}] recorder starting after handshake + countdown`,
+          );
+          recorder.start(250);
+        }
+      };
+
+      countdownIntervalRef.current = setInterval(() => {
+        setArmingCountdown((current) => {
+          if (current === null) return current;
+          if (current <= 1) {
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+              countdownIntervalRef.current = null;
+            }
+            countdownCompleteRef.current = true;
+            maybeStartRecorder();
+            return null;
+          }
+          return current - 1;
+        });
+      }, 1000);
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -431,17 +615,19 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       lastTranscriptRef.current = "";
       streamRef.current = stream;
 
+      console.log(
+        `[Vocab ${sessionId}] socket created`,
+        buildWsUrl(targetWord),
+      );
       const ws = new WebSocket(buildWsUrl(targetWord));
       ws.binaryType = "arraybuffer";
       wsRef.current = ws;
       sentChunkCountRef.current = 0;
-      if (logIntervalRef.current) {
-        clearInterval(logIntervalRef.current);
-      }
+      clearWsStatusInterval();
       logIntervalRef.current = setInterval(() => {
         if (!wsRef.current) return;
         console.log(
-          "Vocab ws status",
+          `[Vocab ${sessionId}] ws status`,
           "sent",
           sentChunkCountRef.current,
           "state",
@@ -452,14 +638,18 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       }, 1000);
 
       ws.onopen = () => {
-        console.log("Vocab ws: open");
-        ws.send(
-          JSON.stringify({
-            type: "start",
-            target_word: (targetWord || "").toLowerCase(),
-            language: "en",
-          }),
-        );
+        console.log(`[Vocab ${sessionId}] socket open`);
+        wsReadyRef.current = true;
+        const startPayload = JSON.stringify({
+          type: "start",
+          target_word: (targetWord || "").toLowerCase(),
+          language: "en",
+        });
+        ws.send(startPayload);
+        startMessageSentRef.current = true;
+        console.log(`[Vocab ${sessionId}] start message sent`, startPayload);
+
+        maybeStartRecorder();
       };
 
       ws.onmessage = (event) => {
@@ -472,9 +662,35 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             setPhase("grading");
             return;
           }
+          if (typeof payload?.error === "string" && payload.error.length > 0) {
+            console.warn("Vocab backend error:", payload.error);
+            awaitingServerCloseRef.current = false;
+            stopAfterRecorderFlushRef.current = false;
+            wsReadyRef.current = false;
+            startMessageSentRef.current = false;
+            clearRecordingCountdown();
+            if (wsRef.current === ws) {
+              wsRef.current = null;
+            }
+            try {
+              if (
+                ws.readyState === WebSocket.OPEN ||
+                ws.readyState === WebSocket.CONNECTING
+              ) {
+                ws.close();
+              }
+            } catch (closeErr) {
+              console.warn(
+                "Failed to close vocab socket after backend error:",
+                closeErr,
+              );
+            }
+            resetForRetry(payload.error);
+            return;
+          }
           if (payload?.type === "transcript") {
-            if (payload.text) {
-              console.log("Vocab transcript:", payload.text);
+            console.log("Vocab transcript event:", payload);
+            if (typeof payload.text === "string" && payload.text.length > 0) {
               lastTranscriptRef.current = payload.text;
             }
             if (payload.final) {
@@ -488,6 +704,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
           }
           if (typeof payload?.feedback_key === "string") {
             console.log("Vocab feedback_key:", payload.feedback_key);
+            awaitingServerCloseRef.current = false;
             const feedbackKey = payload.feedback_key;
             const isSuccess = feedbackKey === "success_clear";
             const shouldCountAttempt = feedbackKey !== "retry_audio";
@@ -523,7 +740,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               });
             }
             setPhase("feedback");
-            stopRecording();
+            stopRecording(false);
             return;
           }
           if (typeof payload?.outcome === "string") {
@@ -539,43 +756,125 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       };
 
       ws.onerror = () => {
-        console.warn("Vocab ws: error");
-        setMessage("Audio connection failed. Try again.");
-        stopRecording(false);
+        console.warn(`[Vocab ${sessionId}] ws error`);
+        awaitingServerCloseRef.current = false;
+        stopAfterRecorderFlushRef.current = false;
+        wsReadyRef.current = false;
+        startMessageSentRef.current = false;
+        clearRecordingCountdown();
+        if (wsRef.current === ws) {
+          wsRef.current = null;
+        }
+        resetForRetry("Audio connection failed. Try again.");
       };
 
       ws.onclose = () => {
-        console.log("Vocab ws: closed");
-        setIsRecording(false);
-      };
-
-      const recorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm;codecs=opus",
-      });
-      mediaRecorderRef.current = recorder;
-      recorder.onstart = () => {
-        console.log("Vocab recorder: started");
-      };
-      recorder.onstop = () => {
-        console.log("Vocab recorder: stopped");
-      };
-      recorder.ondataavailable = (event) => {
-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-          return;
-        }
-        if (event.data.size > 0) {
-          if (wsRef.current.bufferedAmount > 512 * 1024) {
+        console.log(`[Vocab ${sessionId}] socket closed`);
+        clearWsStatusInterval();
+        wsReadyRef.current = false;
+        startMessageSentRef.current = false;
+        clearRecordingCountdown();
+        if (wsRef.current === ws) {
+          wsRef.current = null;
+          const waitingForServer = awaitingServerCloseRef.current;
+          awaitingServerCloseRef.current = false;
+          resetForRetry("Audio stream closed. Tap the mic to try again.");
+          if (waitingForServer) {
             return;
           }
-          wsRef.current.send(event.data);
-          sentChunkCountRef.current += 1;
-          if (sentChunkCountRef.current % 10 === 0) {
-            console.log("Vocab ws: sent chunks", sentChunkCountRef.current);
+          return;
+        }
+        awaitingServerCloseRef.current = false;
+        stopMicCapture();
+      };
+
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.onstart = () => {
+        console.log(`[Vocab ${sessionId}] recorder started`, mimeType);
+        clearRecordingCountdown();
+        setIsRecording(true);
+      };
+
+      recorder.onstop = () => {
+        console.log(`[Vocab ${sessionId}] recorder stopped`);
+        setIsRecording(false);
+
+        if (
+          stopAfterRecorderFlushRef.current &&
+          wsRef.current === ws &&
+          ws.readyState === WebSocket.OPEN
+        ) {
+          stopAfterRecorderFlushRef.current = false;
+          setIsGrading(true);
+          setPhase("grading");
+          console.log(
+            `[Vocab ${sessionId}] sending close after recorder flush`,
+          );
+          ws.send("close");
+          return;
+        }
+
+        stopAfterRecorderFlushRef.current = false;
+      };
+
+      recorder.ondataavailable = async (event) => {
+        if (
+          !wsRef.current ||
+          wsRef.current !== ws ||
+          ws.readyState !== WebSocket.OPEN
+        ) {
+          console.warn(
+            `[Vocab ${sessionId}] dropping chunk before socket ready`,
+            event.data?.size ?? 0,
+          );
+          return;
+        }
+        if (!startMessageSentRef.current || !wsReadyRef.current) {
+          console.warn(
+            `[Vocab ${sessionId}] dropping chunk before start handshake completed`,
+            event.data?.size ?? 0,
+          );
+          return;
+        }
+        if (!event.data || event.data.size <= 0) {
+          return;
+        }
+
+        ws.send(event.data);
+        sentChunkCountRef.current += 1;
+
+        if (!firstChunkLoggedRef.current) {
+          firstChunkLoggedRef.current = true;
+          const hexPreview = await blobToHexPreview(event.data, 8);
+          const hasWebmHeader = hexPreview
+            .toLowerCase()
+            .startsWith("1a 45 df a3");
+          console.log(
+            `[Vocab ${sessionId}] first chunk`,
+            "bytes",
+            event.data.size,
+            "hex",
+            hexPreview,
+          );
+          if (!hasWebmHeader) {
+            console.warn(
+              `[Vocab ${sessionId}] first chunk does not start with WebM EBML header`,
+              hexPreview,
+            );
           }
+        } else {
+          console.log(`[Vocab ${sessionId}] chunk`, "bytes", event.data.size);
         }
       };
-      recorder.start(250);
-      setIsRecording(true);
+
+      console.log(
+        `[Vocab ${sessionId}] recorder armed; waiting for socket open`,
+      );
     } catch (err) {
       console.warn("Failed to start vocab mic:", err);
       setMessage("Microphone access is required.");
@@ -626,6 +925,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     (phase === "feedback" && canRetry);
   const showRetryHint =
     showMicButton && phase === "feedback" && !isCorrectSolved && !hasFailedMax;
+  const isRecorderArming = phase === "recording" && !isRecording && !isGrading;
   const promptText = (() => {
     if (phase === "feedback") {
       if (isCorrectSolved) return "Well done, ready for the next word?";
@@ -637,14 +937,25 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const showCompletionScreen =
     isVocabularyCompletionPreview ||
     (phase === "feedback" && isLastWord && isCorrectSolved);
-  const completionCorrectCount = isVocabularyCompletionPreview ? 1 : correctCount;
+  const completionCorrectCount = isVocabularyCompletionPreview
+    ? 1
+    : correctCount;
   const completionItemCount = isVocabularyCompletionPreview ? 1 : items.length;
 
   if (isSpellingPreview || showSpellingGame) {
     return (
       <VisualSpellingGame
         onComplete={onComplete}
-        previewMode={isSpellingPreview ? (previewMode as Extract<typeof previewMode, "spelling-intro" | "spelling-game" | "spelling-complete">) : null}
+        selectedBook={selectedBook}
+        selectedChapter={selectedChapter}
+        previewMode={
+          isSpellingPreview
+            ? (previewMode as Extract<
+                typeof previewMode,
+                "spelling-intro" | "spelling-game" | "spelling-complete"
+              >)
+            : null
+        }
       />
     );
   }
@@ -898,37 +1209,89 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
             ) : showMicButton ? (
               <button
                 type="button"
-                onClick={isRecording ? () => stopRecording() : startRecording}
-                className={`flex h-full w-full flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition ${
-                  isRecording ? "opacity-80" : "hover:brightness-[1.03]"
+                onClick={
+                  isRecording ? () => stopRecording(true, true) : startRecording
+                }
+                className={`relative flex h-full w-full flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 transition ${
+                  isRecording
+                    ? "mic-pulse bg-[#ff7b92]/16 text-[#b42346] ring-[#ff7b92]/45"
+                    : isRecorderArming
+                      ? "bg-brand-primary/18 text-[#7c5200] ring-brand-primary/35"
+                      : "ring-black/10 hover:brightness-[1.03]"
                 }`}
-                aria-label={isRecording ? "Stop recording" : "Start recording"}
+                aria-label={
+                  isRecording
+                    ? "Stop recording"
+                    : isRecorderArming
+                      ? "Preparing microphone"
+                      : "Start recording"
+                }
+                disabled={isRecorderArming}
               >
                 {isRecording ? (
-                  <svg
-                    viewBox="0 0 16 16"
-                    className="h-14 w-14 md:h-16 md:w-16"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="3" width="10" height="10" rx="1" />
-                  </svg>
+                  <>
+                    <span className="absolute inset-0 rounded-full border border-[#ff7b92]/50 animate-ping" />
+                    <span className="absolute inset-[6px] rounded-full border border-[#ff7b92]/35" />
+                  </>
+                ) : isRecorderArming ? (
+                  <>
+                    <span className="absolute inset-0 rounded-full border border-brand-primary/40 animate-pulse" />
+                    <span className="absolute inset-[8px] rounded-full border border-brand-primary/25" />
+                  </>
+                ) : null}
+                {isRecording ? (
+                  <div className="relative z-10 flex h-full w-full items-center justify-center">
+                    <svg
+                      viewBox="0 0 16 16"
+                      className="h-14 w-14 md:h-16 md:w-16"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <rect x="3" y="3" width="10" height="10" rx="1" />
+                    </svg>
+                  </div>
+                ) : isRecorderArming ? (
+                  <div className="relative z-10 flex h-full w-full items-center justify-center">
+                    {typeof armingCountdown === "number" ? (
+                      <span className="font-display text-4xl font-bold tabular-nums md:text-5xl">
+                        {armingCountdown}
+                      </span>
+                    ) : (
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-14 w-14 animate-pulse md:h-16 md:w-16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
+                        <path d="M6 12a6 6 0 0 0 12 0" />
+                        <path d="M12 18v4" />
+                        <path d="M8 22h8" />
+                      </svg>
+                    )}
+                  </div>
                 ) : (
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-14 w-14 md:h-16 md:w-16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
-                    <path d="M6 12a6 6 0 0 0 12 0" />
-                    <path d="M12 18v4" />
-                    <path d="M8 22h8" />
-                  </svg>
+                  <div className="relative z-10 flex h-full w-full items-center justify-center">
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-14 w-14 md:h-16 md:w-16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4Z" />
+                      <path d="M6 12a6 6 0 0 0 12 0" />
+                      <path d="M12 18v4" />
+                      <path d="M8 22h8" />
+                    </svg>
+                  </div>
                 )}
               </button>
             ) : null}

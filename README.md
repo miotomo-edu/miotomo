@@ -30,6 +30,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 5. **Preview hard-to-reach completion screens** – Use `?preview=` for direct UI entry during development:
    - `?skipOnboarding=1&preview=first-circle-intro`
    - `?skipOnboarding=1&preview=circle-page`
+   - `?skipOnboarding=1&preview=demo-subscribe`
    - `?skipOnboarding=1&preview=vocab-intro`
    - `?skipOnboarding=1&preview=vocab-game`
    - `?skipOnboarding=1&preview=dot-complete`

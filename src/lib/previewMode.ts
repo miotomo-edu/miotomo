@@ -3,6 +3,7 @@ import type { Book } from "../components/sections/LibrarySection";
 export type PreviewScreen =
   | "first-circle-intro"
   | "circle-page"
+  | "demo-subscribe"
   | "vocab-intro"
   | "vocab-game"
   | "dot-complete"
@@ -23,6 +24,7 @@ export type PreviewConfig = {
 const PREVIEW_SCREENS: PreviewScreen[] = [
   "first-circle-intro",
   "circle-page",
+  "demo-subscribe",
   "vocab-intro",
   "vocab-game",
   "dot-complete",

@@ -185,6 +185,8 @@ const App = ({ transportType, region = "" }) => {
       ? "first-circle-intro"
       : previewConfig?.screen === "circle-page"
       ? "circle"
+      : previewConfig?.screen === "demo-subscribe"
+        ? "demo-subscribe"
       : previewConfig?.screen === "dot-complete" ||
           previewConfig?.screen === "circle-complete"
       ? "dot-complete"
@@ -722,6 +724,8 @@ const App = ({ transportType, region = "" }) => {
           <RewardsSection
             onComplete={() => handleShowDotCompletion()}
             previewScreen={previewConfig?.screen ?? null}
+            selectedBook={selectedBook}
+            selectedChapter={selectedChapter}
           />
         );
       case "parents":

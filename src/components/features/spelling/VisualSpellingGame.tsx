@@ -5,6 +5,7 @@ import talkBackground from "../../../assets/img/spelling_bg.png";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
 import type { PreviewScreen } from "../../../lib/previewMode";
+import type { Book } from "../../sections/LibrarySection";
 
 type LetterStatus = "correct" | "present" | "absent" | "empty";
 
@@ -91,11 +92,15 @@ type VisualSpellingGameProps = {
     PreviewScreen,
     "spelling-intro" | "spelling-game" | "spelling-complete"
   > | null;
+  selectedBook?: Book | null;
+  selectedChapter?: number | null;
 };
 
 const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   onComplete,
   previewMode = null,
+  selectedBook = null,
+  selectedChapter = null,
 }) => {
   const isPreviewMode = Boolean(previewMode);
   const isIntroPreview = previewMode === "spelling-intro";
@@ -207,17 +212,54 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   useEffect(() => {
     let isActive = true;
 
+    const normalizeSpellingData = (data: { words?: unknown; audio?: unknown } | null) => {
+      const wordList = Array.isArray(data?.words)
+        ? data.words
+            .filter((word) => typeof word === "string" && word.length)
+            .slice(0, 1)
+        : [];
+      const audio = typeof data?.audio === "string" ? data.audio : "";
+      return { wordList, audio };
+    };
+
     const fetchSpellingData = async () => {
       if (!isPreviewMode) {
         setIsLoading(true);
         setLoadError(null);
       }
-      const { data, error } = await supabase
-        .from("dots_spelling")
-        .select("words,audio")
-        .eq("circle_id", TEST_CIRCLE_ID)
-        .eq("dot", TEST_DOT)
-        .maybeSingle();
+      const runtimeCircleId =
+        typeof selectedBook?.id === "string" && selectedBook.id.length > 0
+          ? selectedBook.id
+          : null;
+      const runtimeDot = Number(selectedChapter);
+
+      const loadForTarget = async (circleId: string, dot: number) =>
+        supabase
+          .from("dots_spelling")
+          .select("words,audio")
+          .eq("circle_id", circleId)
+          .eq("dot", dot)
+          .maybeSingle();
+
+      let data = null;
+      let error = null;
+
+      if (runtimeCircleId && Number.isFinite(runtimeDot) && runtimeDot > 0) {
+        const runtimeResult = await loadForTarget(runtimeCircleId, runtimeDot);
+        error = runtimeResult.error;
+        data = runtimeResult.data;
+
+        const runtimeContent = normalizeSpellingData(runtimeResult.data);
+        if (runtimeResult.error || runtimeContent.wordList.length === 0) {
+          const fallbackResult = await loadForTarget(TEST_CIRCLE_ID, TEST_DOT);
+          error = fallbackResult.error;
+          data = fallbackResult.data;
+        }
+      } else {
+        const fallbackResult = await loadForTarget(TEST_CIRCLE_ID, TEST_DOT);
+        error = fallbackResult.error;
+        data = fallbackResult.data;
+      }
 
       if (!isActive) return;
 
@@ -230,12 +272,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         return;
       }
 
-      const wordList = Array.isArray(data?.words)
-        ? data.words
-            .filter((word) => typeof word === "string" && word.length)
-            .slice(0, 1)
-        : [];
-      const audio = typeof data?.audio === "string" ? data.audio : "";
+      const { wordList, audio } = normalizeSpellingData(data);
 
       setWords(wordList);
       setAudioUrl(audio);
@@ -255,7 +292,13 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
     return () => {
       isActive = false;
     };
-  }, [isCompletionPreview, isGameplayPreview, isPreviewMode]);
+  }, [
+    isCompletionPreview,
+    isGameplayPreview,
+    isPreviewMode,
+    selectedBook?.id,
+    selectedChapter,
+  ]);
 
   useEffect(() => {
     if (!audioUrl) {

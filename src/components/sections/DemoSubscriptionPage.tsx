@@ -1,10 +1,59 @@
 import React from "react";
-import tomoCelebrating from "../../assets/img/tomo-celebrating-black-bg.png";
+import tomoCelebrating from "../../assets/img/tomo-celebrating.png";
 
 type DemoSubscriptionPageProps = {
   userName: string;
   onContinue: () => void;
 };
+
+const burstPositions = [
+  "left-[3%] top-[22%]",
+  "left-[9%] top-[40%]",
+  "left-[14%] top-[66%]",
+  "left-[22%] top-[30%]",
+  "left-[78%] top-[26%]",
+  "left-[84%] top-[42%]",
+  "left-[88%] top-[62%]",
+  "left-[73%] top-[68%]",
+  "left-[67%] top-[36%]",
+  "left-[29%] top-[74%]",
+];
+
+const sparklePositions = [
+  "left-[11%] top-[28%]",
+  "left-[17%] top-[53%]",
+  "left-[26%] top-[18%]",
+  "left-[32%] top-[62%]",
+  "left-[70%] top-[19%]",
+  "left-[76%] top-[57%]",
+  "left-[83%] top-[33%]",
+  "left-[89%] top-[52%]",
+];
+
+const confettiPalette = [
+  "bg-[#ff7b92]",
+  "bg-[#ffd44d]",
+  "bg-[#63c4ff]",
+  "bg-[#7bd66a]",
+  "bg-[#f8a4e2]",
+  "bg-[#ffb94d]",
+];
+
+const FireworkBurst: React.FC<{ className: string }> = ({ className }) => (
+  <div className={`absolute h-12 w-12 ${className}`} aria-hidden="true">
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-full bg-brand-primary" />
+    <div className="absolute left-1/2 top-1/2 h-8 w-0.5 -translate-x-1/2 -translate-y-1/2 rotate-[135deg] rounded-full bg-brand-primary" />
+  </div>
+);
+
+const Sparkle: React.FC<{ className: string }> = ({ className }) => (
+  <div className={`absolute h-4 w-4 ${className}`} aria-hidden="true">
+    <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 rounded-full bg-brand-primary" />
+    <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 rounded-full bg-brand-primary" />
+  </div>
+);
 
 const getFirstName = (value: string) => {
   const first = value.trim().split(/\s+/)[0];
@@ -47,11 +96,27 @@ const DemoSubscriptionPage: React.FC<DemoSubscriptionPageProps> = ({
             {`${firstName}, that was a great discussion!`}
           </h1>
 
-          <div className="relative mt-3 overflow-hidden rounded-[12px] bg-[#0f0f0e] px-3 py-3 md:rounded-[14px] md:px-4 md:py-4">
+          <div className="relative mt-3 overflow-hidden rounded-[12px] bg-[radial-gradient(circle_at_50%_30%,rgba(250,195,4,0.14),rgba(250,195,4,0)_46%)] px-3 py-3 md:rounded-[14px] md:px-4 md:py-4">
+            {burstPositions.map((position, index) => (
+              <div key={`decor-${index}`}>
+                {index < 2 ? <FireworkBurst className={position} /> : null}
+                <div
+                  className={`absolute h-3 w-2 rounded-[3px] rotate-[18deg] ${position} ${confettiPalette[index % confettiPalette.length]} md:h-4 md:w-2.5`}
+                  aria-hidden="true"
+                />
+              </div>
+            ))}
+
+            {sparklePositions.map((position, index) => (
+              <Sparkle key={`sparkle-${index}`} className={position} />
+            ))}
+
+            <div className="absolute inset-x-[8%] bottom-[12%] h-16 rounded-full bg-[radial-gradient(circle,rgba(2,6,23,0.12),rgba(2,6,23,0)_72%)] blur-xl md:inset-x-[16%] md:bottom-[10%] md:h-20" />
+
             <img
               src={tomoCelebrating}
               alt="Tomo celebrating"
-              className="mx-auto block w-full max-w-[210px] md:max-w-[300px]"
+              className="relative z-10 mx-auto block w-full max-w-[210px] md:max-w-[300px]"
             />
           </div>
 

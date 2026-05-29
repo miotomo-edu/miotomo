@@ -45,3 +45,5 @@ temp
 my-video/
 pencil-new.pen
 .code-review-graph/
+.playwright/
+.playwright-cli/
