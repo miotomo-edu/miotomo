@@ -1035,14 +1035,14 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
-      <div className="relative flex w-full max-w-3xl items-center gap-3">
-        <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-xl">
+    <div className="visual-vocabulary-game relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
+      <div className="visual-vocabulary-game__progress relative flex w-full max-w-3xl items-center gap-3">
+        <span className="visual-vocabulary-game__progress-label text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-xl">
           WORDS
         </span>
-        <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
-          <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
+        <div className="visual-vocabulary-game__progress-track relative flex-1">
+          <div className="visual-vocabulary-game__progress-line absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
+          <div className="visual-vocabulary-game__progress-steps relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {items.map((_, index) => {
               const isActive = index === currentWordIndex;
               const result = wordResults[index];
@@ -1058,10 +1058,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   className="relative flex flex-shrink-0 items-center justify-center"
                 >
                   {isActive ? (
-                    <img src={tomoIcon} alt="" className="h-6 w-auto md:h-10" />
+                    <img src={tomoIcon} alt="" className="visual-vocabulary-game__progress-icon h-6 w-auto md:h-10" />
                   ) : (
                     <span
-                      className={`h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
+                      className={`visual-vocabulary-game__progress-dot h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
                     />
                   )}
                 </div>
@@ -1089,13 +1089,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       )}
 
       <div
-        className={`flex w-full max-w-3xl flex-col items-center gap-5 text-center sm:gap-6 ${
+        className={`visual-vocabulary-game__sentence-wrap flex w-full max-w-3xl flex-col items-center gap-5 text-center sm:gap-6 ${
           phase === "listen" ? "pointer-events-none" : "mt-10 sm:mt-12"
         }`}
       >
-        <div className="flex w-full flex-col items-center gap-3 md:gap-4">
-          <div className="flex w-full items-center justify-center">
-            <div className="inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#020617] md:text-5xl">
+        <div className="visual-vocabulary-game__sentence-group flex w-full flex-col items-center gap-3 md:gap-4">
+          <div className="visual-vocabulary-game__sentence-row flex w-full items-center justify-center">
+            <div className="visual-vocabulary-game__sentence inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#020617] md:text-5xl">
               <span className="inline">
                 {phase === "listen" ? (
                   <span className="opacity-0">“{contextText}”</span>
@@ -1152,7 +1152,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   type="button"
                   onClick={handleListen}
                   disabled={isPlaying}
-                  className={`flex h-10 w-10 items-center justify-center text-[#020617]/70 transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
+                  className={`visual-vocabulary-game__replay flex h-10 w-10 items-center justify-center text-[#020617]/70 transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
                     isPlaying
                       ? "cursor-not-allowed opacity-70"
                       : "hover:brightness-[1.03]"
@@ -1182,11 +1182,11 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       </div>
 
       {rawTargetWord && phase !== "listen" && (
-        <div className="absolute left-1/2 top-1/2 z-20 flex w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4 text-center px-4">
-          <div className="text-3xl font-semibold text-[#020617]/60 md:text-4xl">
+        <div className="visual-vocabulary-game__prompt absolute inset-x-0 top-1/2 z-20 mx-auto flex w-full max-w-3xl -translate-y-1/2 flex-col items-center gap-4 px-4 text-center">
+          <div className="visual-vocabulary-game__prompt-text text-3xl font-semibold text-[#020617]/60 md:text-4xl">
             {promptText}
           </div>
-          <div className="flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
+          <div className="visual-vocabulary-game__mic-wrap flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
             {showGradingIndicator ? (
               <div
                 className="relative flex h-full w-full items-center justify-center rounded-full bg-[#020617]/[0.05] text-[#020617] ring-2 ring-black/10"
@@ -1342,7 +1342,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               </button>
             ) : null}
           </div>
-          <div className="mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#020617]/60 md:text-3xl">
+          <div className="visual-vocabulary-game__retry mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#020617]/60 md:text-3xl">
             <span className={showRetryHint ? "opacity-100" : "opacity-0"}>
               Let's try again!
             </span>
@@ -1360,18 +1360,18 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         </div>
       </div>
 
-      <div className="w-full max-w-2xl">
-        <div className="flex items-end gap-3">
+      <div className="visual-vocabulary-game__coach w-full max-w-2xl">
+        <div className="visual-vocabulary-game__coach-row flex items-end gap-3">
           <img
             src={tomoSpellingIcon}
             alt=""
-            className="h-20 w-auto sm:h-24 md:h-32"
+            className="visual-vocabulary-game__coach-icon h-20 w-auto sm:h-24 md:h-32"
           />
           <div className="relative flex-1">
             <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#EFE6DA]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-xl md:text-3xl">
+            <div className="visual-vocabulary-game__coach-bubble flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-xl md:text-3xl">
               <span
-                className="flex-1 break-words whitespace-pre-line"
+                className="visual-vocabulary-game__coach-text flex-1 break-words whitespace-pre-line"
                 style={{
                   minHeight: "3.5rem",
                 }}

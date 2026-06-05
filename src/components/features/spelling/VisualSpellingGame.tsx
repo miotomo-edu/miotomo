@@ -650,14 +650,14 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
-      <div className="relative flex w-full max-w-3xl items-center gap-3">
-        <span className="text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-2xl">
+    <div className="visual-spelling-game relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
+      <div className="visual-spelling-game__progress relative flex w-full max-w-3xl items-center gap-3">
+        <span className="visual-spelling-game__progress-label text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-2xl">
           WORDS
         </span>
-        <div className="relative flex-1">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
-          <div className="relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
+        <div className="visual-spelling-game__progress-track relative flex-1">
+          <div className="visual-spelling-game__progress-line absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 bg-black/10 md:h-1.5" />
+          <div className="visual-spelling-game__progress-steps relative flex w-full items-center justify-between gap-2 py-2 md:py-4">
             {words.map((_, index) => {
               const isActive = index === currentWordIndex;
               const result = wordResults[index];
@@ -673,10 +673,10 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                   className="relative flex flex-shrink-0 items-center justify-center"
                 >
                   {isActive ? (
-                    <img src={tomoIcon} alt="" className="h-6 w-auto md:h-10" />
+                    <img src={tomoIcon} alt="" className="visual-spelling-game__progress-icon h-6 w-auto md:h-10" />
                   ) : (
                     <span
-                      className={`h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
+                      className={`visual-spelling-game__progress-dot h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
                     />
                   )}
                 </div>
@@ -686,7 +686,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         </div>
       </div>
 
-      <div className="flex w-full max-w-3xl flex-col items-center gap-5 sm:gap-6">
+      <div className="visual-spelling-game__listen flex w-full max-w-3xl flex-col items-center gap-5 sm:gap-6">
         <button
           type="button"
           onClick={handlePlayClick}
@@ -744,17 +744,17 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         </button>
       </div>
 
-      <div className="relative w-full max-w-3xl flex-1 min-h-0">
+      <div className="visual-spelling-game__board relative w-full max-w-3xl flex-1 min-h-0">
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full flex-col">
-            <div className="mb-6 flex w-full gap-2 md:mb-10">
+            <div className="visual-spelling-game__current-row mb-6 flex w-full gap-2 md:mb-10">
               {currentRow.guess.split("").map((letter, index) => {
                 const filled = letter.trim().length > 0;
                 const isActiveSlot = currentGuess.length === index;
                 return (
                   <div
                     key={`tile-${index}`}
-                    className={`flex min-h-[2.5rem] flex-1 items-center justify-center border-b-4 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg md:text-[2.5rem] ${getUnderlineClass(
+                    className={`visual-spelling-game__current-tile flex min-h-[2.5rem] flex-1 items-center justify-center border-b-4 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg md:text-[2.5rem] ${getUnderlineClass(
                       "empty",
                       filled,
                     )} ${isActiveSlot ? "!border-[#020617] !text-[#020617]" : ""}`}
@@ -764,7 +764,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                 );
               })}
             </div>
-            <div className="flex w-full flex-col gap-1 md:gap-4">
+            <div className="visual-spelling-game__attempts flex w-full flex-col gap-1 md:gap-4">
               {[...attempts].reverse().map((attempt, index) => {
                 const fade =
                   index === 0
@@ -775,7 +775,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                 return (
                   <div
                     key={`attempt-${attempts.length - 1 - index}`}
-                    className={`flex w-full gap-2 ${fade} animate-fade-in`}
+                    className={`visual-spelling-game__attempt-row flex w-full gap-2 ${fade} animate-fade-in`}
                   >
                     {Array.from({ length: targetWord.length }).map(
                       (_, letterIndex) => {
@@ -785,7 +785,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                         return (
                           <div
                             key={`attempt-${attempts.length - 1 - index}-tile-${letterIndex}`}
-                            className={`flex min-h-[2.25rem] flex-1 items-center justify-center text-sm font-semibold uppercase sm:min-h-[2.5rem] sm:text-base md:text-[2.5rem] ${getLetterClass(
+                            className={`visual-spelling-game__attempt-tile flex min-h-[2.25rem] flex-1 items-center justify-center text-sm font-semibold uppercase sm:min-h-[2.5rem] sm:text-base md:text-[2.5rem] ${getLetterClass(
                               status,
                               filled,
                             )}`}
@@ -817,18 +817,18 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         </p>
       )}
 
-      <div className="w-full max-w-2xl">
-        <div className="flex items-center gap-3">
+      <div className="visual-spelling-game__coach w-full max-w-2xl">
+        <div className="visual-spelling-game__coach-row flex items-center gap-3">
           <img
             src={tomoSpellingIcon}
             alt=""
-            className="h-14 w-auto sm:h-16 md:h-24"
+            className="visual-spelling-game__coach-icon h-14 w-auto sm:h-16 md:h-24"
           />
           <div className="relative flex-1">
             <span className="absolute left-[-6px] top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 bg-[#EFE6DA]" />
-            <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-lg md:text-2xl">
+            <div className="visual-spelling-game__coach-bubble flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-3 py-2 text-base font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-lg md:text-2xl">
               <span
-                className="flex-1"
+                className="visual-spelling-game__coach-text flex-1"
                 style={{
                   minHeight: "2.75rem",
                   display: "-webkit-box",
@@ -874,9 +874,9 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
         </div>
       </div>
 
-      <div className="tap-safe mt-auto w-full max-w-none space-y-2 min-h-0 pb-[env(safe-area-inset-bottom)] overflow-visible">
+      <div className="visual-spelling-game__keyboard-wrap tap-safe mt-auto w-full max-w-none space-y-2 min-h-0 pb-[env(safe-area-inset-bottom)] overflow-visible">
         <div
-          className="relative space-y-3 overflow-visible"
+          className="visual-spelling-game__keyboard relative space-y-3 overflow-visible"
           style={
             {
               "--key-size": "clamp(2.6rem, 6.2vw, 4.2rem)",
@@ -959,7 +959,7 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
             return (
               <div
                 key={`kb-row-${rowIndex}`}
-                className="flex w-full justify-center gap-1"
+                className="visual-spelling-game__keyboard-row flex w-full justify-center gap-1"
               >
                 {row.map(renderKey)}
               </div>
