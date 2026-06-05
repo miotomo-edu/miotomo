@@ -27,19 +27,19 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
   onSelect,
   emptyMessage,
 }) => (
-  <section className="space-y-3">
+<section className="browse-row space-y-3">
     <div className="flex items-center gap-2.5">
       <span
         className="inline-block h-5 w-1.5 flex-shrink-0 rounded-full bg-brand-primary"
         aria-hidden="true"
       />
-      <h2 className="font-display text-xl font-bold text-gray-900 md:text-3xl">
+      <h2 className="browse-row__title font-display text-xl font-bold text-gray-900 md:text-3xl">
         {title}
       </h2>
     </div>
     {items.length > 0 ? (
       <div className="relative">
-        <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="browse-row__scroller flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => (
             <CircleCard
               key={item.book.id}

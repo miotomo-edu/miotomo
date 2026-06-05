@@ -245,7 +245,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   };
 
   return (
-    <section>
+    <section className="current-circle-hero">
       <div className="relative w-full overflow-hidden bg-[#0d0d0b]">
         <div className="relative min-h-screen overflow-hidden">
           {coverUrl ? (
@@ -262,8 +262,8 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
           <div className="absolute inset-y-0 left-0 w-[16vw] min-w-[24px] bg-[linear-gradient(90deg,rgba(7,7,6,0.24)_0%,rgba(7,7,6,0)_100%)]" />
           <div className="absolute inset-y-0 right-0 w-[16vw] min-w-[24px] bg-[linear-gradient(270deg,rgba(7,7,6,0.24)_0%,rgba(7,7,6,0)_100%)]" />
 
-          <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-5 py-5 md:px-8 md:py-8">
-            <div className="pointer-events-none relative flex h-28 w-28 items-center justify-center md:h-36 md:w-36">
+          <div className="current-circle-hero__play-wrap pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-5 py-5 md:px-8 md:py-8">
+            <div className="current-circle-hero__play-shell pointer-events-none relative flex h-28 w-28 items-center justify-center md:h-36 md:w-36">
               <span
                 aria-hidden="true"
                 className="hero-play-pulse absolute inset-0 rounded-full border border-[rgba(250,195,4,0.55)] bg-[radial-gradient(circle,rgba(250,195,4,0.22)_0%,rgba(250,195,4,0.08)_48%,rgba(250,195,4,0)_72%)]"
@@ -273,12 +273,12 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                 onClick={handleHeroPlay}
                 disabled={isUpdating}
                 aria-label={`Play ${activeDotTitle}`}
-                className="pointer-events-auto relative z-10 group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36"
+                className="current-circle-hero__play-button pointer-events-auto relative z-10 group flex h-28 w-28 items-center justify-center rounded-full bg-brand-primary text-black shadow-[0_14px_40px_rgba(0,0,0,0.25),0_0_0_8px_rgba(250,195,4,0.22)] transition duration-300 hover:scale-[1.03] disabled:cursor-not-allowed md:h-36 md:w-36"
               >
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 16 16"
-                  className="ml-1 h-12 w-12 md:h-16 md:w-16"
+                  className="current-circle-hero__play-icon ml-1 h-12 w-12 md:h-16 md:w-16"
                   fill="currentColor"
                 >
                   <path d="M4 2.5v11l9-5.5-9-5.5z" />
@@ -304,32 +304,32 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
             <div className="flex-1" />
 
-            <div className="w-full border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
-              <div className="px-5 md:px-8">
+            <div className="current-circle-hero__content w-full border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
+              <div className="current-circle-hero__inner px-5 md:px-8">
                 <button
                   type="button"
                   onClick={() =>
                     onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
                   }
-                  className="min-w-0 max-w-[19rem] text-left md:max-w-[28rem]"
+                  className="current-circle-hero__title-link min-w-0 max-w-[19rem] text-left md:max-w-[28rem]"
                   aria-label={`Open ${item.book.title}`}
                 >
                   <h1
-                    className="font-display max-w-[11ch] text-left text-[2.8rem] font-bold leading-[0.94] text-white md:text-[5.25rem]"
+                    className="current-circle-hero__title font-display max-w-[11ch] text-left text-[2.8rem] font-bold leading-[0.94] text-white md:text-[5.25rem]"
                     style={{ textShadow: "rgba(0, 0, 0, 0.42) 0px 10px 28px" }}
                   >
                     {item.book.title}
                   </h1>
-                  <div className="mt-5 flex items-center gap-3 text-lg font-medium text-white/90 md:text-[1.75rem]">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
+                  <div className="current-circle-hero__subtitle mt-5 flex items-center gap-3 text-lg font-medium text-white/90 md:text-[1.75rem]">
+                    <span className="current-circle-hero__dot h-2.5 w-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
                   </div>
                 </button>
-                <div className="pointer-events-none mt-5 flex justify-center text-white/82">
+                <div className="current-circle-hero__chevron pointer-events-none mt-5 flex justify-center text-white/82">
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 20 20"
-                    className="h-7 w-7 animate-bounce"
+                    className="current-circle-hero__chevron-icon h-7 w-7 animate-bounce"
                     fill="none"
                   >
                     <path

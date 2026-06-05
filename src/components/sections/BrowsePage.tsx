@@ -501,7 +501,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="browse-page min-h-screen bg-white">
       {currentCircleItem ? (
         <CurrentCircleHero
           studentId={studentId}
@@ -513,9 +513,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         />
       ) : null}
 
-      <div className="relative z-10 space-y-10 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+      <div className="browse-page__content relative z-10 space-y-10 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#020617]">
+          <h2 className="browse-page__section-title font-display text-2xl font-bold text-[#020617]">
             Explore Circles
           </h2>
           <div className="mt-2">

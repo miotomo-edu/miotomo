@@ -34,6 +34,7 @@ import { useAnalytics } from "../hooks/useAnalytics";
 import { useBrowseCircles } from "../hooks/useBrowseCircles";
 import { characterData } from "../lib/characters";
 import { getPreviewConfig } from "../lib/previewMode";
+import { getBooleanQueryParam, getQueryParam } from "../lib/runtimeParams";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
@@ -46,17 +47,21 @@ const normalizeDotTypeSlug = (value) => {
 };
 
 const shouldSkipOnboarding = () => {
-  if (typeof window === "undefined") return false;
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("skipOnboarding");
-  return value === "1" || value === "true";
+  return getBooleanQueryParam("skipOnboarding");
 };
 
 const shouldEnableScreenshotMode = () => {
-  if (typeof window === "undefined") return false;
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("screenshotMode");
-  return value === "1" || value === "true";
+  return getBooleanQueryParam("screenshotMode");
+};
+
+const shouldUseDesktopIpadFrame = () => {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+
+  return window.matchMedia(
+    "(min-width: 1024px) and (hover: hover) and (pointer: fine)",
+  ).matches;
 };
 
 const isWithinWindow = (start, end) => {
@@ -177,9 +182,12 @@ const InteractiveVoiceSession = ({
   );
 };
 
-const App = ({ transportType, region = "" }) => {
+const App = ({ transportType, region = "", testingMode = false }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
+  const [desktopIpadFrame, setDesktopIpadFrame] = useState(() =>
+    shouldUseDesktopIpadFrame(),
+  );
   const [activeComponent, setActiveComponent] = useState(() =>
     previewConfig?.screen === "first-circle-intro"
       ? "first-circle-intro"
@@ -230,10 +238,10 @@ const App = ({ transportType, region = "" }) => {
   const managerDisconnectRef = useRef(null);
 
   const [studentId] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromSearch = params.get("studentId");
+    const fromSearch = getQueryParam("studentId");
     if (fromSearch) return fromSearch;
 
+    const params = new URLSearchParams(window.location.search);
     const overridePath = params.get("p");
     const pathSource =
       typeof overridePath === "string" && overridePath.length > 0
@@ -375,6 +383,54 @@ const App = ({ transportType, region = "" }) => {
       body.classList.remove("screenshot-mode");
     };
   }, [screenshotMode]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return undefined;
+
+    html.classList.toggle("testing-mode", testingMode);
+    body.classList.toggle("testing-mode", testingMode);
+
+    return () => {
+      html.classList.remove("testing-mode");
+      body.classList.remove("testing-mode");
+    };
+  }, [testingMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia(
+      "(min-width: 1024px) and (hover: hover) and (pointer: fine)",
+    );
+    const syncDesktopFrame = () => {
+      setDesktopIpadFrame(mediaQuery.matches);
+    };
+
+    syncDesktopFrame();
+    mediaQuery.addEventListener("change", syncDesktopFrame);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncDesktopFrame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return undefined;
+
+    html.classList.toggle("desktop-ipad-frame", desktopIpadFrame);
+    body.classList.toggle("desktop-ipad-frame", desktopIpadFrame);
+
+    return () => {
+      html.classList.remove("desktop-ipad-frame");
+      body.classList.remove("desktop-ipad-frame");
+    };
+  }, [desktopIpadFrame]);
 
   useEffect(() => {
     if (previewConfig?.userName) return;
@@ -845,7 +901,9 @@ const App = ({ transportType, region = "" }) => {
 
   return (
     <div
-      className={`app-mobile-shell ${screenshotMode ? "app-screenshot-shell" : ""} ${characterBgClass}`}
+      className={`app-mobile-shell ${screenshotMode ? "app-screenshot-shell" : ""} ${desktopIpadFrame ? "desktop-ipad-frame-shell" : ""} ${characterBgClass}`}
+      data-testing-mode={testingMode ? "true" : "false"}
+      data-desktop-ipad-frame={desktopIpadFrame ? "true" : "false"}
       style={appShellStyle}
     >
       <Layout
