@@ -21,6 +21,7 @@ import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { supabase } from "../hooks/integrations/supabase/client";
 import { useDotProgress } from "../hooks/useDotProgress";
+import { getBooleanQueryParam } from "../lib/runtimeParams";
 
 const discussionBackgroundAssets = import.meta.glob(
   "../assets/img/discussion/**/*.png",
@@ -158,6 +159,7 @@ export const TalkWithBook = ({
     const value = params.get("disable_progress_tracking");
     return value === "1" || value === "true";
   }, []);
+  const testingMode = useMemo(() => getBooleanQueryParam("testing"), []);
 
   const {
     addVoicebotMessage,
@@ -2491,7 +2493,7 @@ export const TalkWithBook = ({
                 Connecting...
               </button>
             )}
-            {isConnected && (
+            {isConnected && !testingMode && (
               <button
                 onClick={disconnectHere}
                 className="px-4 py-2 bg-red-500 text-white rounded"
@@ -2502,7 +2504,7 @@ export const TalkWithBook = ({
           </>
         )}
 
-        {onShowDotCompletion && (
+        {onShowDotCompletion && !testingMode && (
           <button
             type="button"
             onClick={handleShowDotCompletion}
