@@ -159,7 +159,10 @@ export const TalkWithBook = ({
     useState(() => previewScreen === "discussion-complete");
   const [pendingDotCompletionOptions, setPendingDotCompletionOptions] =
     useState<{ openVocabularyGame: boolean } | null>(null);
+  const [pendingServerCompletionOptions, setPendingServerCompletionOptions] =
+    useState<{ openVocabularyGame: boolean } | null>(null);
   const [isLeavingDiscussion, setIsLeavingDiscussion] = useState(false);
+  const [isAwaitingFirstBotTurn, setIsAwaitingFirstBotTurn] = useState(false);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -580,6 +583,7 @@ export const TalkWithBook = ({
     isDisconnectingRef.current = false;
     introAutoplayBlockedRef.current = false;
     offerConnectFailedRef.current = false;
+    setIsAwaitingFirstBotTurn(false);
     setSessionEndingReason(null);
     await connect({
       botConfig,
@@ -698,6 +702,19 @@ export const TalkWithBook = ({
     [onShowDotCompletion],
   );
 
+  const presentDotCompletionUi = useCallback(
+    async (options) => {
+      if (options.openVocabularyGame) {
+        setPendingDotCompletionOptions(options);
+        setShowDiscussionCompleteSplash(true);
+        return;
+      }
+
+      await finishDotCompletion(options);
+    },
+    [finishDotCompletion],
+  );
+
   const completeDotConversation = useCallback(
     async (options) => {
       if (dotCompletionInFlightRef.current) return;
@@ -723,13 +740,17 @@ export const TalkWithBook = ({
 
     if (options.openVocabularyGame) {
       await prepareDotCompletion();
-      setPendingDotCompletionOptions(options);
-      setShowDiscussionCompleteSplash(true);
+      await presentDotCompletionUi(options);
       return;
     }
 
     await completeDotConversation(options);
-  }, [completeDotConversation, prepareDotCompletion, resolveDotCompletionOptions]);
+  }, [
+    completeDotConversation,
+    prepareDotCompletion,
+    presentDotCompletionUi,
+    resolveDotCompletionOptions,
+  ]);
 
   const handleContinueToVocabulary = useCallback(async () => {
     if (dotCompletionInFlightRef.current) return;
@@ -739,6 +760,17 @@ export const TalkWithBook = ({
     setPendingDotCompletionOptions(null);
     await finishDotCompletion(options);
   }, [finishDotCompletion, pendingDotCompletionOptions]);
+
+  const handleServerTimeUpCompletion = useCallback(async () => {
+    const options = await resolveDotCompletionOptions();
+
+    if (isBotSpeaking) {
+      setPendingServerCompletionOptions(options);
+      return;
+    }
+
+    await presentDotCompletionUi(options);
+  }, [isBotSpeaking, presentDotCompletionUi, resolveDotCompletionOptions]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {
@@ -803,6 +835,7 @@ export const TalkWithBook = ({
       });
       startedChatRef.current = true;
       hadConversationRef.current = true;
+      setIsAwaitingFirstBotTurn(true);
       setPhase(userMutedRef.current ? "chat_paused" : "chat_active");
       addLog("✅ start-chat sent");
     } catch (error) {
@@ -1441,13 +1474,17 @@ export const TalkWithBook = ({
       return;
     }
     if (sessionPhase === "chat_active") {
+      if (isAwaitingFirstBotTurn) {
+        syncMic(false, { force: true });
+        return;
+      }
       syncMic(true, { force: true });
       return;
     }
     if (sessionPhase === "chat_paused") {
       syncMic(false, { force: true });
     }
-  }, [sessionPhase, syncMic]);
+  }, [isAwaitingFirstBotTurn, sessionPhase, syncMic]);
 
   useEffect(() => {
     if (!startedChatRef.current) return;
@@ -1489,6 +1526,17 @@ export const TalkWithBook = ({
       maybeStartChat();
     }
   }, [sessionPhase, conversationReady, isBotReady, maybeStartChat]);
+
+  useEffect(() => {
+    if (!pendingServerCompletionOptions) return;
+    if (isBotSpeaking) return;
+
+    const options = pendingServerCompletionOptions;
+    setPendingServerCompletionOptions(null);
+    presentDotCompletionUi(options).catch((err) => {
+      console.warn("Failed to present server-ended completion UI:", err);
+    });
+  }, [isBotSpeaking, pendingServerCompletionOptions, presentDotCompletionUi]);
 
   useEffect(() => {
     if (sessionPhase !== "intro_done") return;
@@ -1815,6 +1863,14 @@ export const TalkWithBook = ({
       setIsBotReady(false);
       setIsBotThinking(false);
       setConversationReady(false);
+      setIsAwaitingFirstBotTurn(false);
+      if (pendingServerCompletionOptions) {
+        const options = pendingServerCompletionOptions;
+        setPendingServerCompletionOptions(null);
+        presentDotCompletionUi(options).catch((err) => {
+          console.warn("Failed to present completion UI after disconnect:", err);
+        });
+      }
       if (startedChatRef.current || talkingElapsedRef.current > 0) {
         flushTalkingElapsed(isCelebrating ? "completed" : "paused");
       }
@@ -1870,6 +1926,13 @@ export const TalkWithBook = ({
     const onBotStoppedSpeaking = (payload) => {
       logRtviEvent("BotStoppedSpeaking", payload);
       setIsBotSpeaking(false);
+      if (startedChatRef.current && isAwaitingFirstBotTurn) {
+        setIsAwaitingFirstBotTurn(false);
+        if (!userMutedRef.current) {
+          syncMic(true, { force: true });
+          startListening();
+        }
+      }
     };
     const onBotLlmStarted = (payload) => {
       logRtviEvent("BotLlmStarted", payload);
@@ -1879,7 +1942,11 @@ export const TalkWithBook = ({
     const onBotLlmStopped = (payload) => {
       logRtviEvent("BotLlmStopped", payload);
       setIsBotThinking(false);
-      if (!isBotSpeaking && sessionPhaseRef.current === "chat_active") {
+      if (
+        !isBotSpeaking &&
+        sessionPhaseRef.current === "chat_active" &&
+        !isAwaitingFirstBotTurn
+      ) {
         startListening();
       }
     };
@@ -1926,7 +1993,7 @@ export const TalkWithBook = ({
         addLog(`🛑 Session ending: ${reason}`);
         setSessionEndingReason(reason);
         if (reason === "time-up") {
-          handleShowDotCompletion().catch((err) => {
+          handleServerTimeUpCompletion().catch((err) => {
             console.warn("Failed to handle time-up completion flow:", err);
           });
           return;
@@ -1984,10 +2051,15 @@ export const TalkWithBook = ({
     resetIntroState,
     stopIntroAudio,
     isBotSpeaking,
+    isAwaitingFirstBotTurn,
     flushTalkingElapsed,
     isCelebrating,
     wakeAnalytics,
     sendSetLanguage,
+    syncMic,
+    pendingServerCompletionOptions,
+    presentDotCompletionUi,
+    handleServerTimeUpCompletion,
   ]);
 
   // --- Auto-connect when button is hidden ---
