@@ -39,6 +39,21 @@ import { getBooleanQueryParam, getQueryParam } from "../lib/runtimeParams";
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
 
+class AECMediaManager {
+  async getUserMedia() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        // These are already browser defaults, but being explicit
+        // forces the browser not to skip them for performance
+      },
+      video: false,
+    });
+  }
+}
+
 const normalizeDotTypeSlug = (value) => {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
@@ -55,7 +70,10 @@ const shouldEnableScreenshotMode = () => {
 };
 
 const shouldUseDesktopIpadFrame = () => {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
     return false;
   }
 
@@ -106,6 +124,7 @@ const InteractiveVoiceSession = ({
   setShouldStartSession,
   handleNavigationClick,
   handleShowDotCompletion,
+  previewScreen,
 }) => {
   const client = useMemo(() => {
     const transport =
@@ -162,6 +181,7 @@ const InteractiveVoiceSession = ({
           connectionManagedExternally={shouldShowConnectionManager}
           onRequestSessionStart={() => setShouldStartSession(true)}
           onShowDotCompletion={handleShowDotCompletion}
+          previewScreen={previewScreen}
         />
       </VoiceBotProvider>
 
@@ -192,36 +212,39 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     previewConfig?.screen === "first-circle-intro"
       ? "first-circle-intro"
       : previewConfig?.screen === "circle-page"
-      ? "circle"
-      : previewConfig?.screen === "demo-subscribe"
-        ? "demo-subscribe"
-      : previewConfig?.screen === "dot-complete" ||
-          previewConfig?.screen === "circle-complete"
-      ? "dot-complete"
-      : previewConfig?.screen === "vocab-intro" ||
-          previewConfig?.screen === "vocab-game" ||
-          previewConfig?.screen === "vocab-complete" ||
-          previewConfig?.screen === "spelling-intro" ||
-          previewConfig?.screen === "spelling-game" ||
-          previewConfig?.screen === "spelling-complete"
-        ? "vocabulary-game"
-        : shouldSkipOnboarding()
-          ? "library"
-          : "landing",
+        ? "circle"
+        : previewConfig?.screen === "demo-subscribe"
+          ? "demo-subscribe"
+          : previewConfig?.screen === "discussion-complete"
+            ? "interactive"
+            : previewConfig?.screen === "dot-complete" ||
+                previewConfig?.screen === "circle-complete"
+              ? "dot-complete"
+              : previewConfig?.screen === "vocab-intro" ||
+                  previewConfig?.screen === "vocab-game" ||
+                  previewConfig?.screen === "vocab-complete" ||
+                  previewConfig?.screen === "spelling-intro" ||
+                  previewConfig?.screen === "spelling-game" ||
+                  previewConfig?.screen === "spelling-complete"
+                ? "vocabulary-game"
+                : shouldSkipOnboarding()
+                  ? "library"
+                  : "landing",
   );
   const prevActiveComponent = useRef(activeComponent);
-  const [selectedBook, setSelectedBook] = useState(() => previewConfig?.book ?? null);
+  const [selectedBook, setSelectedBook] = useState(
+    () => previewConfig?.book ?? null,
+  );
   const [selectedChapter, setSelectedChapter] = useState(
     () => previewConfig?.completedDot ?? 1,
   );
   const [selectedDotTitle, setSelectedDotTitle] = useState("");
   const [selectedDotTypeSlug, setSelectedDotTypeSlug] = useState(null);
-  const [completedDotChapter, setCompletedDotChapter] = useState(
-    () =>
-      previewConfig?.screen === "dot-complete" ||
-      previewConfig?.screen === "circle-complete"
-        ? previewConfig.completedDot
-        : null,
+  const [completedDotChapter, setCompletedDotChapter] = useState(() =>
+    previewConfig?.screen === "dot-complete" ||
+    previewConfig?.screen === "circle-complete"
+      ? previewConfig.completedDot
+      : null,
   );
   const [isDemoSession, setIsDemoSession] = useState(false);
   const mainRef = useRef(null);
@@ -288,7 +311,10 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const { isAnalyzing, wakeAnalytics } = useAnalytics();
 
   const previewCircleSelection = useMemo(() => {
-    if (previewConfig?.screen !== "circle-page" || !browseData?.circles?.length) {
+    if (
+      previewConfig?.screen !== "circle-page" ||
+      !browseData?.circles?.length
+    ) {
       return null;
     }
 
@@ -355,7 +381,8 @@ const App = ({ transportType, region = "", testingMode = false }) => {
 
     return {
       book,
-      nextChapter: Number.isFinite(nextChapter) && nextChapter > 0 ? nextChapter : 1,
+      nextChapter:
+        Number.isFinite(nextChapter) && nextChapter > 0 ? nextChapter : 1,
     };
   }, [browseData, previewConfig?.screen]);
 
@@ -399,7 +426,10 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   }, [testingMode]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    if (
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    ) {
       return undefined;
     }
 
@@ -438,7 +468,8 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   }, [student, previewConfig?.userName]);
 
   useEffect(() => {
-    if (previewConfig?.screen !== "circle-page" || !previewCircleSelection) return;
+    if (previewConfig?.screen !== "circle-page" || !previewCircleSelection)
+      return;
     setSelectedBook(previewCircleSelection.book);
     setSelectedChapter(previewCircleSelection.nextChapter);
   }, [previewConfig?.screen, previewCircleSelection]);
@@ -554,15 +585,18 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     [normalizeChapterValue, currentCharacter, activeComponent],
   );
 
-  const handleShowDotCompletion = useCallback((options = {}) => {
-    if (!selectedBook) return;
-    setCompletedDotChapter(selectedChapter);
-    if (options.openVocabularyGame) {
-      setActiveComponent("vocabulary-game");
-      return;
-    }
-    setActiveComponent(isDemoSession ? "demo-subscribe" : "dot-complete");
-  }, [selectedBook, selectedChapter, isDemoSession]);
+  const handleShowDotCompletion = useCallback(
+    (options = {}) => {
+      if (!selectedBook) return;
+      setCompletedDotChapter(selectedChapter);
+      if (options.openVocabularyGame) {
+        setActiveComponent("vocabulary-game");
+        return;
+      }
+      setActiveComponent(isDemoSession ? "demo-subscribe" : "dot-complete");
+    },
+    [selectedBook, selectedChapter, isDemoSession],
+  );
 
   const handlePreviewNextDotFromCompletion = useCallback(
     (book, chapterValue) => {
@@ -819,6 +853,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
             setShouldStartSession={setShouldStartSession}
             handleNavigationClick={handleNavigationClick}
             handleShowDotCompletion={handleShowDotCompletion}
+            previewScreen={previewConfig?.screen ?? null}
           />
         );
       default:
@@ -867,23 +902,23 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       ? "bg-[#2F2C2F]"
       : activeComponent === "parents"
         ? "bg-[#F6EFE2]"
-      : activeComponent === "progress"
-        ? "bg-white"
-        : activeComponent === "onboarding"
+        : activeComponent === "progress"
           ? "bg-white"
-          : activeComponent === "interactive"
-            ? "bg-black"
-            : activeComponent === "demo-subscribe"
-              ? "bg-[#F6EFE2]"
-              : activeComponent === "dot-complete"
-                ? "bg-white"
-                : activeComponent === "library" ||
-                    activeComponent === "home" ||
-                    activeComponent === "circle"
-                  ? "bg-library"
-                  : activeComponent === "first-circle-intro"
-                    ? "bg-[#F4ECDF]"
-                    : "";
+          : activeComponent === "onboarding"
+            ? "bg-white"
+            : activeComponent === "interactive"
+              ? "bg-black"
+              : activeComponent === "demo-subscribe"
+                ? "bg-[#F6EFE2]"
+                : activeComponent === "dot-complete"
+                  ? "bg-white"
+                  : activeComponent === "library" ||
+                      activeComponent === "home" ||
+                      activeComponent === "circle"
+                    ? "bg-library"
+                    : activeComponent === "first-circle-intro"
+                      ? "bg-[#F4ECDF]"
+                      : "";
   const shouldShowBottomNav =
     activeComponent !== "landing" &&
     activeComponent !== "onboarding" &&
@@ -912,8 +947,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         screenshotMode={screenshotMode}
         withBottomNav={shouldShowBottomNav}
         fullHeight={
-          activeComponent === "vocabulary-game" ||
-          activeComponent === "parents"
+          activeComponent === "vocabulary-game" || activeComponent === "parents"
         }
         mainClassName={mainBackgroundClass}
       >
@@ -926,22 +960,22 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         )}
       </Layout>
       {shouldShowBottomNav && (
-          <BottomNavBar
-            onItemClick={handleNavigationClick}
-            onBackClick={handleFloatingNavBack}
-            scrollContainerRef={mainRef}
-            orientation="vertical"
-            mode={navMode}
-            activeComponentName={
-              activeComponent === "first-circle-intro" ||
-              activeComponent === "dot-complete" ||
-              activeComponent === "demo-subscribe"
-                ? "library"
-                : activeComponent
-            }
-            className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
-          />
-        )}
+        <BottomNavBar
+          onItemClick={handleNavigationClick}
+          onBackClick={handleFloatingNavBack}
+          scrollContainerRef={mainRef}
+          orientation="vertical"
+          mode={navMode}
+          activeComponentName={
+            activeComponent === "first-circle-intro" ||
+            activeComponent === "dot-complete" ||
+            activeComponent === "demo-subscribe"
+              ? "library"
+              : activeComponent
+          }
+          className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
+        />
+      )}
     </div>
   );
 };

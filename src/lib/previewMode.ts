@@ -4,6 +4,7 @@ export type PreviewScreen =
   | "first-circle-intro"
   | "circle-page"
   | "demo-subscribe"
+  | "discussion-complete"
   | "vocab-intro"
   | "vocab-game"
   | "dot-complete"
@@ -25,6 +26,7 @@ const PREVIEW_SCREENS: PreviewScreen[] = [
   "first-circle-intro",
   "circle-page",
   "demo-subscribe",
+  "discussion-complete",
   "vocab-intro",
   "vocab-game",
   "dot-complete",

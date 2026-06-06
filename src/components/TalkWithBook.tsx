@@ -22,6 +22,7 @@ import { useAnalytics } from "../hooks/useAnalytics";
 import { supabase } from "../hooks/integrations/supabase/client";
 import { useDotProgress } from "../hooks/useDotProgress";
 import { getBooleanQueryParam } from "../lib/runtimeParams";
+import DiscussionCompleteSplash from "./features/voice/DiscussionCompleteSplash";
 
 const discussionBackgroundAssets = import.meta.glob(
   "../assets/img/discussion/**/*.png",
@@ -88,6 +89,7 @@ export const TalkWithBook = ({
   onDisconnectRequest,
   connectionManagedExternally = false,
   onRequestSessionStart,
+  previewScreen = null,
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
@@ -133,6 +135,7 @@ export const TalkWithBook = ({
   const listeningSyncCallbackRef = useRef(null);
   const lastListeningStatusRef = useRef(null);
   const lastTalkingStatusRef = useRef(null);
+  const dotCompletionInFlightRef = useRef(false);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -152,6 +155,11 @@ export const TalkWithBook = ({
   const [sessionEndingReason, setSessionEndingReason] = useState(null);
   const [activeVoiceCharacterName, setActiveVoiceCharacterName] =
     useState(null);
+  const [showDiscussionCompleteSplash, setShowDiscussionCompleteSplash] =
+    useState(() => previewScreen === "discussion-complete");
+  const [pendingDotCompletionOptions, setPendingDotCompletionOptions] =
+    useState<{ openVocabularyGame: boolean } | null>(null);
+  const [isLeavingDiscussion, setIsLeavingDiscussion] = useState(false);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -641,7 +649,7 @@ export const TalkWithBook = ({
     updateListeningProgress,
   ]);
 
-  const handleShowDotCompletion = useCallback(async () => {
+  const resolveDotCompletionOptions = useCallback(async () => {
     const episode = getEpisodeNumber();
     let openVocabularyGame = false;
 
@@ -666,9 +674,71 @@ export const TalkWithBook = ({
       }
     }
 
-    await disconnectHere();
-    onShowDotCompletion?.({ openVocabularyGame });
-  }, [disconnectHere, getEpisodeNumber, onShowDotCompletion, selectedBook?.id]);
+    return { openVocabularyGame };
+  }, [getEpisodeNumber, selectedBook?.id]);
+
+  const prepareDotCompletion = useCallback(async () => {
+    if (dotCompletionInFlightRef.current) return;
+
+    dotCompletionInFlightRef.current = true;
+    setIsLeavingDiscussion(true);
+
+    try {
+      await disconnectHere();
+    } finally {
+      dotCompletionInFlightRef.current = false;
+      setIsLeavingDiscussion(false);
+    }
+  }, [disconnectHere]);
+
+  const finishDotCompletion = useCallback(
+    async (options) => {
+      onShowDotCompletion?.(options);
+    },
+    [onShowDotCompletion],
+  );
+
+  const completeDotConversation = useCallback(
+    async (options) => {
+      if (dotCompletionInFlightRef.current) return;
+
+      dotCompletionInFlightRef.current = true;
+      setIsLeavingDiscussion(true);
+
+      try {
+        await disconnectHere();
+        await finishDotCompletion(options);
+      } finally {
+        dotCompletionInFlightRef.current = false;
+        setIsLeavingDiscussion(false);
+      }
+    },
+    [disconnectHere, finishDotCompletion],
+  );
+
+  const handleShowDotCompletion = useCallback(async () => {
+    if (dotCompletionInFlightRef.current) return;
+
+    const options = await resolveDotCompletionOptions();
+
+    if (options.openVocabularyGame) {
+      await prepareDotCompletion();
+      setPendingDotCompletionOptions(options);
+      setShowDiscussionCompleteSplash(true);
+      return;
+    }
+
+    await completeDotConversation(options);
+  }, [completeDotConversation, prepareDotCompletion, resolveDotCompletionOptions]);
+
+  const handleContinueToVocabulary = useCallback(async () => {
+    if (dotCompletionInFlightRef.current) return;
+
+    const options = pendingDotCompletionOptions ?? { openVocabularyGame: true };
+    setShowDiscussionCompleteSplash(false);
+    setPendingDotCompletionOptions(null);
+    await finishDotCompletion(options);
+  }, [finishDotCompletion, pendingDotCompletionOptions]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {
@@ -1855,6 +1925,12 @@ export const TalkWithBook = ({
             : "unknown";
         addLog(`🛑 Session ending: ${reason}`);
         setSessionEndingReason(reason);
+        if (reason === "time-up") {
+          handleShowDotCompletion().catch((err) => {
+            console.warn("Failed to handle time-up completion flow:", err);
+          });
+          return;
+        }
         disconnectHere();
         return;
       }
@@ -1901,6 +1977,7 @@ export const TalkWithBook = ({
     extractIntroMetadata,
     extractIntroStatus,
     extractSessionEnding,
+    handleShowDotCompletion,
     handleIntroMetadata,
     handleIntroStatus,
     disconnectHere,
@@ -2132,7 +2209,8 @@ export const TalkWithBook = ({
       return "listening.png";
     }
     if (activityState === "talking") {
-      const speakerSlug = normalizeDiscussionCharacterSlug(talkingCharacterName);
+      const speakerSlug =
+        normalizeDiscussionCharacterSlug(talkingCharacterName);
       if (speakerSlug) {
         return `${speakerSlug}_talking.png`;
       }
@@ -2369,169 +2447,183 @@ export const TalkWithBook = ({
         <div className="h-full w-full">{renderedServerContent}</div>
       </div>
 
-      <div
-        ref={logsRef}
-        className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
-      />
+      {!testingMode && (
+        <div
+          ref={logsRef}
+          className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
+        />
+      )}
 
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
-      <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
-        {shouldShowMic && (
-          <div className="flex justify-center">
-            <AnimationManager
-              agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
-              userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
-              isUserSpeaking={isMicActive}
-              isBotSpeaking={isBotSpeaking}
-              isMicEnabled={isMicEnabledUi}
-              characterImages={currentCharacter?.images}
-              characterName={currentCharacter?.name}
-              onMicToggle={handleMicToggle}
-              isCelebrating={isCelebrating}
-              forceAwake={isIntroActive}
-              isMicToggleDisabled={isIntroActive}
-              useMicOrb
-            />
-          </div>
-        )}
-        {showIntroPlayer && (
-          <div
-            className={`flex w-full max-w-md flex-col gap-2 transition-opacity md:max-w-2xl md:gap-3 ${
-              audioControlsDisabled ? "opacity-40" : "opacity-100"
-            }`}
-          >
-            <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
-              <span>{introPlayedLabel}</span>
-              <span>{introRemainingNegativeLabel}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              {showIntroControls && (
-                <button
-                  type="button"
-                  onClick={toggleIntroPlayback}
-                  aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
-                  className="p-1 text-white disabled:opacity-40"
-                  disabled={audioControlsDisabled}
-                >
-                  {isIntroPlaying ? (
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      className="h-5 w-5 md:h-10 md:w-10"
-                      fill="currentColor"
-                    >
-                      <rect x="3" y="2" width="4" height="12" rx="1" />
-                      <rect x="9" y="2" width="4" height="12" rx="1" />
-                    </svg>
-                  ) : (
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      className="h-5 w-5 md:h-10 md:w-10"
-                      fill="currentColor"
-                    >
-                      <path d="M4 2.5v11l9-5.5-9-5.5z" />
-                    </svg>
-                  )}
-                </button>
-              )}
-              <input
-                type="range"
-                min="0"
-                max={introDurationValue}
-                step="0.1"
-                value={introSliderValue}
-                onChange={handleIntroSeek}
-                disabled={
-                  audioControlsDisabled ||
-                  !showIntroControls ||
-                  introDurationValue <= 0
-                }
-                aria-label="Intro playback position"
-                style={{
-                  background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
-                }}
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
+      {!showDiscussionCompleteSplash && (
+        <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
+          {shouldShowMic && (
+            <div className="flex justify-center">
+              <AnimationManager
+                agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
+                userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
+                isUserSpeaking={isMicActive}
+                isBotSpeaking={isBotSpeaking}
+                isMicEnabled={isMicEnabledUi}
+                characterImages={currentCharacter?.images}
+                characterName={currentCharacter?.name}
+                onMicToggle={handleMicToggle}
+                isCelebrating={isCelebrating}
+                forceAwake={isIntroActive}
+                isMicToggleDisabled={isIntroActive}
+                useMicOrb
               />
-              {showIntroControls && (
-                <button
-                  type="button"
-                  onClick={() => interruptIntroPlayback()}
-                  aria-label="Stop intro"
-                  className="p-1 text-white disabled:opacity-40"
-                  disabled={disableStop || audioControlsDisabled}
-                >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 16 16"
-                    className="h-5 w-5 md:h-10 md:w-10"
-                    fill="currentColor"
+            </div>
+          )}
+          {showIntroPlayer && (
+            <div
+              className={`flex w-full max-w-md flex-col gap-2 transition-opacity md:max-w-2xl md:gap-3 ${
+                audioControlsDisabled ? "opacity-40" : "opacity-100"
+              }`}
+            >
+              <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
+                <span>{introPlayedLabel}</span>
+                <span>{introRemainingNegativeLabel}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {showIntroControls && (
+                  <button
+                    type="button"
+                    onClick={toggleIntroPlayback}
+                    aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
+                    className="p-1 text-white disabled:opacity-40"
+                    disabled={audioControlsDisabled}
                   >
-                    <rect x="3" y="3" width="10" height="10" rx="1" />
-                  </svg>
+                    {isIntroPlaying ? (
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 16 16"
+                        className="h-5 w-5 md:h-10 md:w-10"
+                        fill="currentColor"
+                      >
+                        <rect x="3" y="2" width="4" height="12" rx="1" />
+                        <rect x="9" y="2" width="4" height="12" rx="1" />
+                      </svg>
+                    ) : (
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 16 16"
+                        className="h-5 w-5 md:h-10 md:w-10"
+                        fill="currentColor"
+                      >
+                        <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+                <input
+                  type="range"
+                  min="0"
+                  max={introDurationValue}
+                  step="0.1"
+                  value={introSliderValue}
+                  onChange={handleIntroSeek}
+                  disabled={
+                    audioControlsDisabled ||
+                    !showIntroControls ||
+                    introDurationValue <= 0
+                  }
+                  aria-label="Intro playback position"
+                  style={{
+                    background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
+                  }}
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
+                />
+                {showIntroControls && (
+                  <button
+                    type="button"
+                    onClick={() => interruptIntroPlayback()}
+                    aria-label="Stop intro"
+                    className="p-1 text-white disabled:opacity-40"
+                    disabled={disableStop || audioControlsDisabled}
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 16 16"
+                      className="h-5 w-5 md:h-10 md:w-10"
+                      fill="currentColor"
+                    >
+                      <rect x="3" y="3" width="10" height="10" rx="1" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {showControlButton && (
+            <>
+              {!isConnected && !isConnecting && (
+                <button
+                  onClick={connectHere}
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Start Conversation
                 </button>
               )}
-            </div>
-          </div>
-        )}
+              {isConnecting && (
+                <button
+                  disabled
+                  className="px-4 py-2 bg-gray-400 text-white rounded"
+                >
+                  Connecting...
+                </button>
+              )}
+              {isConnected && !testingMode && (
+                <button
+                  onClick={disconnectHere}
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                >
+                  End Conversation
+                </button>
+              )}
+            </>
+          )}
 
-        {showControlButton && (
-          <>
-            {!isConnected && !isConnecting && (
-              <button
-                onClick={connectHere}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Start Conversation
-              </button>
-            )}
-            {isConnecting && (
-              <button
-                disabled
-                className="px-4 py-2 bg-gray-400 text-white rounded"
-              >
-                Connecting...
-              </button>
-            )}
-            {isConnected && !testingMode && (
-              <button
-                onClick={disconnectHere}
-                className="px-4 py-2 bg-red-500 text-white rounded"
-              >
-                End Conversation
-              </button>
-            )}
-          </>
-        )}
+          {onShowDotCompletion && !testingMode && (
+            <button
+              type="button"
+              onClick={handleShowDotCompletion}
+              disabled={isLeavingDiscussion}
+              className="text-sm font-medium text-white/70 underline-offset-4 underline transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50 md:text-base"
+            >
+              Next
+            </button>
+          )}
 
-        {onShowDotCompletion && !testingMode && (
-          <button
-            type="button"
-            onClick={handleShowDotCompletion}
-            className="text-sm font-medium text-white/70 underline-offset-4 underline transition hover:text-white md:text-base"
-          >
-            Next
-          </button>
-        )}
+          {isCelebrating && !isConnected && (
+            <button
+              type="button"
+              onClick={() => onNavigate?.("progress")}
+              className="w-full rounded-full bg-brand-primary px-6 py-4 text-base font-bold text-black shadow-elevated transition hover:brightness-[1.03] active:scale-[0.97]"
+            >
+              See your progress
+            </button>
+          )}
+        </div>
+      )}
 
-        {isCelebrating && !isConnected && (
-          <button
-            type="button"
-            onClick={() => onNavigate?.("progress")}
-            className="w-full rounded-full bg-brand-primary px-6 py-4 text-base font-bold text-black shadow-elevated transition hover:brightness-[1.03] active:scale-[0.97]"
-          >
-            See your progress
-          </button>
-        )}
-      </div>
-
-      {showActivityBadge && (
+      {!showDiscussionCompleteSplash && showActivityBadge && (
         <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
-          <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-card backdrop-blur-sm">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
-            {activityLabel}
+          <div className="flex justify-center">
+            <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-card backdrop-blur-sm">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
+              {activityLabel}
+            </div>
           </div>
         </div>
+      )}
+
+      {showDiscussionCompleteSplash && (
+        <DiscussionCompleteSplash
+          onContinue={handleContinueToVocabulary}
+          isContinuing={isLeavingDiscussion}
+        />
       )}
     </div>
   );

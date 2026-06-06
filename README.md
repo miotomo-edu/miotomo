@@ -31,6 +31,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    - `?skipOnboarding=1&preview=first-circle-intro`
    - `?skipOnboarding=1&preview=circle-page`
    - `?skipOnboarding=1&preview=demo-subscribe`
+   - `?skipOnboarding=1&preview=discussion-complete`
    - `?skipOnboarding=1&preview=vocab-intro`
    - `?skipOnboarding=1&preview=vocab-game`
    - `?skipOnboarding=1&preview=dot-complete`
@@ -53,7 +54,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 | `npx prettier --write "src/**/*.{ts,tsx,js,jsx,css,md}"` | Format code & Markdown. |
 
 ## Architecture Overview
-- `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, mirrors the chosen character’s accent color across the view, drives the floating top-right nav/close control, supports `skipOnboarding=1` to boot directly into Library for local QA, supports `preview=` to open selected Circle/game/completion screens directly, and keeps document-level scrolling as the default shell behavior.
+- `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, mirrors the chosen character’s accent color across the view, drives the floating top-right nav/close control, supports `skipOnboarding=1` to boot directly into Library for local QA, supports `preview=` to open selected Circle/game/completion screens directly including the discussion-complete splash, and keeps document-level scrolling as the default shell behavior.
 - `src/components/sections/CirclePage.tsx` – Renders the circle detail page and enforces progressive dot unlocks by default; append `?unlockCircleDots=1` to expose Play/Resume buttons on incomplete rows for QA/debugging.
 - `src/components/TalkWithBook.tsx` – Conversation surface: subscribes to RTVI events, controls mic state, pushes updates into `VoiceBotContext`, and now relies on the floating close control instead of an in-header back button.
 - `src/hooks/usePipecatConnection.js` – Reusable Pipecat connect/disconnect layer. It now performs best-effort teardown on `pagehide` and can notify a backend endpoint via `navigator.sendBeacon()` or `fetch(..., { keepalive: true })` when `VITE_PIPECAT_DISCONNECT_BEACON_URL` is configured. If that env var is absent, it falls back to `${VITE_DAILY_PROXY_URL}/disconnect-pipecat`.
