@@ -21,6 +21,7 @@ import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { supabase } from "../hooks/integrations/supabase/client";
 import { useDotProgress } from "../hooks/useDotProgress";
+import useAnalyserVolume from "../hooks/useAnalyserVolume";
 import { getBooleanQueryParam } from "../lib/runtimeParams";
 import DiscussionCompleteSplash from "./features/voice/DiscussionCompleteSplash";
 
@@ -128,6 +129,8 @@ export const TalkWithBook = ({
   });
   const listeningCompletedRef = useRef(false);
   const micControlOverrideRef = useRef(null);
+  const lastMicControlSentRef = useRef({ action: "", payloadKey: "" });
+  const transportMicEnabledRef = useRef<boolean | null>(null);
   const talkingStartRef = useRef(null);
   const talkingElapsedRef = useRef(0);
   const listeningElapsedRef = useRef(0);
@@ -136,6 +139,10 @@ export const TalkWithBook = ({
   const lastListeningStatusRef = useRef(null);
   const lastTalkingStatusRef = useRef(null);
   const dotCompletionInFlightRef = useRef(false);
+  const terminalFarewellStartedRef = useRef(false);
+  const terminalSilenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -163,6 +170,7 @@ export const TalkWithBook = ({
     useState<{ openVocabularyGame: boolean } | null>(null);
   const [isLeavingDiscussion, setIsLeavingDiscussion] = useState(false);
   const [isAwaitingFirstBotTurn, setIsAwaitingFirstBotTurn] = useState(false);
+  const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -216,6 +224,7 @@ export const TalkWithBook = ({
     () => createAnalyser(botAudioTrack),
     [botAudioTrack, createAnalyser],
   );
+  const botAudioVolume = useAnalyserVolume(agentVoiceAnalyser?.analyser ?? null);
 
   // Cleanup audio contexts to avoid leaks - FIXED
   useEffect(() => {
@@ -239,6 +248,15 @@ export const TalkWithBook = ({
       }
     };
   }, [agentVoiceAnalyser]);
+
+  useEffect(() => {
+    return () => {
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Connection hook
   const {
@@ -535,30 +553,42 @@ export const TalkWithBook = ({
         ((enabled && override.action === "resumeListening") ||
           (!enabled && override.action === "pauseListening"));
       const overridePayload = hasOverride ? override?.payload : null;
+      const action = enabled ? "resumeListening" : "pauseListening";
+      const payload = {
+        action,
+        ...(overridePayload ?? {}),
+      };
+      const payloadKey = JSON.stringify(payload);
+      const isDuplicateControl =
+        lastMicControlSentRef.current.action === action &&
+        lastMicControlSentRef.current.payloadKey === payloadKey;
 
       try {
+        const transportAlreadySynced =
+          transportMicEnabledRef.current === enabled;
         micEnabledRef.current = enabled;
         setIsMicEnabledUi(enabled);
         if (!isTransportReady) {
           return;
         }
-        enableMic(enabled);
+        if (!transportAlreadySynced) {
+          enableMic(enabled);
+          transportMicEnabledRef.current = enabled;
+        }
         if (enabled) {
           if (isConnected) {
-            const payload = {
-              action: "resumeListening",
-              ...(overridePayload ?? {}),
-            };
-            sendClientMessage("control", payload);
+            if (!isDuplicateControl) {
+              sendClientMessage("control", payload);
+              lastMicControlSentRef.current = { action, payloadKey };
+            }
             startListening();
           }
         } else {
           if (isConnected) {
-            const payload = {
-              action: "pauseListening",
-              ...(overridePayload ?? {}),
-            };
-            sendClientMessage("control", payload);
+            if (!isDuplicateControl) {
+              sendClientMessage("control", payload);
+              lastMicControlSentRef.current = { action, payloadKey };
+            }
           }
         }
         if (hasOverride && isConnected) {
@@ -583,7 +613,11 @@ export const TalkWithBook = ({
     isDisconnectingRef.current = false;
     introAutoplayBlockedRef.current = false;
     offerConnectFailedRef.current = false;
+    lastMicControlSentRef.current = { action: "", payloadKey: "" };
+    transportMicEnabledRef.current = null;
     setIsAwaitingFirstBotTurn(false);
+    setIsSessionEndingTimeUp(false);
+    setPendingServerCompletionOptions(null);
     setSessionEndingReason(null);
     await connect({
       botConfig,
@@ -761,16 +795,45 @@ export const TalkWithBook = ({
     await finishDotCompletion(options);
   }, [finishDotCompletion, pendingDotCompletionOptions]);
 
+  const finalizeServerTimeUpCompletion = useCallback(
+    async (overrideOptions = null) => {
+      const options = overrideOptions ?? pendingServerCompletionOptions;
+      if (!options) return false;
+
+      setPendingServerCompletionOptions(null);
+      setIsSessionEndingTimeUp(false);
+      terminalFarewellStartedRef.current = false;
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      await presentDotCompletionUi(options);
+      return true;
+    },
+    [pendingServerCompletionOptions, presentDotCompletionUi],
+  );
+
   const handleServerTimeUpCompletion = useCallback(async () => {
     const options = await resolveDotCompletionOptions();
+    setIsSessionEndingTimeUp(true);
+    setPendingServerCompletionOptions(options);
+    terminalFarewellStartedRef.current =
+      terminalFarewellStartedRef.current || isBotSpeaking;
+    syncMic(false, { force: true });
+  }, [isBotSpeaking, resolveDotCompletionOptions, syncMic]);
 
-    if (isBotSpeaking) {
-      setPendingServerCompletionOptions(options);
+  const beginServerTimeUpMode = useCallback(async () => {
+    if (isSessionEndingTimeUp) {
+      syncMic(false, { force: true });
       return;
     }
 
-    await presentDotCompletionUi(options);
-  }, [isBotSpeaking, presentDotCompletionUi, resolveDotCompletionOptions]);
+    const options = await resolveDotCompletionOptions();
+    setIsSessionEndingTimeUp(true);
+    setPendingServerCompletionOptions(options);
+    terminalFarewellStartedRef.current = false;
+    syncMic(false, { force: true });
+  }, [isSessionEndingTimeUp, resolveDotCompletionOptions, syncMic]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {
@@ -999,6 +1062,30 @@ export const TalkWithBook = ({
     if (nested && typeof nested === "object") {
       const nestedType = nested.type || nested.event_type || nested.eventType;
       if (nestedType === "session-ending" || nestedType === "session_ending") {
+        return nested;
+      }
+    }
+    return null;
+  }, []);
+
+  const extractSessionEndingInternal = useCallback((payload) => {
+    if (!payload || typeof payload !== "object") return null;
+    const topLevelType =
+      payload.type || payload.event_type || payload.eventType;
+    if (
+      topLevelType === "session-ending-internal" ||
+      topLevelType === "session_ending_internal"
+    ) {
+      return payload;
+    }
+
+    const nested = payload.data;
+    if (nested && typeof nested === "object") {
+      const nestedType = nested.type || nested.event_type || nested.eventType;
+      if (
+        nestedType === "session-ending-internal" ||
+        nestedType === "session_ending_internal"
+      ) {
         return nested;
       }
     }
@@ -1474,6 +1561,10 @@ export const TalkWithBook = ({
       return;
     }
     if (sessionPhase === "chat_active") {
+      if (isSessionEndingTimeUp) {
+        syncMic(false, { force: true });
+        return;
+      }
       if (isAwaitingFirstBotTurn) {
         syncMic(false, { force: true });
         return;
@@ -1484,7 +1575,7 @@ export const TalkWithBook = ({
     if (sessionPhase === "chat_paused") {
       syncMic(false, { force: true });
     }
-  }, [isAwaitingFirstBotTurn, sessionPhase, syncMic]);
+  }, [isAwaitingFirstBotTurn, isSessionEndingTimeUp, sessionPhase, syncMic]);
 
   useEffect(() => {
     if (!startedChatRef.current) return;
@@ -1528,15 +1619,56 @@ export const TalkWithBook = ({
   }, [sessionPhase, conversationReady, isBotReady, maybeStartChat]);
 
   useEffect(() => {
-    if (!pendingServerCompletionOptions) return;
-    if (isBotSpeaking) return;
+    if (!isSessionEndingTimeUp || !pendingServerCompletionOptions) {
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      return;
+    }
 
-    const options = pendingServerCompletionOptions;
-    setPendingServerCompletionOptions(null);
-    presentDotCompletionUi(options).catch((err) => {
-      console.warn("Failed to present server-ended completion UI:", err);
-    });
-  }, [isBotSpeaking, pendingServerCompletionOptions, presentDotCompletionUi]);
+    const SILENCE_THRESHOLD = 0.035;
+    const SILENCE_DEBOUNCE_MS = 420;
+
+    if (botAudioVolume > SILENCE_THRESHOLD) {
+      terminalFarewellStartedRef.current = true;
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    if (!terminalFarewellStartedRef.current) {
+      return;
+    }
+
+    if (terminalSilenceTimeoutRef.current) {
+      return;
+    }
+
+    terminalSilenceTimeoutRef.current = setTimeout(() => {
+      terminalSilenceTimeoutRef.current = null;
+      finalizeServerTimeUpCompletion().catch((err) => {
+        console.warn(
+          "Failed to present completion UI after remote audio silence:",
+          err,
+        );
+      });
+    }, SILENCE_DEBOUNCE_MS);
+
+    return () => {
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+    };
+  }, [
+    botAudioVolume,
+    finalizeServerTimeUpCompletion,
+    isSessionEndingTimeUp,
+    pendingServerCompletionOptions,
+  ]);
 
   useEffect(() => {
     if (sessionPhase !== "intro_done") return;
@@ -1840,6 +1972,8 @@ export const TalkWithBook = ({
       addLog("✅ Connected to Pipecat bot");
       startedChatRef.current = false;
       offerConnectFailedRef.current = false;
+      lastMicControlSentRef.current = { action: "", payloadKey: "" };
+      transportMicEnabledRef.current = null;
     };
 
     const onDisconnected = (payload) => {
@@ -1859,15 +1993,22 @@ export const TalkWithBook = ({
       }
       micEnabledRef.current = false;
       userMutedRef.current = false;
+      lastMicControlSentRef.current = { action: "", payloadKey: "" };
+      transportMicEnabledRef.current = null;
       setIsMicEnabledUi(false);
       setIsBotReady(false);
       setIsBotThinking(false);
       setConversationReady(false);
       setIsAwaitingFirstBotTurn(false);
+      setIsSessionEndingTimeUp(false);
+      terminalFarewellStartedRef.current = false;
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
       if (pendingServerCompletionOptions) {
         const options = pendingServerCompletionOptions;
-        setPendingServerCompletionOptions(null);
-        presentDotCompletionUi(options).catch((err) => {
+        finalizeServerTimeUpCompletion(options).catch((err) => {
           console.warn("Failed to present completion UI after disconnect:", err);
         });
       }
@@ -1921,6 +2062,9 @@ export const TalkWithBook = ({
       logRtviEvent("BotStartedSpeaking", payload);
       setIsBotSpeaking(true);
       setIsBotThinking(false);
+      if (isSessionEndingTimeUp) {
+        terminalFarewellStartedRef.current = true;
+      }
       startSpeaking();
     };
     const onBotStoppedSpeaking = (payload) => {
@@ -1945,7 +2089,8 @@ export const TalkWithBook = ({
       if (
         !isBotSpeaking &&
         sessionPhaseRef.current === "chat_active" &&
-        !isAwaitingFirstBotTurn
+        !isAwaitingFirstBotTurn &&
+        !isSessionEndingTimeUp
       ) {
         startListening();
       }
@@ -1953,6 +2098,7 @@ export const TalkWithBook = ({
 
     const onUserTranscript = (data) => {
       logRtviEvent("UserTranscript", data);
+      if (isSessionEndingTimeUp) return;
       if (data.final) {
         addVoicebotMessage({ user: data.text });
         if (sessionPhaseRef.current === "chat_active") {
@@ -1964,6 +2110,9 @@ export const TalkWithBook = ({
       logRtviEvent("BotOutput", data);
       if (!data?.text) return;
       addVoicebotMessage({ assistant: data.text });
+      if (isSessionEndingTimeUp && data.spoken) {
+        terminalFarewellStartedRef.current = true;
+      }
     };
 
     const onServerMessage = (msg) => {
@@ -1983,6 +2132,20 @@ export const TalkWithBook = ({
       if (introStatus) {
         handleIntroStatus(introStatus);
         return;
+      }
+      const sessionEndingInternal = extractSessionEndingInternal(parsed);
+      if (sessionEndingInternal) {
+        const reason =
+          typeof sessionEndingInternal.reason === "string"
+            ? sessionEndingInternal.reason
+            : "unknown";
+        addLog(`🛑 Session ending soon: ${reason}`);
+        if (reason === "time-up") {
+          beginServerTimeUpMode().catch((err) => {
+            console.warn("Failed to enter time-up terminal mode:", err);
+          });
+          return;
+        }
       }
       const sessionEnding = extractSessionEnding(parsed);
       if (sessionEnding) {
@@ -2043,7 +2206,9 @@ export const TalkWithBook = ({
     extractVoiceChangeCharacter,
     extractIntroMetadata,
     extractIntroStatus,
+    extractSessionEndingInternal,
     extractSessionEnding,
+    beginServerTimeUpMode,
     handleShowDotCompletion,
     handleIntroMetadata,
     handleIntroStatus,
@@ -2052,13 +2217,14 @@ export const TalkWithBook = ({
     stopIntroAudio,
     isBotSpeaking,
     isAwaitingFirstBotTurn,
+    isSessionEndingTimeUp,
     flushTalkingElapsed,
     isCelebrating,
     wakeAnalytics,
     sendSetLanguage,
     syncMic,
     pendingServerCompletionOptions,
-    presentDotCompletionUi,
+    finalizeServerTimeUpCompletion,
     handleServerTimeUpCompletion,
   ]);
 
