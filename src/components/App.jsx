@@ -34,9 +34,25 @@ import { useAnalytics } from "../hooks/useAnalytics";
 import { useBrowseCircles } from "../hooks/useBrowseCircles";
 import { characterData } from "../lib/characters";
 import { getPreviewConfig } from "../lib/previewMode";
+import { getBooleanQueryParam, getQueryParam } from "../lib/runtimeParams";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
+
+class AECMediaManager {
+  async getUserMedia() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        // These are already browser defaults, but being explicit
+        // forces the browser not to skip them for performance
+      },
+      video: false,
+    });
+  }
+}
 
 const normalizeDotTypeSlug = (value) => {
   if (typeof value !== "string") return null;
@@ -46,17 +62,24 @@ const normalizeDotTypeSlug = (value) => {
 };
 
 const shouldSkipOnboarding = () => {
-  if (typeof window === "undefined") return false;
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("skipOnboarding");
-  return value === "1" || value === "true";
+  return getBooleanQueryParam("skipOnboarding");
 };
 
 const shouldEnableScreenshotMode = () => {
-  if (typeof window === "undefined") return false;
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("screenshotMode");
-  return value === "1" || value === "true";
+  return getBooleanQueryParam("screenshotMode");
+};
+
+const shouldUseDesktopIpadFrame = () => {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    return false;
+  }
+
+  return window.matchMedia(
+    "(min-width: 1024px) and (hover: hover) and (pointer: fine)",
+  ).matches;
 };
 
 const isWithinWindow = (start, end) => {
@@ -101,6 +124,7 @@ const InteractiveVoiceSession = ({
   setShouldStartSession,
   handleNavigationClick,
   handleShowDotCompletion,
+  previewScreen,
 }) => {
   const client = useMemo(() => {
     const transport =
@@ -157,6 +181,7 @@ const InteractiveVoiceSession = ({
           connectionManagedExternally={shouldShowConnectionManager}
           onRequestSessionStart={() => setShouldStartSession(true)}
           onShowDotCompletion={handleShowDotCompletion}
+          previewScreen={previewScreen}
         />
       </VoiceBotProvider>
 
@@ -177,43 +202,49 @@ const InteractiveVoiceSession = ({
   );
 };
 
-const App = ({ transportType, region = "" }) => {
+const App = ({ transportType, region = "", testingMode = false }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
+  const [desktopIpadFrame, setDesktopIpadFrame] = useState(() =>
+    shouldUseDesktopIpadFrame(),
+  );
   const [activeComponent, setActiveComponent] = useState(() =>
     previewConfig?.screen === "first-circle-intro"
       ? "first-circle-intro"
       : previewConfig?.screen === "circle-page"
-      ? "circle"
-      : previewConfig?.screen === "demo-subscribe"
-        ? "demo-subscribe"
-      : previewConfig?.screen === "dot-complete" ||
-          previewConfig?.screen === "circle-complete"
-      ? "dot-complete"
-      : previewConfig?.screen === "vocab-intro" ||
-          previewConfig?.screen === "vocab-game" ||
-          previewConfig?.screen === "vocab-complete" ||
-          previewConfig?.screen === "spelling-intro" ||
-          previewConfig?.screen === "spelling-game" ||
-          previewConfig?.screen === "spelling-complete"
-        ? "vocabulary-game"
-        : shouldSkipOnboarding()
-          ? "library"
-          : "landing",
+        ? "circle"
+        : previewConfig?.screen === "demo-subscribe"
+          ? "demo-subscribe"
+          : previewConfig?.screen === "discussion-complete"
+            ? "interactive"
+            : previewConfig?.screen === "dot-complete" ||
+                previewConfig?.screen === "circle-complete"
+              ? "dot-complete"
+              : previewConfig?.screen === "vocab-intro" ||
+                  previewConfig?.screen === "vocab-game" ||
+                  previewConfig?.screen === "vocab-complete" ||
+                  previewConfig?.screen === "spelling-intro" ||
+                  previewConfig?.screen === "spelling-game" ||
+                  previewConfig?.screen === "spelling-complete"
+                ? "vocabulary-game"
+                : shouldSkipOnboarding()
+                  ? "library"
+                  : "landing",
   );
   const prevActiveComponent = useRef(activeComponent);
-  const [selectedBook, setSelectedBook] = useState(() => previewConfig?.book ?? null);
+  const [selectedBook, setSelectedBook] = useState(
+    () => previewConfig?.book ?? null,
+  );
   const [selectedChapter, setSelectedChapter] = useState(
     () => previewConfig?.completedDot ?? 1,
   );
   const [selectedDotTitle, setSelectedDotTitle] = useState("");
   const [selectedDotTypeSlug, setSelectedDotTypeSlug] = useState(null);
-  const [completedDotChapter, setCompletedDotChapter] = useState(
-    () =>
-      previewConfig?.screen === "dot-complete" ||
-      previewConfig?.screen === "circle-complete"
-        ? previewConfig.completedDot
-        : null,
+  const [completedDotChapter, setCompletedDotChapter] = useState(() =>
+    previewConfig?.screen === "dot-complete" ||
+    previewConfig?.screen === "circle-complete"
+      ? previewConfig.completedDot
+      : null,
   );
   const [isDemoSession, setIsDemoSession] = useState(false);
   const mainRef = useRef(null);
@@ -230,10 +261,10 @@ const App = ({ transportType, region = "" }) => {
   const managerDisconnectRef = useRef(null);
 
   const [studentId] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromSearch = params.get("studentId");
+    const fromSearch = getQueryParam("studentId");
     if (fromSearch) return fromSearch;
 
+    const params = new URLSearchParams(window.location.search);
     const overridePath = params.get("p");
     const pathSource =
       typeof overridePath === "string" && overridePath.length > 0
@@ -280,7 +311,10 @@ const App = ({ transportType, region = "" }) => {
   const { isAnalyzing, wakeAnalytics } = useAnalytics();
 
   const previewCircleSelection = useMemo(() => {
-    if (previewConfig?.screen !== "circle-page" || !browseData?.circles?.length) {
+    if (
+      previewConfig?.screen !== "circle-page" ||
+      !browseData?.circles?.length
+    ) {
       return null;
     }
 
@@ -347,7 +381,8 @@ const App = ({ transportType, region = "" }) => {
 
     return {
       book,
-      nextChapter: Number.isFinite(nextChapter) && nextChapter > 0 ? nextChapter : 1,
+      nextChapter:
+        Number.isFinite(nextChapter) && nextChapter > 0 ? nextChapter : 1,
     };
   }, [browseData, previewConfig?.screen]);
 
@@ -377,12 +412,64 @@ const App = ({ transportType, region = "" }) => {
   }, [screenshotMode]);
 
   useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return undefined;
+
+    html.classList.toggle("testing-mode", testingMode);
+    body.classList.toggle("testing-mode", testingMode);
+
+    return () => {
+      html.classList.remove("testing-mode");
+      body.classList.remove("testing-mode");
+    };
+  }, [testingMode]);
+
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    ) {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia(
+      "(min-width: 1024px) and (hover: hover) and (pointer: fine)",
+    );
+    const syncDesktopFrame = () => {
+      setDesktopIpadFrame(mediaQuery.matches);
+    };
+
+    syncDesktopFrame();
+    mediaQuery.addEventListener("change", syncDesktopFrame);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncDesktopFrame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return undefined;
+
+    html.classList.toggle("desktop-ipad-frame", desktopIpadFrame);
+    body.classList.toggle("desktop-ipad-frame", desktopIpadFrame);
+
+    return () => {
+      html.classList.remove("desktop-ipad-frame");
+      body.classList.remove("desktop-ipad-frame");
+    };
+  }, [desktopIpadFrame]);
+
+  useEffect(() => {
     if (previewConfig?.userName) return;
     if (student?.name) setUserName(student.name);
   }, [student, previewConfig?.userName]);
 
   useEffect(() => {
-    if (previewConfig?.screen !== "circle-page" || !previewCircleSelection) return;
+    if (previewConfig?.screen !== "circle-page" || !previewCircleSelection)
+      return;
     setSelectedBook(previewCircleSelection.book);
     setSelectedChapter(previewCircleSelection.nextChapter);
   }, [previewConfig?.screen, previewCircleSelection]);
@@ -498,15 +585,18 @@ const App = ({ transportType, region = "" }) => {
     [normalizeChapterValue, currentCharacter, activeComponent],
   );
 
-  const handleShowDotCompletion = useCallback((options = {}) => {
-    if (!selectedBook) return;
-    setCompletedDotChapter(selectedChapter);
-    if (options.openVocabularyGame) {
-      setActiveComponent("vocabulary-game");
-      return;
-    }
-    setActiveComponent(isDemoSession ? "demo-subscribe" : "dot-complete");
-  }, [selectedBook, selectedChapter, isDemoSession]);
+  const handleShowDotCompletion = useCallback(
+    (options = {}) => {
+      if (!selectedBook) return;
+      setCompletedDotChapter(selectedChapter);
+      if (options.openVocabularyGame) {
+        setActiveComponent("vocabulary-game");
+        return;
+      }
+      setActiveComponent(isDemoSession ? "demo-subscribe" : "dot-complete");
+    },
+    [selectedBook, selectedChapter, isDemoSession],
+  );
 
   const handlePreviewNextDotFromCompletion = useCallback(
     (book, chapterValue) => {
@@ -763,6 +853,7 @@ const App = ({ transportType, region = "" }) => {
             setShouldStartSession={setShouldStartSession}
             handleNavigationClick={handleNavigationClick}
             handleShowDotCompletion={handleShowDotCompletion}
+            previewScreen={previewConfig?.screen ?? null}
           />
         );
       default:
@@ -811,23 +902,23 @@ const App = ({ transportType, region = "" }) => {
       ? "bg-[#2F2C2F]"
       : activeComponent === "parents"
         ? "bg-[#F6EFE2]"
-      : activeComponent === "progress"
-        ? "bg-white"
-        : activeComponent === "onboarding"
+        : activeComponent === "progress"
           ? "bg-white"
-          : activeComponent === "interactive"
-            ? "bg-black"
-            : activeComponent === "demo-subscribe"
-              ? "bg-[#F6EFE2]"
-              : activeComponent === "dot-complete"
-                ? "bg-white"
-                : activeComponent === "library" ||
-                    activeComponent === "home" ||
-                    activeComponent === "circle"
-                  ? "bg-library"
-                  : activeComponent === "first-circle-intro"
-                    ? "bg-[#F4ECDF]"
-                    : "";
+          : activeComponent === "onboarding"
+            ? "bg-white"
+            : activeComponent === "interactive"
+              ? "bg-black"
+              : activeComponent === "demo-subscribe"
+                ? "bg-[#F6EFE2]"
+                : activeComponent === "dot-complete"
+                  ? "bg-white"
+                  : activeComponent === "library" ||
+                      activeComponent === "home" ||
+                      activeComponent === "circle"
+                    ? "bg-library"
+                    : activeComponent === "first-circle-intro"
+                      ? "bg-[#F4ECDF]"
+                      : "";
   const shouldShowBottomNav =
     activeComponent !== "landing" &&
     activeComponent !== "onboarding" &&
@@ -845,7 +936,9 @@ const App = ({ transportType, region = "" }) => {
 
   return (
     <div
-      className={`app-mobile-shell ${screenshotMode ? "app-screenshot-shell" : ""} ${characterBgClass}`}
+      className={`app-mobile-shell ${screenshotMode ? "app-screenshot-shell" : ""} ${desktopIpadFrame ? "desktop-ipad-frame-shell" : ""} ${characterBgClass}`}
+      data-testing-mode={testingMode ? "true" : "false"}
+      data-desktop-ipad-frame={desktopIpadFrame ? "true" : "false"}
       style={appShellStyle}
     >
       <Layout
@@ -854,8 +947,7 @@ const App = ({ transportType, region = "" }) => {
         screenshotMode={screenshotMode}
         withBottomNav={shouldShowBottomNav}
         fullHeight={
-          activeComponent === "vocabulary-game" ||
-          activeComponent === "parents"
+          activeComponent === "vocabulary-game" || activeComponent === "parents"
         }
         mainClassName={mainBackgroundClass}
       >
@@ -868,22 +960,22 @@ const App = ({ transportType, region = "" }) => {
         )}
       </Layout>
       {shouldShowBottomNav && (
-          <BottomNavBar
-            onItemClick={handleNavigationClick}
-            onBackClick={handleFloatingNavBack}
-            scrollContainerRef={mainRef}
-            orientation="vertical"
-            mode={navMode}
-            activeComponentName={
-              activeComponent === "first-circle-intro" ||
-              activeComponent === "dot-complete" ||
-              activeComponent === "demo-subscribe"
-                ? "library"
-                : activeComponent
-            }
-            className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
-          />
-        )}
+        <BottomNavBar
+          onItemClick={handleNavigationClick}
+          onBackClick={handleFloatingNavBack}
+          scrollContainerRef={mainRef}
+          orientation="vertical"
+          mode={navMode}
+          activeComponentName={
+            activeComponent === "first-circle-intro" ||
+            activeComponent === "dot-complete" ||
+            activeComponent === "demo-subscribe"
+              ? "library"
+              : activeComponent
+          }
+          className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
+        />
+      )}
     </div>
   );
 };

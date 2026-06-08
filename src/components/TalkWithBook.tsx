@@ -21,6 +21,9 @@ import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { supabase } from "../hooks/integrations/supabase/client";
 import { useDotProgress } from "../hooks/useDotProgress";
+import useAnalyserVolume from "../hooks/useAnalyserVolume";
+import { getBooleanQueryParam } from "../lib/runtimeParams";
+import DiscussionCompleteSplash from "./features/voice/DiscussionCompleteSplash";
 
 const discussionBackgroundAssets = import.meta.glob(
   "../assets/img/discussion/**/*.png",
@@ -87,6 +90,7 @@ export const TalkWithBook = ({
   onDisconnectRequest,
   connectionManagedExternally = false,
   onRequestSessionStart,
+  previewScreen = null,
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
@@ -125,6 +129,8 @@ export const TalkWithBook = ({
   });
   const listeningCompletedRef = useRef(false);
   const micControlOverrideRef = useRef(null);
+  const lastMicControlSentRef = useRef({ action: "", payloadKey: "" });
+  const transportMicEnabledRef = useRef<boolean | null>(null);
   const talkingStartRef = useRef(null);
   const talkingElapsedRef = useRef(0);
   const listeningElapsedRef = useRef(0);
@@ -132,6 +138,11 @@ export const TalkWithBook = ({
   const listeningSyncCallbackRef = useRef(null);
   const lastListeningStatusRef = useRef(null);
   const lastTalkingStatusRef = useRef(null);
+  const dotCompletionInFlightRef = useRef(false);
+  const terminalFarewellStartedRef = useRef(false);
+  const terminalSilenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -151,6 +162,15 @@ export const TalkWithBook = ({
   const [sessionEndingReason, setSessionEndingReason] = useState(null);
   const [activeVoiceCharacterName, setActiveVoiceCharacterName] =
     useState(null);
+  const [showDiscussionCompleteSplash, setShowDiscussionCompleteSplash] =
+    useState(() => previewScreen === "discussion-complete");
+  const [pendingDotCompletionOptions, setPendingDotCompletionOptions] =
+    useState<{ openVocabularyGame: boolean } | null>(null);
+  const [pendingServerCompletionOptions, setPendingServerCompletionOptions] =
+    useState<{ openVocabularyGame: boolean } | null>(null);
+  const [isLeavingDiscussion, setIsLeavingDiscussion] = useState(false);
+  const [isAwaitingFirstBotTurn, setIsAwaitingFirstBotTurn] = useState(false);
+  const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -158,6 +178,7 @@ export const TalkWithBook = ({
     const value = params.get("disable_progress_tracking");
     return value === "1" || value === "true";
   }, []);
+  const testingMode = useMemo(() => getBooleanQueryParam("testing"), []);
 
   const {
     addVoicebotMessage,
@@ -203,6 +224,7 @@ export const TalkWithBook = ({
     () => createAnalyser(botAudioTrack),
     [botAudioTrack, createAnalyser],
   );
+  const botAudioVolume = useAnalyserVolume(agentVoiceAnalyser?.analyser ?? null);
 
   // Cleanup audio contexts to avoid leaks - FIXED
   useEffect(() => {
@@ -226,6 +248,15 @@ export const TalkWithBook = ({
       }
     };
   }, [agentVoiceAnalyser]);
+
+  useEffect(() => {
+    return () => {
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Connection hook
   const {
@@ -522,30 +553,42 @@ export const TalkWithBook = ({
         ((enabled && override.action === "resumeListening") ||
           (!enabled && override.action === "pauseListening"));
       const overridePayload = hasOverride ? override?.payload : null;
+      const action = enabled ? "resumeListening" : "pauseListening";
+      const payload = {
+        action,
+        ...(overridePayload ?? {}),
+      };
+      const payloadKey = JSON.stringify(payload);
+      const isDuplicateControl =
+        lastMicControlSentRef.current.action === action &&
+        lastMicControlSentRef.current.payloadKey === payloadKey;
 
       try {
+        const transportAlreadySynced =
+          transportMicEnabledRef.current === enabled;
         micEnabledRef.current = enabled;
         setIsMicEnabledUi(enabled);
         if (!isTransportReady) {
           return;
         }
-        enableMic(enabled);
+        if (!transportAlreadySynced) {
+          enableMic(enabled);
+          transportMicEnabledRef.current = enabled;
+        }
         if (enabled) {
           if (isConnected) {
-            const payload = {
-              action: "resumeListening",
-              ...(overridePayload ?? {}),
-            };
-            sendClientMessage("control", payload);
+            if (!isDuplicateControl) {
+              sendClientMessage("control", payload);
+              lastMicControlSentRef.current = { action, payloadKey };
+            }
             startListening();
           }
         } else {
           if (isConnected) {
-            const payload = {
-              action: "pauseListening",
-              ...(overridePayload ?? {}),
-            };
-            sendClientMessage("control", payload);
+            if (!isDuplicateControl) {
+              sendClientMessage("control", payload);
+              lastMicControlSentRef.current = { action, payloadKey };
+            }
           }
         }
         if (hasOverride && isConnected) {
@@ -570,6 +613,11 @@ export const TalkWithBook = ({
     isDisconnectingRef.current = false;
     introAutoplayBlockedRef.current = false;
     offerConnectFailedRef.current = false;
+    lastMicControlSentRef.current = { action: "", payloadKey: "" };
+    transportMicEnabledRef.current = null;
+    setIsAwaitingFirstBotTurn(false);
+    setIsSessionEndingTimeUp(false);
+    setPendingServerCompletionOptions(null);
     setSessionEndingReason(null);
     await connect({
       botConfig,
@@ -639,7 +687,7 @@ export const TalkWithBook = ({
     updateListeningProgress,
   ]);
 
-  const handleShowDotCompletion = useCallback(async () => {
+  const resolveDotCompletionOptions = useCallback(async () => {
     const episode = getEpisodeNumber();
     let openVocabularyGame = false;
 
@@ -664,9 +712,128 @@ export const TalkWithBook = ({
       }
     }
 
-    await disconnectHere();
-    onShowDotCompletion?.({ openVocabularyGame });
-  }, [disconnectHere, getEpisodeNumber, onShowDotCompletion, selectedBook?.id]);
+    return { openVocabularyGame };
+  }, [getEpisodeNumber, selectedBook?.id]);
+
+  const prepareDotCompletion = useCallback(async () => {
+    if (dotCompletionInFlightRef.current) return;
+
+    dotCompletionInFlightRef.current = true;
+    setIsLeavingDiscussion(true);
+
+    try {
+      await disconnectHere();
+    } finally {
+      dotCompletionInFlightRef.current = false;
+      setIsLeavingDiscussion(false);
+    }
+  }, [disconnectHere]);
+
+  const finishDotCompletion = useCallback(
+    async (options) => {
+      onShowDotCompletion?.(options);
+    },
+    [onShowDotCompletion],
+  );
+
+  const presentDotCompletionUi = useCallback(
+    async (options) => {
+      if (options.openVocabularyGame) {
+        setPendingDotCompletionOptions(options);
+        setShowDiscussionCompleteSplash(true);
+        return;
+      }
+
+      await finishDotCompletion(options);
+    },
+    [finishDotCompletion],
+  );
+
+  const completeDotConversation = useCallback(
+    async (options) => {
+      if (dotCompletionInFlightRef.current) return;
+
+      dotCompletionInFlightRef.current = true;
+      setIsLeavingDiscussion(true);
+
+      try {
+        await disconnectHere();
+        await finishDotCompletion(options);
+      } finally {
+        dotCompletionInFlightRef.current = false;
+        setIsLeavingDiscussion(false);
+      }
+    },
+    [disconnectHere, finishDotCompletion],
+  );
+
+  const handleShowDotCompletion = useCallback(async () => {
+    if (dotCompletionInFlightRef.current) return;
+
+    const options = await resolveDotCompletionOptions();
+
+    if (options.openVocabularyGame) {
+      await prepareDotCompletion();
+      await presentDotCompletionUi(options);
+      return;
+    }
+
+    await completeDotConversation(options);
+  }, [
+    completeDotConversation,
+    prepareDotCompletion,
+    presentDotCompletionUi,
+    resolveDotCompletionOptions,
+  ]);
+
+  const handleContinueToVocabulary = useCallback(async () => {
+    if (dotCompletionInFlightRef.current) return;
+
+    const options = pendingDotCompletionOptions ?? { openVocabularyGame: true };
+    setShowDiscussionCompleteSplash(false);
+    setPendingDotCompletionOptions(null);
+    await finishDotCompletion(options);
+  }, [finishDotCompletion, pendingDotCompletionOptions]);
+
+  const finalizeServerTimeUpCompletion = useCallback(
+    async (overrideOptions = null) => {
+      const options = overrideOptions ?? pendingServerCompletionOptions;
+      if (!options) return false;
+
+      setPendingServerCompletionOptions(null);
+      setIsSessionEndingTimeUp(false);
+      terminalFarewellStartedRef.current = false;
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      await presentDotCompletionUi(options);
+      return true;
+    },
+    [pendingServerCompletionOptions, presentDotCompletionUi],
+  );
+
+  const handleServerTimeUpCompletion = useCallback(async () => {
+    const options = await resolveDotCompletionOptions();
+    setIsSessionEndingTimeUp(true);
+    setPendingServerCompletionOptions(options);
+    terminalFarewellStartedRef.current =
+      terminalFarewellStartedRef.current || isBotSpeaking;
+    syncMic(false, { force: true });
+  }, [isBotSpeaking, resolveDotCompletionOptions, syncMic]);
+
+  const beginServerTimeUpMode = useCallback(async () => {
+    if (isSessionEndingTimeUp) {
+      syncMic(false, { force: true });
+      return;
+    }
+
+    const options = await resolveDotCompletionOptions();
+    setIsSessionEndingTimeUp(true);
+    setPendingServerCompletionOptions(options);
+    terminalFarewellStartedRef.current = false;
+    syncMic(false, { force: true });
+  }, [isSessionEndingTimeUp, resolveDotCompletionOptions, syncMic]);
 
   const sendIntroControl = useCallback(
     (action, payload = {}) => {
@@ -731,6 +898,7 @@ export const TalkWithBook = ({
       });
       startedChatRef.current = true;
       hadConversationRef.current = true;
+      setIsAwaitingFirstBotTurn(true);
       setPhase(userMutedRef.current ? "chat_paused" : "chat_active");
       addLog("✅ start-chat sent");
     } catch (error) {
@@ -894,6 +1062,30 @@ export const TalkWithBook = ({
     if (nested && typeof nested === "object") {
       const nestedType = nested.type || nested.event_type || nested.eventType;
       if (nestedType === "session-ending" || nestedType === "session_ending") {
+        return nested;
+      }
+    }
+    return null;
+  }, []);
+
+  const extractSessionEndingInternal = useCallback((payload) => {
+    if (!payload || typeof payload !== "object") return null;
+    const topLevelType =
+      payload.type || payload.event_type || payload.eventType;
+    if (
+      topLevelType === "session-ending-internal" ||
+      topLevelType === "session_ending_internal"
+    ) {
+      return payload;
+    }
+
+    const nested = payload.data;
+    if (nested && typeof nested === "object") {
+      const nestedType = nested.type || nested.event_type || nested.eventType;
+      if (
+        nestedType === "session-ending-internal" ||
+        nestedType === "session_ending_internal"
+      ) {
         return nested;
       }
     }
@@ -1369,13 +1561,21 @@ export const TalkWithBook = ({
       return;
     }
     if (sessionPhase === "chat_active") {
+      if (isSessionEndingTimeUp) {
+        syncMic(false, { force: true });
+        return;
+      }
+      if (isAwaitingFirstBotTurn) {
+        syncMic(false, { force: true });
+        return;
+      }
       syncMic(true, { force: true });
       return;
     }
     if (sessionPhase === "chat_paused") {
       syncMic(false, { force: true });
     }
-  }, [sessionPhase, syncMic]);
+  }, [isAwaitingFirstBotTurn, isSessionEndingTimeUp, sessionPhase, syncMic]);
 
   useEffect(() => {
     if (!startedChatRef.current) return;
@@ -1417,6 +1617,58 @@ export const TalkWithBook = ({
       maybeStartChat();
     }
   }, [sessionPhase, conversationReady, isBotReady, maybeStartChat]);
+
+  useEffect(() => {
+    if (!isSessionEndingTimeUp || !pendingServerCompletionOptions) {
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    const SILENCE_THRESHOLD = 0.035;
+    const SILENCE_DEBOUNCE_MS = 420;
+
+    if (botAudioVolume > SILENCE_THRESHOLD) {
+      terminalFarewellStartedRef.current = true;
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    if (!terminalFarewellStartedRef.current) {
+      return;
+    }
+
+    if (terminalSilenceTimeoutRef.current) {
+      return;
+    }
+
+    terminalSilenceTimeoutRef.current = setTimeout(() => {
+      terminalSilenceTimeoutRef.current = null;
+      finalizeServerTimeUpCompletion().catch((err) => {
+        console.warn(
+          "Failed to present completion UI after remote audio silence:",
+          err,
+        );
+      });
+    }, SILENCE_DEBOUNCE_MS);
+
+    return () => {
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+    };
+  }, [
+    botAudioVolume,
+    finalizeServerTimeUpCompletion,
+    isSessionEndingTimeUp,
+    pendingServerCompletionOptions,
+  ]);
 
   useEffect(() => {
     if (sessionPhase !== "intro_done") return;
@@ -1720,6 +1972,8 @@ export const TalkWithBook = ({
       addLog("✅ Connected to Pipecat bot");
       startedChatRef.current = false;
       offerConnectFailedRef.current = false;
+      lastMicControlSentRef.current = { action: "", payloadKey: "" };
+      transportMicEnabledRef.current = null;
     };
 
     const onDisconnected = (payload) => {
@@ -1739,10 +1993,25 @@ export const TalkWithBook = ({
       }
       micEnabledRef.current = false;
       userMutedRef.current = false;
+      lastMicControlSentRef.current = { action: "", payloadKey: "" };
+      transportMicEnabledRef.current = null;
       setIsMicEnabledUi(false);
       setIsBotReady(false);
       setIsBotThinking(false);
       setConversationReady(false);
+      setIsAwaitingFirstBotTurn(false);
+      setIsSessionEndingTimeUp(false);
+      terminalFarewellStartedRef.current = false;
+      if (terminalSilenceTimeoutRef.current) {
+        clearTimeout(terminalSilenceTimeoutRef.current);
+        terminalSilenceTimeoutRef.current = null;
+      }
+      if (pendingServerCompletionOptions) {
+        const options = pendingServerCompletionOptions;
+        finalizeServerTimeUpCompletion(options).catch((err) => {
+          console.warn("Failed to present completion UI after disconnect:", err);
+        });
+      }
       if (startedChatRef.current || talkingElapsedRef.current > 0) {
         flushTalkingElapsed(isCelebrating ? "completed" : "paused");
       }
@@ -1793,11 +2062,21 @@ export const TalkWithBook = ({
       logRtviEvent("BotStartedSpeaking", payload);
       setIsBotSpeaking(true);
       setIsBotThinking(false);
+      if (isSessionEndingTimeUp) {
+        terminalFarewellStartedRef.current = true;
+      }
       startSpeaking();
     };
     const onBotStoppedSpeaking = (payload) => {
       logRtviEvent("BotStoppedSpeaking", payload);
       setIsBotSpeaking(false);
+      if (startedChatRef.current && isAwaitingFirstBotTurn) {
+        setIsAwaitingFirstBotTurn(false);
+        if (!userMutedRef.current) {
+          syncMic(true, { force: true });
+          startListening();
+        }
+      }
     };
     const onBotLlmStarted = (payload) => {
       logRtviEvent("BotLlmStarted", payload);
@@ -1807,13 +2086,19 @@ export const TalkWithBook = ({
     const onBotLlmStopped = (payload) => {
       logRtviEvent("BotLlmStopped", payload);
       setIsBotThinking(false);
-      if (!isBotSpeaking && sessionPhaseRef.current === "chat_active") {
+      if (
+        !isBotSpeaking &&
+        sessionPhaseRef.current === "chat_active" &&
+        !isAwaitingFirstBotTurn &&
+        !isSessionEndingTimeUp
+      ) {
         startListening();
       }
     };
 
     const onUserTranscript = (data) => {
       logRtviEvent("UserTranscript", data);
+      if (isSessionEndingTimeUp) return;
       if (data.final) {
         addVoicebotMessage({ user: data.text });
         if (sessionPhaseRef.current === "chat_active") {
@@ -1825,6 +2110,9 @@ export const TalkWithBook = ({
       logRtviEvent("BotOutput", data);
       if (!data?.text) return;
       addVoicebotMessage({ assistant: data.text });
+      if (isSessionEndingTimeUp && data.spoken) {
+        terminalFarewellStartedRef.current = true;
+      }
     };
 
     const onServerMessage = (msg) => {
@@ -1845,6 +2133,20 @@ export const TalkWithBook = ({
         handleIntroStatus(introStatus);
         return;
       }
+      const sessionEndingInternal = extractSessionEndingInternal(parsed);
+      if (sessionEndingInternal) {
+        const reason =
+          typeof sessionEndingInternal.reason === "string"
+            ? sessionEndingInternal.reason
+            : "unknown";
+        addLog(`🛑 Session ending soon: ${reason}`);
+        if (reason === "time-up") {
+          beginServerTimeUpMode().catch((err) => {
+            console.warn("Failed to enter time-up terminal mode:", err);
+          });
+          return;
+        }
+      }
       const sessionEnding = extractSessionEnding(parsed);
       if (sessionEnding) {
         const reason =
@@ -1853,6 +2155,12 @@ export const TalkWithBook = ({
             : "unknown";
         addLog(`🛑 Session ending: ${reason}`);
         setSessionEndingReason(reason);
+        if (reason === "time-up") {
+          handleServerTimeUpCompletion().catch((err) => {
+            console.warn("Failed to handle time-up completion flow:", err);
+          });
+          return;
+        }
         disconnectHere();
         return;
       }
@@ -1898,17 +2206,26 @@ export const TalkWithBook = ({
     extractVoiceChangeCharacter,
     extractIntroMetadata,
     extractIntroStatus,
+    extractSessionEndingInternal,
     extractSessionEnding,
+    beginServerTimeUpMode,
+    handleShowDotCompletion,
     handleIntroMetadata,
     handleIntroStatus,
     disconnectHere,
     resetIntroState,
     stopIntroAudio,
     isBotSpeaking,
+    isAwaitingFirstBotTurn,
+    isSessionEndingTimeUp,
     flushTalkingElapsed,
     isCelebrating,
     wakeAnalytics,
     sendSetLanguage,
+    syncMic,
+    pendingServerCompletionOptions,
+    finalizeServerTimeUpCompletion,
+    handleServerTimeUpCompletion,
   ]);
 
   // --- Auto-connect when button is hidden ---
@@ -2130,7 +2447,8 @@ export const TalkWithBook = ({
       return "listening.png";
     }
     if (activityState === "talking") {
-      const speakerSlug = normalizeDiscussionCharacterSlug(talkingCharacterName);
+      const speakerSlug =
+        normalizeDiscussionCharacterSlug(talkingCharacterName);
       if (speakerSlug) {
         return `${speakerSlug}_talking.png`;
       }
@@ -2367,169 +2685,183 @@ export const TalkWithBook = ({
         <div className="h-full w-full">{renderedServerContent}</div>
       </div>
 
-      <div
-        ref={logsRef}
-        className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
-      />
+      {!testingMode && (
+        <div
+          ref={logsRef}
+          className="absolute top-0 right-0 text-xs p-2 mt-4 whitespace-pre-line"
+        />
+      )}
 
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
-      <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
-        {shouldShowMic && (
-          <div className="flex justify-center">
-            <AnimationManager
-              agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
-              userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
-              isUserSpeaking={isMicActive}
-              isBotSpeaking={isBotSpeaking}
-              isMicEnabled={isMicEnabledUi}
-              characterImages={currentCharacter?.images}
-              characterName={currentCharacter?.name}
-              onMicToggle={handleMicToggle}
-              isCelebrating={isCelebrating}
-              forceAwake={isIntroActive}
-              isMicToggleDisabled={isIntroActive}
-              useMicOrb
-            />
-          </div>
-        )}
-        {showIntroPlayer && (
-          <div
-            className={`flex w-full max-w-md flex-col gap-2 transition-opacity md:max-w-2xl md:gap-3 ${
-              audioControlsDisabled ? "opacity-40" : "opacity-100"
-            }`}
-          >
-            <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
-              <span>{introPlayedLabel}</span>
-              <span>{introRemainingNegativeLabel}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              {showIntroControls && (
-                <button
-                  type="button"
-                  onClick={toggleIntroPlayback}
-                  aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
-                  className="p-1 text-white disabled:opacity-40"
-                  disabled={audioControlsDisabled}
-                >
-                  {isIntroPlaying ? (
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      className="h-5 w-5 md:h-10 md:w-10"
-                      fill="currentColor"
-                    >
-                      <rect x="3" y="2" width="4" height="12" rx="1" />
-                      <rect x="9" y="2" width="4" height="12" rx="1" />
-                    </svg>
-                  ) : (
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      className="h-5 w-5 md:h-10 md:w-10"
-                      fill="currentColor"
-                    >
-                      <path d="M4 2.5v11l9-5.5-9-5.5z" />
-                    </svg>
-                  )}
-                </button>
-              )}
-              <input
-                type="range"
-                min="0"
-                max={introDurationValue}
-                step="0.1"
-                value={introSliderValue}
-                onChange={handleIntroSeek}
-                disabled={
-                  audioControlsDisabled ||
-                  !showIntroControls ||
-                  introDurationValue <= 0
-                }
-                aria-label="Intro playback position"
-                style={{
-                  background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
-                }}
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
+      {!showDiscussionCompleteSplash && (
+        <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
+          {shouldShowMic && (
+            <div className="flex justify-center">
+              <AnimationManager
+                agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
+                userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
+                isUserSpeaking={isMicActive}
+                isBotSpeaking={isBotSpeaking}
+                isMicEnabled={isMicEnabledUi}
+                characterImages={currentCharacter?.images}
+                characterName={currentCharacter?.name}
+                onMicToggle={handleMicToggle}
+                isCelebrating={isCelebrating}
+                forceAwake={isIntroActive}
+                isMicToggleDisabled={isIntroActive}
+                useMicOrb
               />
-              {showIntroControls && (
-                <button
-                  type="button"
-                  onClick={() => interruptIntroPlayback()}
-                  aria-label="Stop intro"
-                  className="p-1 text-white disabled:opacity-40"
-                  disabled={disableStop || audioControlsDisabled}
-                >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 16 16"
-                    className="h-5 w-5 md:h-10 md:w-10"
-                    fill="currentColor"
+            </div>
+          )}
+          {showIntroPlayer && (
+            <div
+              className={`flex w-full max-w-md flex-col gap-2 transition-opacity md:max-w-2xl md:gap-3 ${
+                audioControlsDisabled ? "opacity-40" : "opacity-100"
+              }`}
+            >
+              <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
+                <span>{introPlayedLabel}</span>
+                <span>{introRemainingNegativeLabel}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {showIntroControls && (
+                  <button
+                    type="button"
+                    onClick={toggleIntroPlayback}
+                    aria-label={isIntroPlaying ? "Pause intro" : "Play intro"}
+                    className="p-1 text-white disabled:opacity-40"
+                    disabled={audioControlsDisabled}
                   >
-                    <rect x="3" y="3" width="10" height="10" rx="1" />
-                  </svg>
+                    {isIntroPlaying ? (
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 16 16"
+                        className="h-5 w-5 md:h-10 md:w-10"
+                        fill="currentColor"
+                      >
+                        <rect x="3" y="2" width="4" height="12" rx="1" />
+                        <rect x="9" y="2" width="4" height="12" rx="1" />
+                      </svg>
+                    ) : (
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 16 16"
+                        className="h-5 w-5 md:h-10 md:w-10"
+                        fill="currentColor"
+                      >
+                        <path d="M4 2.5v11l9-5.5-9-5.5z" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+                <input
+                  type="range"
+                  min="0"
+                  max={introDurationValue}
+                  step="0.1"
+                  value={introSliderValue}
+                  onChange={handleIntroSeek}
+                  disabled={
+                    audioControlsDisabled ||
+                    !showIntroControls ||
+                    introDurationValue <= 0
+                  }
+                  aria-label="Intro playback position"
+                  style={{
+                    background: `linear-gradient(to right, #fff ${introProgressPercent}%, rgba(255, 255, 255, 0.3) ${introProgressPercent}%)`,
+                  }}
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
+                />
+                {showIntroControls && (
+                  <button
+                    type="button"
+                    onClick={() => interruptIntroPlayback()}
+                    aria-label="Stop intro"
+                    className="p-1 text-white disabled:opacity-40"
+                    disabled={disableStop || audioControlsDisabled}
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 16 16"
+                      className="h-5 w-5 md:h-10 md:w-10"
+                      fill="currentColor"
+                    >
+                      <rect x="3" y="3" width="10" height="10" rx="1" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {showControlButton && (
+            <>
+              {!isConnected && !isConnecting && (
+                <button
+                  onClick={connectHere}
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Start Conversation
                 </button>
               )}
-            </div>
-          </div>
-        )}
+              {isConnecting && (
+                <button
+                  disabled
+                  className="px-4 py-2 bg-gray-400 text-white rounded"
+                >
+                  Connecting...
+                </button>
+              )}
+              {isConnected && !testingMode && (
+                <button
+                  onClick={disconnectHere}
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                >
+                  End Conversation
+                </button>
+              )}
+            </>
+          )}
 
-        {showControlButton && (
-          <>
-            {!isConnected && !isConnecting && (
-              <button
-                onClick={connectHere}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Start Conversation
-              </button>
-            )}
-            {isConnecting && (
-              <button
-                disabled
-                className="px-4 py-2 bg-gray-400 text-white rounded"
-              >
-                Connecting...
-              </button>
-            )}
-            {isConnected && (
-              <button
-                onClick={disconnectHere}
-                className="px-4 py-2 bg-red-500 text-white rounded"
-              >
-                End Conversation
-              </button>
-            )}
-          </>
-        )}
+          {onShowDotCompletion && !testingMode && (
+            <button
+              type="button"
+              onClick={handleShowDotCompletion}
+              disabled={isLeavingDiscussion}
+              className="text-sm font-medium text-white/70 underline-offset-4 underline transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50 md:text-base"
+            >
+              Next
+            </button>
+          )}
 
-        {onShowDotCompletion && (
-          <button
-            type="button"
-            onClick={handleShowDotCompletion}
-            className="text-sm font-medium text-white/70 underline-offset-4 underline transition hover:text-white md:text-base"
-          >
-            Next
-          </button>
-        )}
+          {isCelebrating && !isConnected && (
+            <button
+              type="button"
+              onClick={() => onNavigate?.("progress")}
+              className="w-full rounded-full bg-brand-primary px-6 py-4 text-base font-bold text-black shadow-elevated transition hover:brightness-[1.03] active:scale-[0.97]"
+            >
+              See your progress
+            </button>
+          )}
+        </div>
+      )}
 
-        {isCelebrating && !isConnected && (
-          <button
-            type="button"
-            onClick={() => onNavigate?.("progress")}
-            className="w-full rounded-full bg-brand-primary px-6 py-4 text-base font-bold text-black shadow-elevated transition hover:brightness-[1.03] active:scale-[0.97]"
-          >
-            See your progress
-          </button>
-        )}
-      </div>
-
-      {showActivityBadge && (
+      {!showDiscussionCompleteSplash && showActivityBadge && (
         <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
-          <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-card backdrop-blur-sm">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
-            {activityLabel}
+          <div className="flex justify-center">
+            <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-card backdrop-blur-sm">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
+              {activityLabel}
+            </div>
           </div>
         </div>
+      )}
+
+      {showDiscussionCompleteSplash && (
+        <DiscussionCompleteSplash
+          onContinue={handleContinueToVocabulary}
+          isContinuing={isLeavingDiscussion}
+        />
       )}
     </div>
   );
