@@ -61,7 +61,7 @@ const getTileClass = (status: LetterStatus, filled: boolean) => {
     return "border-[#DBAE54] bg-[#C59A41] text-[#2a2629]";
   }
   if (status === "absent") {
-    return "border-black/20 bg-black/[0.08] text-[#020617]/50";
+    return "border-[#9A4B00] bg-[#B85C16] text-[#FFF3DF]";
   }
   return "border-black/20 bg-white";
 };
@@ -72,7 +72,7 @@ const getUnderlineClass = (status: LetterStatus, filled: boolean) => {
   }
   if (status === "correct") return "border-[#8fb29a] text-[#020617]";
   if (status === "present") return "border-[#d2a84f] text-[#020617]";
-  if (status === "absent") return "border-black/20 text-[#020617]/50";
+  if (status === "absent") return "border-[#9A4B00] text-[#9A4B00]";
   return "border-black/20 text-[#020617]";
 };
 
@@ -82,7 +82,7 @@ const getLetterClass = (status: LetterStatus, filled: boolean) => {
   }
   if (status === "correct") return "text-[#8fb29a]";
   if (status === "present") return "text-[#d2a84f]";
-  if (status === "absent") return "text-[#020617]/40";
+  if (status === "absent") return "text-[#9A4B00] opacity-25";
   return "text-[#020617]";
 };
 
@@ -212,11 +212,11 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
   useEffect(() => {
     let isActive = true;
 
-    const normalizeSpellingData = (data: { words?: unknown; audio?: unknown } | null) => {
+    const normalizeSpellingData = (
+      data: { words?: unknown; audio?: unknown } | null,
+    ) => {
       const wordList = Array.isArray(data?.words)
-        ? data.words
-            .filter((word) => typeof word === "string" && word.length)
-            .slice(0, 1)
+        ? data.words.filter((word) => typeof word === "string" && word.length)
         : [];
       const audio = typeof data?.audio === "string" ? data.audio : "";
       return { wordList, audio };
@@ -397,6 +397,18 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
       statuses: Array.from({ length: wordLength }, () => "empty"),
     };
   }, [currentGuess, targetWord]);
+
+  const correctLetterHints = useMemo(() => {
+    const wordLength = targetWord.length;
+    const hints = Array.from({ length: wordLength }, () => "");
+    attempts.forEach((attempt) => {
+      attempt.statuses.forEach((status, index) => {
+        if (status !== "correct") return;
+        hints[index] = attempt.guess[index] ?? "";
+      });
+    });
+    return hints;
+  }, [attempts, targetWord]);
 
   const letterStatuses = useMemo(() => {
     const statusMap: Record<string, LetterStatus> = {};
@@ -673,7 +685,11 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                   className="relative flex flex-shrink-0 items-center justify-center"
                 >
                   {isActive ? (
-                    <img src={tomoIcon} alt="" className="visual-spelling-game__progress-icon h-6 w-auto md:h-10" />
+                    <img
+                      src={tomoIcon}
+                      alt=""
+                      className="visual-spelling-game__progress-icon h-6 w-auto md:h-10"
+                    />
                   ) : (
                     <span
                       className={`visual-spelling-game__progress-dot h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
@@ -691,11 +707,11 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
           type="button"
           onClick={handlePlayClick}
           className={`flex min-h-[3.25rem] min-w-[10rem] items-center justify-center gap-2 rounded-full bg-brand-primary px-6 text-sm font-bold uppercase tracking-wide shadow-elevated shadow-inset-highlight transition sm:min-h-[3.5rem] sm:min-w-[12rem] md:text-2xl ${
-            playLocked ? "opacity-70" : "hover:brightness-[1.03] active:scale-[0.97]"
+            playLocked
+              ? "opacity-70"
+              : "hover:brightness-[1.03] active:scale-[0.97]"
           } ${
-            hasPlayedCurrent
-              ? "text-[#2a2629]"
-              : "text-[#2a2629] animate-pulse"
+            hasPlayedCurrent ? "text-[#2a2629]" : "text-[#2a2629] animate-pulse"
           }`}
           aria-label="Listen"
           disabled={playLocked}
@@ -747,22 +763,67 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
       <div className="visual-spelling-game__board relative w-full max-w-3xl flex-1 min-h-0">
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full flex-col">
-            <div className="visual-spelling-game__current-row mb-6 flex w-full gap-2 md:mb-10">
-              {currentRow.guess.split("").map((letter, index) => {
-                const filled = letter.trim().length > 0;
-                const isActiveSlot = currentGuess.length === index;
-                return (
-                  <div
-                    key={`tile-${index}`}
-                    className={`visual-spelling-game__current-tile flex min-h-[2.5rem] flex-1 items-center justify-center border-b-4 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg md:text-[2.5rem] ${getUnderlineClass(
-                      "empty",
-                      filled,
-                    )} ${isActiveSlot ? "!border-[#020617] !text-[#020617]" : ""}`}
-                  >
-                    {letter.trim()}
-                  </div>
-                );
-              })}
+            <div className="visual-spelling-game__current-row mb-6 flex w-full items-center gap-3 md:mb-10 md:gap-4">
+              <div className="flex min-w-0 flex-1 gap-2">
+                {currentRow.guess.split("").map((letter, index) => {
+                  const filled = letter.trim().length > 0;
+                  const isActiveSlot = currentGuess.length === index;
+                  const hintLetter = correctLetterHints[index]?.trim() ?? "";
+                  return (
+                    <div
+                      key={`tile-${index}`}
+                      className={`visual-spelling-game__current-tile relative flex min-h-[2.5rem] flex-1 items-center justify-center border-b-4 text-base font-semibold uppercase sm:min-h-[2.75rem] sm:text-lg md:text-[2.5rem] ${getUnderlineClass(
+                        "empty",
+                        filled,
+                      )} ${isActiveSlot ? "!border-[#020617] !text-[#020617]" : ""}`}
+                    >
+                      {hintLetter ? (
+                        <span
+                          className="pointer-events-none absolute inset-0 flex items-center justify-center font-semibold text-[#6F7A5C]/25"
+                          aria-hidden="true"
+                        >
+                          {hintLetter}
+                        </span>
+                      ) : null}
+                      <span className="relative z-10">{letter.trim()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  if (!canSubmit || isRoundComplete) return;
+                  pressKey("SUBMIT");
+                  submitHandler();
+                }}
+                onPointerUp={releaseKey}
+                onPointerLeave={releaseKey}
+                disabled={!canSubmit || isRoundComplete}
+                className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-[#2a2629] shadow-elevated shadow-inset-highlight transition md:h-20 md:w-20 ${
+                  !canSubmit || isRoundComplete
+                    ? "cursor-not-allowed opacity-25"
+                    : pressedKey === "SUBMIT"
+                      ? "brightness-[1.05]"
+                      : "hover:brightness-[1.03]"
+                }`}
+                aria-label={submitLabel}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-8 w-8 md:h-11 md:w-11"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12H19" />
+                  <path d="M13 6L19 12L13 18" />
+                </svg>
+              </button>
             </div>
             <div className="visual-spelling-game__attempts flex w-full flex-col gap-1 md:gap-4">
               {[...attempts].reverse().map((attempt, index) => {
@@ -850,7 +911,9 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
                   onPointerUp={releaseKey}
                   onPointerLeave={releaseKey}
                   className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary shadow-inset-highlight transition ${
-                    pressedKey === "SUBMIT" ? "brightness-[1.05]" : "hover:brightness-[1.03]"
+                    pressedKey === "SUBMIT"
+                      ? "brightness-[1.05]"
+                      : "hover:brightness-[1.03]"
                   } text-[#2a2629]`}
                   aria-label={submitLabel}
                 >

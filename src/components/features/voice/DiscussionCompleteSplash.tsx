@@ -24,20 +24,24 @@ const DiscussionCompleteSplash = ({
             src={discussionCompleteTomo}
             alt="Tomo with raised arms celebrating"
             className={`h-52 w-auto object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.28)] md:h-64 ${entryClass}`}
-            style={prefersReducedMotion ? undefined : { animationDelay: "80ms" }}
+            style={
+              prefersReducedMotion ? undefined : { animationDelay: "80ms" }
+            }
           />
 
           <div
             className={`mt-6 max-w-2xl space-y-3 ${entryClass}`}
-            style={prefersReducedMotion ? undefined : { animationDelay: "150ms" }}
+            style={
+              prefersReducedMotion ? undefined : { animationDelay: "150ms" }
+            }
           >
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-white/75">
+            <p className="text-sm font-black uppercase tracking-[0.32em] text-white/80 md:text-lg">
               Great job
             </p>
             <h2 className="text-3xl font-black tracking-tight text-white md:text-5xl">
               Discussion complete!
             </h2>
-            <p className="mx-auto max-w-xl text-base font-medium leading-relaxed text-white/88 md:text-xl">
+            <p className="mx-auto max-w-xl text-xl font-semibold leading-8 text-white/90 md:text-3xl md:leading-10">
               Tomo is ready for the next challenge. Let&apos;s jump into the
               vocabulary game.
             </p>
@@ -52,7 +56,7 @@ const DiscussionCompleteSplash = ({
             type="button"
             onClick={onContinue}
             disabled={isContinuing}
-            className="w-full rounded-[1.75rem] border border-white/30 bg-white/18 px-6 py-5 text-lg font-black text-white shadow-[0_22px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition hover:bg-white/22 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-60 md:text-xl"
+            className="w-full rounded-full bg-brand-primary px-8 py-4 text-lg font-bold uppercase tracking-wider text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 md:px-10 md:py-5 md:text-xl"
           >
             {isContinuing ? "Opening vocabulary..." : "Go to Vocabulary"}
           </button>

@@ -8,6 +8,7 @@ type DotCompletionPageProps = {
   userName: string;
   completedEpisode: number;
   onPreviewNextDot: (book: Book, episode: number) => void;
+  testingMode?: boolean;
 };
 
 const burstPositions = [
@@ -69,12 +70,28 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
   userName,
   completedEpisode,
   onPreviewNextDot,
+  testingMode = false,
 }) => {
   const totalDots = Math.max(Number(book.chapters) || 0, completedEpisode);
   const nextEpisode =
     completedEpisode < totalDots ? completedEpisode + 1 : null;
   const remainingDots = Math.max(totalDots - completedEpisode, 0);
   const firstName = getFirstName(userName);
+  const handleSurveyClick = () => {
+    // Placeholder until the survey route/screen is implemented.
+    console.info("Survey CTA clicked");
+  };
+  const primaryCtaLabel = testingMode
+    ? "Continue to Survey"
+    : nextEpisode
+      ? `Take a peek at Dot ${nextEpisode}`
+      : "See your Circle";
+  const handlePrimaryCta = testingMode
+    ? handleSurveyClick
+    : () =>
+        nextEpisode
+          ? onPreviewNextDot(book, nextEpisode)
+          : onPreviewNextDot(book, completedEpisode);
 
   const remainingMessage = useMemo(() => {
     if (remainingDots === 0) {
@@ -120,7 +137,12 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
                 </h1>
                 <p className="mt-3 max-w-[20ch] text-xl leading-[1.45] text-[#020617]/82 md:max-w-[22ch] md:text-2xl lg:max-w-[20ch] lg:text-2xl">
                   {remainingMessage}
-                  <svg aria-hidden="true" viewBox="0 0 16 16" className="ml-1.5 inline-block h-[0.85em] w-[0.85em] align-[-0.05em] text-brand-primary" fill="currentColor">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    className="ml-1.5 inline-block h-[0.85em] w-[0.85em] align-[-0.05em] text-brand-primary"
+                    fill="currentColor"
+                  >
                     <path d="M8 0l1.2 5.5L14 6.5l-4.2 3.2 1.4 5.3L8 12l-3.2 3 1.4-5.3L2 6.5l4.8-1L8 0z" />
                   </svg>
                 </p>
@@ -210,16 +232,14 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
             <div className="mt-5 hidden md:block md:mt-5 lg:mt-10">
               <button
                 type="button"
-                onClick={() =>
-                  nextEpisode
-                    ? onPreviewNextDot(book, nextEpisode)
-                    : onPreviewNextDot(book, completedEpisode)
-                }
-                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
+                onClick={handlePrimaryCta}
+                className={`inline-flex w-full items-center justify-center rounded-full bg-brand-primary font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] ${
+                  testingMode
+                    ? "min-h-[74px] px-8 py-5 text-2xl shadow-elevated md:max-w-[30rem] lg:min-h-[84px] lg:max-w-[34rem] lg:text-3xl"
+                    : "min-h-[52px] px-6 py-3 text-lg md:min-h-[58px] md:max-w-[22rem] md:text-lg lg:min-h-[64px] lg:max-w-[24rem] lg:text-xl"
+                }`}
               >
-                {nextEpisode
-                  ? `Take a peek at Dot ${nextEpisode}`
-                  : "See your Circle"}
+                {primaryCtaLabel}
               </button>
             </div>
           </div>
@@ -228,16 +248,14 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
       <div className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 md:hidden">
         <button
           type="button"
-          onClick={() =>
-            nextEpisode
-              ? onPreviewNextDot(book, nextEpisode)
-              : onPreviewNextDot(book, completedEpisode)
-          }
-          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-brand-primary px-6 py-3 text-lg font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97]"
+          onClick={handlePrimaryCta}
+          className={`inline-flex w-full items-center justify-center rounded-full bg-brand-primary font-bold text-[#020617] shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] ${
+            testingMode
+              ? "min-h-[72px] px-7 py-5 text-2xl shadow-elevated"
+              : "min-h-[52px] px-6 py-3 text-lg"
+          }`}
         >
-          {nextEpisode
-            ? `Take a peek at Dot ${nextEpisode}`
-            : "See your Circle"}
+          {primaryCtaLabel}
         </button>
       </div>
     </div>

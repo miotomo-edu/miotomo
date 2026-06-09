@@ -711,12 +711,14 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     }
   }, [activeComponent, isInteractiveView]);
 
+  const handleLandingContinue = () => {
+    setActiveComponent(testingMode ? "first-circle-intro" : "onboarding");
+  };
+
   const renderComponent = () => {
     switch (activeComponent) {
       case "landing":
-        return (
-          <LandingPage onContinue={() => setActiveComponent("onboarding")} />
-        );
+        return <LandingPage onContinue={handleLandingContinue} />;
       case "onboarding":
         return (
           <OnboardingFlow
@@ -800,6 +802,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
             userName={userName}
             completedEpisode={completedDotChapter || selectedChapter || 1}
             onPreviewNextDot={handlePreviewNextDotFromCompletion}
+            testingMode={testingMode}
           />
         );
       case "demo-subscribe":
@@ -926,6 +929,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     activeComponent !== "demo-subscribe";
   const navMode =
     isInteractiveView || activeComponent === "circle" ? "back" : "navigation";
+  const shouldRenderFloatingNav = shouldShowBottomNav && !testingMode;
   const handleFloatingNavBack = () => {
     if (isInteractiveView) {
       handleNavigationClick("circle");
@@ -959,7 +963,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
           </div>
         )}
       </Layout>
-      {shouldShowBottomNav && (
+      {shouldRenderFloatingNav && (
         <BottomNavBar
           onItemClick={handleNavigationClick}
           onBackClick={handleFloatingNavBack}

@@ -38,14 +38,14 @@ const steps = [
     image: placeholder4,
     landscapeImage: placeholder4Landscape,
     title: "See your progress",
-    text: "You listen, talk, debate and learn with experts.",
+    text: "To teach Tomo, you listen, talk, debate and learn with experts.",
   },
   {
     id: 5,
     image: placeholder5,
     landscapeImage: placeholder5Landscape,
     title: "See your progress",
-    text: "Teach Tomo everything you learn and help Tomo grow",
+    text: "Then teach Tomo everything you learn and help Tomo grow",
   },
 ];
 
@@ -262,9 +262,7 @@ function LandingPage({ onContinue }) {
         className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px] md:items-center md:text-center"
       >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
-        <p
-          className="mb-8 max-w-sm text-4xl font-bold text-white md:max-w-xl"
-        >
+        <p className="mb-8 max-w-sm text-4xl font-bold text-white md:max-w-xl">
           {text}
         </p>
 

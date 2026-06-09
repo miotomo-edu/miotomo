@@ -140,9 +140,9 @@ export const TalkWithBook = ({
   const lastTalkingStatusRef = useRef(null);
   const dotCompletionInFlightRef = useRef(false);
   const terminalFarewellStartedRef = useRef(false);
-  const terminalSilenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const terminalSilenceTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -224,7 +224,9 @@ export const TalkWithBook = ({
     () => createAnalyser(botAudioTrack),
     [botAudioTrack, createAnalyser],
   );
-  const botAudioVolume = useAnalyserVolume(agentVoiceAnalyser?.analyser ?? null);
+  const botAudioVolume = useAnalyserVolume(
+    agentVoiceAnalyser?.analyser ?? null,
+  );
 
   // Cleanup audio contexts to avoid leaks - FIXED
   useEffect(() => {
@@ -2009,7 +2011,10 @@ export const TalkWithBook = ({
       if (pendingServerCompletionOptions) {
         const options = pendingServerCompletionOptions;
         finalizeServerTimeUpCompletion(options).catch((err) => {
-          console.warn("Failed to present completion UI after disconnect:", err);
+          console.warn(
+            "Failed to present completion UI after disconnect:",
+            err,
+          );
         });
       }
       if (startedChatRef.current || talkingElapsedRef.current > 0) {
@@ -2772,7 +2777,7 @@ export const TalkWithBook = ({
                   }}
                   className="h-1.5 w-full cursor-pointer appearance-none rounded-full md:h-2.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6 md:[&::-moz-range-thumb]:h-6 md:[&::-moz-range-thumb]:w-6"
                 />
-                {showIntroControls && (
+                {showIntroControls && !testingMode && (
                   <button
                     type="button"
                     onClick={() => interruptIntroPlayback()}

@@ -44,6 +44,8 @@ const TEST_DOT = 1;
 const MAX_ATTEMPTS = 3;
 const SAMPLE_RATE = 16000;
 const RECORDING_COUNTDOWN_SECONDS = 3;
+const WHAT_DOES_IT_MEAN_AUDIO_URL =
+  "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781016207/what-does-it-mean_qvc22d.mp3";
 const buildWsUrl = (targetWord: string) => {
   const encoded = encodeURIComponent((targetWord || "").toLowerCase());
 
@@ -524,9 +526,14 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }, []);
 
   const handleListen = () => {
-    if (!contextAudioUrl) {
+    const finishListening = () => {
+      setIsPlaying(false);
       setHasListened(true);
       setPhase("revealed");
+    };
+
+    if (!contextAudioUrl) {
+      finishListening();
       return;
     }
     const audio = audioRef.current ?? new Audio();
@@ -534,16 +541,27 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     audio.src = contextAudioUrl;
     audio.preload = "auto";
     audio.currentTime = 0;
-    audio.onended = () => {
-      setIsPlaying(false);
-      setHasListened(true);
-      setPhase("revealed");
-    };
     audio.onerror = () => {
       console.warn("Failed to load context audio");
-      setIsPlaying(false);
-      setHasListened(true);
-      setPhase("revealed");
+      finishListening();
+    };
+    audio.onended = () => {
+      audio.src = WHAT_DOES_IT_MEAN_AUDIO_URL;
+      audio.currentTime = 0;
+      audio.onerror = () => {
+        console.warn("Failed to load vocabulary question audio");
+        finishListening();
+      };
+      audio.onended = finishListening;
+      const questionPlayPromise = audio.play();
+      if (
+        questionPlayPromise &&
+        typeof questionPlayPromise.catch === "function"
+      ) {
+        questionPlayPromise.catch(() => {
+          finishListening();
+        });
+      }
     };
     setIsPlaying(true);
     const playPromise = audio.play();
@@ -1058,7 +1076,11 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   className="relative flex flex-shrink-0 items-center justify-center"
                 >
                   {isActive ? (
-                    <img src={tomoIcon} alt="" className="visual-vocabulary-game__progress-icon h-6 w-auto md:h-10" />
+                    <img
+                      src={tomoIcon}
+                      alt=""
+                      className="visual-vocabulary-game__progress-icon h-6 w-auto md:h-10"
+                    />
                   ) : (
                     <span
                       className={`visual-vocabulary-game__progress-dot h-2 w-2 rounded-full md:h-4 md:w-4 ${dotColor}`}
@@ -1186,10 +1208,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
           <div className="visual-vocabulary-game__prompt-text text-3xl font-semibold text-[#020617]/60 md:text-4xl">
             {promptText}
           </div>
-          <div className="visual-vocabulary-game__mic-wrap flex h-28 w-28 items-center justify-center md:h-32 md:w-32">
+          <div className="visual-vocabulary-game__mic-wrap flex h-36 w-28 flex-col items-center justify-center gap-2 md:h-40 md:w-32">
             {showGradingIndicator ? (
               <div
-                className="relative flex h-full w-full items-center justify-center rounded-full bg-[#020617]/[0.05] text-[#020617] ring-2 ring-black/10"
+                className="relative flex h-28 w-28 items-center justify-center rounded-full bg-[#020617]/[0.05] text-[#020617] ring-2 ring-black/10 md:h-32 md:w-32"
                 aria-label="Grading your answer"
               >
                 <svg
@@ -1215,7 +1237,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   </g>
                   <g
                     className="slow-spin"
-                    style={{ transformOrigin: "41px 41px", animationDuration: "1.9s" }}
+                    style={{
+                      transformOrigin: "41px 41px",
+                      animationDuration: "1.9s",
+                    }}
                   >
                     <circle cx="41" cy="41" r="6.5" />
                     <path d="M41 30v3.5" />
@@ -1236,7 +1261,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               <button
                 type="button"
                 onClick={handleNextWord}
-                className="flex h-full w-full items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition"
+                className="flex h-28 w-28 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition md:h-32 md:w-32"
                 aria-label="Next word"
               >
                 <svg
@@ -1258,7 +1283,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                 onClick={
                   isRecording ? () => stopRecording(true, true) : startRecording
                 }
-                className={`relative flex h-full w-full flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 transition ${
+                className={`relative flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 transition md:h-32 md:w-32 ${
                   isRecording
                     ? "mic-pulse bg-[#ff7b92]/16 text-[#b42346] ring-[#ff7b92]/45"
                     : isRecorderArming
@@ -1340,6 +1365,11 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   </div>
                 )}
               </button>
+            ) : null}
+            {showMicButton && !isRecording && !isRecorderArming ? (
+              <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#020617]/45 md:text-sm">
+                Click to talk
+              </span>
             ) : null}
           </div>
           <div className="visual-vocabulary-game__retry mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#020617]/60 md:text-3xl">
