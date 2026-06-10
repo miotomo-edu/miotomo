@@ -11,6 +11,9 @@ import placeholder3Landscape from "../../assets/img/onboarding/landscape/step3.w
 import placeholder4Landscape from "../../assets/img/onboarding/landscape/step4.webp";
 import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.webp";
 
+const TOMO_RUNNING_VIDEO_URL =
+  "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781107038/tomo_s8aqt4.mov";
+
 const steps = [
   {
     id: 1,
@@ -47,6 +50,13 @@ const steps = [
     title: "See your progress",
     text: "Then teach Tomo everything you learn and help Tomo grow",
   },
+  {
+    id: 6,
+    type: "video",
+    video: TOMO_RUNNING_VIDEO_URL,
+    title: "Start your adventure",
+    text: "",
+  },
 ];
 
 function LandingPage({ onContinue }) {
@@ -56,11 +66,14 @@ function LandingPage({ onContinue }) {
   const [transitionDirection, setTransitionDirection] = useState("left");
   const [transitionKey, setTransitionKey] = useState(0);
   const [useLandscapeImage, setUseLandscapeImage] = useState(false);
+  const [videoReadyToContinue, setVideoReadyToContinue] = useState(false);
+  const [videoNeedsManualStart, setVideoNeedsManualStart] = useState(false);
   const touchStartRef = useRef({ x: 0, y: 0 });
   const [imageHeight, setImageHeight] = useState(null);
   const containerRef = useRef(null);
   const preloadRef = useRef(false);
   const transitionTimerRef = useRef(null);
+  const videoRef = useRef(null);
 
   const startTransition = (nextStep) => {
     if (nextStep === currentStep) return;
@@ -128,8 +141,10 @@ function LandingPage({ onContinue }) {
     if (useLandscapeImage && step.landscapeImage) return step.landscapeImage;
     return step.image;
   };
-  const { title, text } = steps[currentStep];
-  const image = selectStepImage(steps[currentStep]);
+  const currentStepConfig = steps[currentStep];
+  const { title, text } = currentStepConfig;
+  const isVideoStep = currentStepConfig.type === "video";
+  const image = isVideoStep ? null : selectStepImage(currentStepConfig);
   const gradientRatio =
     typeof window !== "undefined" && window.innerHeight <= 700 ? 0.4 : 0.2;
   const gradientHeight = imageHeight
@@ -140,6 +155,11 @@ function LandingPage({ onContinue }) {
     : null;
 
   useEffect(() => {
+    if (isVideoStep) {
+      setImageHeight(null);
+      return undefined;
+    }
+
     let isActive = true;
     const img = new Image();
 
@@ -169,7 +189,43 @@ function LandingPage({ onContinue }) {
       isActive = false;
       window.removeEventListener("resize", updateHeight);
     };
-  }, [image]);
+  }, [image, isVideoStep]);
+
+  useEffect(() => {
+    setVideoReadyToContinue(false);
+    setVideoNeedsManualStart(false);
+  }, [currentStep]);
+
+  useEffect(() => {
+    if (!isVideoStep || !videoRef.current) return undefined;
+
+    const video = videoRef.current;
+    video.currentTime = 0;
+    video.muted = false;
+    video.volume = 1;
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        setVideoNeedsManualStart(true);
+      });
+    }
+
+    return () => {
+      video.pause();
+    };
+  }, [isVideoStep, transitionKey]);
+
+  const handleManualVideoStart = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    video.muted = false;
+    video.volume = 1;
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
+    setVideoNeedsManualStart(false);
+  };
 
   useEffect(() => {
     const updateLandscape = () => {
@@ -193,7 +249,22 @@ function LandingPage({ onContinue }) {
   useEffect(() => {
     if (preloadRef.current) return;
     preloadRef.current = true;
+
+    const preloadLink = document.createElement("link");
+    preloadLink.rel = "preload";
+    preloadLink.as = "fetch";
+    preloadLink.href = TOMO_RUNNING_VIDEO_URL;
+    preloadLink.crossOrigin = "anonymous";
+    document.head.appendChild(preloadLink);
+
     steps.forEach((step) => {
+      if (step.type === "video" && step.video) {
+        const video = document.createElement("video");
+        video.preload = "auto";
+        video.src = step.video;
+        video.load();
+        return;
+      }
       const img = new Image();
       img.src = step.image;
       if (step.landscapeImage) {
@@ -201,6 +272,10 @@ function LandingPage({ onContinue }) {
         landscape.src = step.landscapeImage;
       }
     });
+
+    return () => {
+      preloadLink.remove();
+    };
   }, []);
 
   return (
@@ -215,7 +290,11 @@ function LandingPage({ onContinue }) {
           key={`prev-${transitionKey}`}
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(${selectStepImage(steps[prevStep])})`,
+            backgroundImage:
+              steps[prevStep].type === "video"
+                ? undefined
+                : `url(${selectStepImage(steps[prevStep])})`,
+            backgroundColor: steps[prevStep].type === "video" ? "#FCFCFC" : undefined,
             backgroundRepeat: "no-repeat",
             backgroundSize: "100% auto",
             backgroundPosition: "top center",
@@ -234,7 +313,8 @@ function LandingPage({ onContinue }) {
         key={`current-${transitionKey}`}
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${image})`,
+          backgroundImage: image ? `url(${image})` : undefined,
+          backgroundColor: isVideoStep ? "#FCFCFC" : undefined,
           backgroundRepeat: "no-repeat",
           backgroundSize: "100% auto",
           backgroundPosition: "top center",
@@ -247,14 +327,45 @@ function LandingPage({ onContinue }) {
           transition:
             transitionPhase === "idle" ? "none" : "transform 320ms ease",
         }}
-      />
-      <div
-        className="absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent pointer-events-none"
-        style={{
-          top: gradientTop ? `${gradientTop}px` : "44vh",
-          height: gradientHeight ? `${gradientHeight}px` : "11vh",
-        }}
-      />
+      >
+        {isVideoStep && (
+          <>
+            <video
+              ref={videoRef}
+              className="h-full w-full object-contain object-center"
+              src={currentStepConfig.video}
+              autoPlay
+              playsInline
+              preload="auto"
+              onPlay={() => setVideoNeedsManualStart(false)}
+              onEnded={() => setVideoReadyToContinue(true)}
+            />
+            {videoNeedsManualStart && (
+              <div
+                className="absolute inset-0 flex items-center justify-center px-6"
+                style={{ backgroundColor: "rgba(252, 252, 252, 0.72)" }}
+              >
+                <button
+                  type="button"
+                  onClick={handleManualVideoStart}
+                  className="rounded-full bg-white px-8 py-4 text-lg font-bold text-black shadow-[0_18px_40px_rgba(0,0,0,0.28)]"
+                >
+                  Play with sound
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      {!isVideoStep && (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-t from-black to-transparent"
+          style={{
+            top: gradientTop ? `${gradientTop}px` : "44vh",
+            height: gradientHeight ? `${gradientHeight}px` : "11vh",
+          }}
+        />
+      )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[42%] bg-gradient-to-t from-black via-black/85 to-transparent" />
       {/* Fixed bottom content */}
       <div
@@ -262,16 +373,20 @@ function LandingPage({ onContinue }) {
         className="relative z-10 mt-auto w-full flex flex-col items-start justify-end pb-[40px] md:items-center md:text-center"
       >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
-        <p className="mb-8 max-w-sm text-4xl font-bold text-white md:max-w-xl">
-          {text}
-        </p>
+        {!isVideoStep && (
+          <p className="mb-8 max-w-sm text-4xl font-bold text-white md:max-w-xl">
+            {text}
+          </p>
+        )}
 
-        <button
-          onClick={handleNext}
-          className="bg-white text-black font-medium text-lg py-4 rounded-full w-full max-w-md mb-[40px] md:max-w-lg md:mx-auto"
-        >
-          {currentStep === steps.length - 1 ? "Let's Go!" : "Next"}
-        </button>
+        {(!isVideoStep || videoReadyToContinue) && (
+          <button
+            onClick={handleNext}
+            className="w-full max-w-md rounded-full bg-white py-4 text-lg font-medium text-black mb-[40px] md:mx-auto md:max-w-lg"
+          >
+            {currentStep === steps.length - 1 ? "LET'S GO!!!" : "Next"}
+          </button>
+        )}
 
         {/* Progress dots (clickable) */}
         <div className="flex w-full justify-center">
