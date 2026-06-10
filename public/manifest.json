@@ -3,7 +3,7 @@
   "short_name": "Miotomo",
   "description": "AI-powered reading companion for children",
   "display": "standalone",
-  "start_url": "/?studentId=2f830d34-93e4-496b-aa83-6e881fbf3bb1&transport=daily&region=eu",
+  "start_url": "/?studentId=cc48bc15-aa7e-41bd-8aa8-cf7a32eaa327&region=eu&disable_progress_tracking=1&unlockCircleDots=1&skipOnboarding=0&testing=1&transport=daily",
   "scope": "/",
   "theme_color": "#000000",
   "background_color": "#000000",
