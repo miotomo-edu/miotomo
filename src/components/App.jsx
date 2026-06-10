@@ -54,6 +54,55 @@ class AECMediaManager {
   }
 }
 
+const isStandaloneDisplayMode = () => {
+  if (typeof window === "undefined") return false;
+  if (window.matchMedia?.("(display-mode: standalone)").matches) return true;
+  if (window.navigator?.standalone === true) return true;
+  return document.referrer.startsWith("android-app://");
+};
+
+const shouldEnforcePortraitUi = () => {
+  if (typeof window === "undefined") return false;
+  if (shouldUseDesktopIpadFrame()) return false;
+
+  const touchLikeDevice =
+    window.matchMedia?.("(hover: none), (pointer: coarse)").matches ||
+    (typeof navigator !== "undefined" && navigator.maxTouchPoints > 1);
+
+  return Boolean(touchLikeDevice);
+};
+
+const isLandscapeViewport = () => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth > window.innerHeight;
+};
+
+const PortraitOrientationBlocker = () => {
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#120f12] px-6 py-8 text-white"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Rotate device to portrait"
+    >
+      <div className="flex w-full max-w-[28rem] flex-col items-center text-center">
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[28px] border border-white/10 bg-white/8 shadow-[0_20px_50px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+          <div className="flex h-11 w-8 items-center justify-center rounded-[14px] border-2 border-[#F8D44C]">
+            <div className="h-4 w-4 rounded-full bg-[#F8D44C]" />
+          </div>
+        </div>
+        <p className="font-['Baloo_2'] text-[2rem] font-extrabold leading-none tracking-[-0.04em] text-[#FFF5D6]">
+          Hold it upright
+        </p>
+        <p className="mt-4 max-w-[22rem] text-base font-semibold leading-7 text-white/80">
+          Miotomo is designed for portrait mode. Rotate your device back upright
+          to continue.
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const normalizeDotTypeSlug = (value) => {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
@@ -207,6 +256,9 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
   const [desktopIpadFrame, setDesktopIpadFrame] = useState(() =>
     shouldUseDesktopIpadFrame(),
+  );
+  const [portraitBlocked, setPortraitBlocked] = useState(() =>
+    shouldEnforcePortraitUi() && isLandscapeViewport(),
   );
   const [activeComponent, setActiveComponent] = useState(() =>
     previewConfig?.screen === "first-circle-intro"
@@ -461,6 +513,55 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       body.classList.remove("desktop-ipad-frame");
     };
   }, [desktopIpadFrame]);
+
+  useEffect(() => {
+    const syncPortraitGuard = () => {
+      setPortraitBlocked(
+        shouldEnforcePortraitUi() && !desktopIpadFrame && isLandscapeViewport(),
+      );
+    };
+
+    syncPortraitGuard();
+    window.addEventListener("resize", syncPortraitGuard);
+    window.addEventListener("orientationchange", syncPortraitGuard);
+
+    return () => {
+      window.removeEventListener("resize", syncPortraitGuard);
+      window.removeEventListener("orientationchange", syncPortraitGuard);
+    };
+  }, [desktopIpadFrame]);
+
+  useEffect(() => {
+    const body = document.body;
+    if (!body) return undefined;
+
+    const previousOverflow = body.style.overflow;
+    if (portraitBlocked) {
+      body.style.overflow = "hidden";
+    }
+
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [portraitBlocked]);
+
+  useEffect(() => {
+    if (!isStandaloneDisplayMode()) return undefined;
+    if (typeof screen === "undefined" || !screen.orientation?.lock) {
+      return undefined;
+    }
+
+    const tryLockPortrait = () => {
+      screen.orientation.lock("portrait-primary").catch(() => {});
+    };
+
+    tryLockPortrait();
+    document.addEventListener("visibilitychange", tryLockPortrait);
+
+    return () => {
+      document.removeEventListener("visibilitychange", tryLockPortrait);
+    };
+  }, []);
 
   useEffect(() => {
     if (previewConfig?.userName) return;
@@ -980,6 +1081,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
           className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
         />
       )}
+      {portraitBlocked && <PortraitOrientationBlocker />}
     </div>
   );
 };
