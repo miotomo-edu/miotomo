@@ -113,7 +113,7 @@ html.desktop-ipad-frame {
 
 /* Accessibility: keyboard focus ring */
 :focus-visible {
-  outline: 2px solid #FAC304;
+  outline: 2px solid #fac304;
   outline-offset: 2px;
 }
 
@@ -603,14 +603,10 @@ html.desktop-ipad-frame {
 }
 
 .desktop-ipad-frame .visual-vocabulary-game__prompt {
-  top: 52%;
-  left: 0;
-  right: 0;
   width: min(100%, 30rem);
   gap: 1.25rem;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
-  transform: translateY(-38%);
 }
 
 .desktop-ipad-frame .visual-vocabulary-game__prompt-text {

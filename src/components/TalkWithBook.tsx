@@ -460,16 +460,19 @@ export const TalkWithBook = ({
     return resumePosition;
   }, []);
 
+  const getResolvedIntroDuration = useCallback((durationValue, audioValue) => {
+    const candidates = [durationValue, introDurationRef.current, audioValue]
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (candidates.length === 0) return null;
+    return Math.max(...candidates);
+  }, []);
+
   const applyResumePosition = useCallback(
     (durationValue) => {
       const audio = introAudioRef.current;
       if (!audio) return;
-      const duration =
-        typeof durationValue === "number"
-          ? durationValue
-          : typeof introDurationRef.current === "number"
-            ? introDurationRef.current
-            : audio.duration || null;
+      const duration = getResolvedIntroDuration(durationValue, audio.duration);
       const resumePosition = getResumePosition(duration);
       const currentTime = audio.currentTime ?? 0;
       const isPlaying = introActiveRef.current && !audio.paused && !audio.ended;
@@ -488,7 +491,7 @@ export const TalkWithBook = ({
       }
       updateListeningProgress("paused", resumePosition);
     },
-    [getResumePosition, updateListeningProgress],
+    [getResolvedIntroDuration, getResumePosition, updateListeningProgress],
   );
 
   const startTalkingTimer = useCallback(() => {
@@ -1157,15 +1160,11 @@ export const TalkWithBook = ({
     setPhase("intro_done");
     const meta = getIntroMeta();
     const audio = introAudioRef.current;
-    const overrideDuration = introDurationRef.current;
     const duration =
-      (Number.isFinite(overrideDuration) && overrideDuration > 0
-        ? overrideDuration
-        : null) ||
-      audio?.duration ||
-      meta.duration ||
-      meta.durationSeconds ||
-      0;
+      getResolvedIntroDuration(
+        introDurationRef.current ?? meta.duration ?? meta.durationSeconds,
+        audio?.duration,
+      ) ?? 0;
     if (typeof duration === "number") {
       setIntroDurationSeconds(duration);
     }
@@ -1192,6 +1191,7 @@ export const TalkWithBook = ({
     stopIntroAudio({ resetTime: false });
   }, [
     getIntroMeta,
+    getResolvedIntroDuration,
     sendIntroControl,
     isConnected,
     requestOfferStart,
@@ -1204,10 +1204,10 @@ export const TalkWithBook = ({
   const maybeCompleteOnDuration = useCallback(
     (positionOverride) => {
       if (!introActiveRef.current) return false;
-      const duration =
-        typeof introDurationRef.current === "number"
-          ? introDurationRef.current
-          : null;
+      const duration = getResolvedIntroDuration(
+        introDurationRef.current,
+        introAudioRef.current?.duration,
+      );
       if (!duration || duration <= 0) return false;
       const position =
         typeof positionOverride === "number"
@@ -1218,7 +1218,7 @@ export const TalkWithBook = ({
       completeIntroPlayback();
       return true;
     },
-    [completeIntroPlayback, stopIntroAudio],
+    [completeIntroPlayback, getResolvedIntroDuration, stopIntroAudio],
   );
 
   useEffect(() => {
@@ -1376,25 +1376,31 @@ export const TalkWithBook = ({
     [syncMic],
   );
 
-  const handleIntroSeek = useCallback((event) => {
-    const audio = introAudioRef.current;
-    if (!audio) return;
-    const rawValue = Number(event.target.value);
-    if (!Number.isFinite(rawValue)) return;
-    const duration =
-      typeof introDurationRef.current === "number"
-        ? introDurationRef.current
-        : audio.duration || null;
-    const clamped =
-      typeof duration === "number"
-        ? Math.min(duration, Math.max(0, rawValue))
-        : Math.max(0, rawValue);
-    audio.currentTime = clamped;
-    setIntroCurrentSeconds(clamped);
-    if (typeof duration === "number") {
-      setIntroRemainingSeconds(Math.max(0, Math.ceil(duration - clamped)));
-    }
-  }, []);
+  const handleIntroSeek = useCallback(
+    (event) => {
+      const audio = introAudioRef.current;
+      if (!audio) return;
+      const rawValue = Number(event.target.value);
+      if (!Number.isFinite(rawValue)) return;
+      const duration = getResolvedIntroDuration(
+        introDurationRef.current,
+        audio.duration,
+      );
+      const clamped =
+        typeof duration === "number"
+          ? Math.min(duration, Math.max(0, rawValue))
+          : Math.max(0, rawValue);
+      audio.currentTime = clamped;
+      setIntroCurrentSeconds(clamped);
+      if (typeof duration === "number") {
+        const rawRemaining = Math.max(0, duration - clamped);
+        setIntroRemainingSeconds(
+          rawRemaining <= 1.25 ? 0 : Math.ceil(rawRemaining),
+        );
+      }
+    },
+    [getResolvedIntroDuration],
+  );
 
   const toggleIntroPlayback = useCallback(() => {
     const audio = introAudioRef.current;
@@ -1470,10 +1476,10 @@ export const TalkWithBook = ({
     const handleEnded = () => {
       if (!introActiveRef.current) {
         setIsIntroPlaying(false);
-        const duration =
-          typeof introDurationRef.current === "number"
-            ? introDurationRef.current
-            : audio.duration || null;
+        const duration = getResolvedIntroDuration(
+          introDurationRef.current,
+          audio.duration,
+        );
         if (typeof duration === "number") {
           setIntroCurrentSeconds(duration);
           setIntroRemainingSeconds(0);
@@ -1495,16 +1501,15 @@ export const TalkWithBook = ({
       setIsIntroPlaying(false);
     };
     const handleLoadedMetadata = () => {
-      if (
-        !introDurationRef.current ||
-        !Number.isFinite(introDurationRef.current)
-      ) {
-        introDurationRef.current = audio.duration || null;
-      }
-      if (typeof introDurationRef.current === "number") {
-        setIntroDurationSeconds((prev) =>
-          typeof prev === "number" ? prev : introDurationRef.current,
-        );
+      const duration = getResolvedIntroDuration(
+        introDurationRef.current,
+        audio.duration,
+      );
+      if (typeof duration === "number") {
+        introDurationRef.current = duration;
+        setIntroDurationSeconds(duration);
+        const position = audio.currentTime ?? 0;
+        setIntroRemainingSeconds(Math.ceil(Math.max(0, duration - position)));
       }
     };
     const handleTimeUpdate = () => {
@@ -1515,12 +1520,13 @@ export const TalkWithBook = ({
           introHandlersRef.current.maybeCompleteOnDuration?.(position) ?? false;
         if (didComplete) return;
       }
-      const duration =
-        typeof introDurationRef.current === "number"
-          ? introDurationRef.current
-          : null;
+      const duration = getResolvedIntroDuration(
+        introDurationRef.current,
+        audio.duration,
+      );
       if (duration) {
-        const remaining = Math.max(0, Math.ceil(duration - position));
+        const rawRemaining = Math.max(0, duration - position);
+        const remaining = rawRemaining <= 1.25 ? 0 : Math.ceil(rawRemaining);
         setIntroRemainingSeconds((prev) =>
           prev === remaining ? prev : remaining,
         );
@@ -1550,7 +1556,7 @@ export const TalkWithBook = ({
       stopIntroAudio({ unload: true });
       introAudioRef.current = null;
     };
-  }, [stopIntroAudio]);
+  }, [getResolvedIntroDuration, stopIntroAudio]);
 
   useEffect(() => {
     if (
@@ -2613,12 +2619,17 @@ export const TalkWithBook = ({
       ? Math.min(introCurrentValue, introDurationValue)
       : Math.max(0, introCurrentValue);
   const introPlayedLabel = formatRemaining(introCurrentValue);
-  const introRemainingLabel = formatRemaining(
+  const rawIntroRemaining =
     typeof introRemainingSeconds === "number"
       ? introRemainingSeconds
-      : Math.max(0, introDurationValue - introCurrentValue),
-  );
+      : Math.max(0, introDurationValue - introCurrentValue);
+  const displayedIntroRemaining =
+    sessionPhase === "intro_done" || rawIntroRemaining <= 1.25
+      ? 0
+      : rawIntroRemaining;
+  const introRemainingLabel = formatRemaining(displayedIntroRemaining);
   const introRemainingNegativeLabel = `-${introRemainingLabel}`;
+  const shouldShowIntroTimer = sessionPhase !== "intro_done";
   const introProgressPercent =
     introDurationValue > 0
       ? Math.min(
@@ -2725,8 +2736,14 @@ export const TalkWithBook = ({
               }`}
             >
               <div className="flex items-center justify-between text-sm font-semibold text-white md:text-xl">
-                <span>{introPlayedLabel}</span>
-                <span>{introRemainingNegativeLabel}</span>
+                {shouldShowIntroTimer ? (
+                  <>
+                    <span>{introPlayedLabel}</span>
+                    <span>{introRemainingNegativeLabel}</span>
+                  </>
+                ) : (
+                  <span className="invisible">0:00</span>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 {showIntroControls && (

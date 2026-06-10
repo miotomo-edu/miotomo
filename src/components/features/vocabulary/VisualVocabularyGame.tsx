@@ -953,6 +953,9 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     }
     return `What is the meaning of “${rawTargetWord}”?`;
   })();
+  const isMeaningPrompt =
+    rawTargetWord &&
+    !(phase === "feedback" && (isCorrectSolved || hasFailedMax));
   const showCompletionScreen =
     isVocabularyCompletionPreview ||
     (phase === "feedback" && isLastWord && isCorrectSolved);
@@ -960,6 +963,53 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
     ? 1
     : correctCount;
   const completionItemCount = isVocabularyCompletionPreview ? 1 : items.length;
+  const shouldShowSentenceReplay = phase === "revealed" && !isRecording;
+  const sentenceReplayButton = shouldShowSentenceReplay ? (
+    <button
+      type="button"
+      onClick={handleListen}
+      disabled={isPlaying}
+      className={`visual-vocabulary-game__replay ml-1 inline-flex h-[1.05em] w-[1.05em] translate-y-[0.08em] items-center justify-center text-[#020617]/70 transition ${
+        isPlaying ? "cursor-not-allowed opacity-70" : "hover:brightness-[1.03]"
+      }`}
+      aria-label={hasListened ? "Replay sentence" : "Listen to sentence"}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-[0.78em] w-[0.78em]"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 12a9 9 0 1 0 3-6.7" />
+        <polyline points="3 4 3 10 9 10" />
+      </svg>
+    </button>
+  ) : null;
+  const renderSentenceTail = (text: string) => {
+    if (!sentenceReplayButton) return text;
+    const match = text.match(/^(.*?)(\S+\s*)$/s);
+    if (!match) {
+      return (
+        <span className="whitespace-nowrap">
+          {text}
+          {sentenceReplayButton}
+        </span>
+      );
+    }
+    return (
+      <>
+        {match[1]}
+        <span className="whitespace-nowrap">
+          {match[2]}
+          {sentenceReplayButton}
+        </span>
+      </>
+    );
+  };
 
   if (isSpellingPreview || showSpellingGame) {
     return (
@@ -1053,7 +1103,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   }
 
   return (
-    <div className="visual-vocabulary-game relative flex min-h-screen w-full flex-col items-center gap-3 bg-white px-4 py-4 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
+    <div className="visual-vocabulary-game relative flex min-h-[100dvh] w-full flex-col items-center gap-2 overflow-hidden bg-white px-4 py-3 text-[#020617] sm:gap-4 sm:px-6 sm:py-6">
       <div className="visual-vocabulary-game__progress relative flex w-full max-w-3xl items-center gap-3">
         <span className="visual-vocabulary-game__progress-label text-[0.6rem] font-semibold tracking-super text-[#020617]/60 sm:text-xs md:text-xl">
           WORDS
@@ -1111,13 +1161,13 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
       )}
 
       <div
-        className={`visual-vocabulary-game__sentence-wrap flex w-full max-w-3xl flex-col items-center gap-5 text-center sm:gap-6 ${
-          phase === "listen" ? "pointer-events-none" : "mt-10 sm:mt-12"
+        className={`visual-vocabulary-game__sentence-wrap flex w-full max-w-3xl flex-col items-center gap-2 text-center sm:gap-4 ${
+          phase === "listen" ? "pointer-events-none" : "mt-1 sm:mt-6"
         }`}
       >
         <div className="visual-vocabulary-game__sentence-group flex w-full flex-col items-center gap-3 md:gap-4">
           <div className="visual-vocabulary-game__sentence-row flex w-full items-center justify-center">
-            <div className="visual-vocabulary-game__sentence inline-flex flex-wrap items-center justify-center gap-3 text-3xl font-bold text-[#020617] md:text-5xl">
+            <div className="visual-vocabulary-game__sentence min-w-0 text-center text-[1.6rem] font-bold leading-[1.08] text-[#020617] sm:text-3xl md:text-5xl">
               <span className="inline">
                 {phase === "listen" ? (
                   <span className="opacity-0">“{contextText}”</span>
@@ -1125,13 +1175,17 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   <>
                     {(() => {
                       if (!rawTargetWord) {
-                        return `${quoteStart}${displayContextText}${quoteEnd}`;
+                        return renderSentenceTail(
+                          `${quoteStart}${displayContextText}${quoteEnd}`,
+                        );
                       }
                       const lowerText = displayContextText.toLowerCase();
                       const lowerTarget = rawTargetWord.toLowerCase();
                       const matchIndex = lowerText.indexOf(lowerTarget);
                       if (matchIndex === -1) {
-                        return `${quoteStart}${displayContextText}${quoteEnd}`;
+                        return renderSentenceTail(
+                          `${quoteStart}${displayContextText}${quoteEnd}`,
+                        );
                       }
                       const beforeText = displayContextText.slice(
                         0,
@@ -1162,61 +1216,41 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                               </span>
                             ) : null}
                           </span>
-                          <span>{`${afterRest}${quoteEnd}`}</span>
+                          <span>
+                            {renderSentenceTail(`${afterRest}${quoteEnd}`)}
+                          </span>
                         </>
                       );
                     })()}
                   </>
                 )}
               </span>
-              {phase === "revealed" && !isRecording && (
-                <button
-                  type="button"
-                  onClick={handleListen}
-                  disabled={isPlaying}
-                  className={`visual-vocabulary-game__replay flex h-10 w-10 items-center justify-center text-[#020617]/70 transition sm:h-12 sm:w-12 md:h-16 md:w-16 ${
-                    isPlaying
-                      ? "cursor-not-allowed opacity-70"
-                      : "hover:brightness-[1.03]"
-                  }`}
-                  aria-label={
-                    hasListened ? "Replay sentence" : "Listen to sentence"
-                  }
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-7 w-7 md:h-9 md:w-9"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 12a9 9 0 1 0 3-6.7" />
-                    <polyline points="3 4 3 10 9 10" />
-                  </svg>
-                </button>
-              )}
             </div>
           </div>
         </div>
       </div>
 
       {rawTargetWord && phase !== "listen" && (
-        <div className="visual-vocabulary-game__prompt absolute inset-x-0 top-1/2 z-20 mx-auto flex w-full max-w-3xl -translate-y-1/2 flex-col items-center gap-4 px-4 text-center">
-          <div className="visual-vocabulary-game__prompt-text text-3xl font-semibold text-[#020617]/60 md:text-4xl">
-            {promptText}
+        <div className="visual-vocabulary-game__prompt z-20 mx-auto mt-4 flex w-full max-w-3xl flex-col items-center gap-2 px-1 text-center sm:mt-6 sm:gap-3 md:gap-4 md:px-4">
+          <div className="visual-vocabulary-game__prompt-text max-w-[18rem] text-[1.45rem] font-semibold leading-[1.08] text-[#020617]/60 sm:max-w-xl sm:text-3xl md:text-4xl">
+            {isMeaningPrompt ? (
+              <>
+                What is the meaning of{" "}
+                <span className="text-[#020617]">“{rawTargetWord}”</span>?
+              </>
+            ) : (
+              promptText
+            )}
           </div>
-          <div className="visual-vocabulary-game__mic-wrap flex h-36 w-28 flex-col items-center justify-center gap-2 md:h-40 md:w-32">
+          <div className="visual-vocabulary-game__mic-wrap flex h-28 w-24 flex-col items-center justify-center gap-1.5 sm:h-36 sm:w-28 sm:gap-2 md:h-40 md:w-32">
             {showGradingIndicator ? (
               <div
-                className="relative flex h-28 w-28 items-center justify-center rounded-full bg-[#020617]/[0.05] text-[#020617] ring-2 ring-black/10 md:h-32 md:w-32"
+                className="relative flex h-20 w-20 items-center justify-center rounded-full bg-[#020617]/[0.05] text-[#020617] ring-2 ring-black/10 sm:h-28 sm:w-28 md:h-32 md:w-32"
                 aria-label="Grading your answer"
               >
                 <svg
                   viewBox="0 0 64 64"
-                  className="h-16 w-16 text-[#020617]/75 md:h-20 md:w-20"
+                  className="h-12 w-12 text-[#020617]/75 sm:h-16 sm:w-16 md:h-20 md:w-20"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.6"
@@ -1261,12 +1295,12 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               <button
                 type="button"
                 onClick={handleNextWord}
-                className="flex h-28 w-28 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition md:h-32 md:w-32"
+                className="flex h-20 w-20 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 ring-black/10 transition sm:h-28 sm:w-28 md:h-32 md:w-32"
                 aria-label="Next word"
               >
                 <svg
                   viewBox="0 0 24 24"
-                  className="h-14 w-14 md:h-16 md:w-16"
+                  className="h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -1283,7 +1317,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                 onClick={
                   isRecording ? () => stopRecording(true, true) : startRecording
                 }
-                className={`relative flex h-28 w-28 flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 transition md:h-32 md:w-32 ${
+                className={`relative flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#020617] ring-2 transition sm:h-28 sm:w-28 md:h-32 md:w-32 ${
                   isRecording
                     ? "mic-pulse bg-[#ff7b92]/16 text-[#b42346] ring-[#ff7b92]/45"
                     : isRecorderArming
@@ -1314,7 +1348,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   <div className="relative z-10 flex h-full w-full items-center justify-center">
                     <svg
                       viewBox="0 0 16 16"
-                      className="h-14 w-14 md:h-16 md:w-16"
+                      className="h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16"
                       fill="currentColor"
                       aria-hidden="true"
                     >
@@ -1330,7 +1364,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                     ) : (
                       <svg
                         viewBox="0 0 24 24"
-                        className="h-14 w-14 animate-pulse md:h-16 md:w-16"
+                        className="h-10 w-10 animate-pulse sm:h-14 sm:w-14 md:h-16 md:w-16"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
@@ -1349,7 +1383,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
                   <div className="relative z-10 flex h-full w-full items-center justify-center">
                     <svg
                       viewBox="0 0 24 24"
-                      className="h-14 w-14 md:h-16 md:w-16"
+                      className="h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
@@ -1367,12 +1401,12 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
               </button>
             ) : null}
             {showMicButton && !isRecording && !isRecorderArming ? (
-              <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#020617]/45 md:text-sm">
+              <span className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-[#020617]/45 md:text-sm">
                 Click to talk
               </span>
             ) : null}
           </div>
-          <div className="visual-vocabulary-game__retry mt-3 min-h-[3.5rem] text-center text-2xl font-semibold text-[#020617]/60 md:text-3xl">
+          <div className="visual-vocabulary-game__retry min-h-[1.5rem] text-center text-base font-semibold text-[#020617]/60 sm:mt-2 sm:min-h-[2.5rem] sm:text-2xl md:text-3xl">
             <span className={showRetryHint ? "opacity-100" : "opacity-0"}>
               Let's try again!
             </span>
@@ -1380,7 +1414,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         </div>
       )}
 
-      <div className="relative w-full max-w-3xl flex-1 min-h-0">
+      <div className="relative min-h-0 w-full max-w-3xl flex-1">
         <div className="relative z-10 flex h-full items-center">
           <div className="flex w-full flex-col items-center gap-6">
             <div className="flex w-full flex-col gap-3">
@@ -1390,20 +1424,20 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         </div>
       </div>
 
-      <div className="visual-vocabulary-game__coach w-full max-w-2xl">
-        <div className="visual-vocabulary-game__coach-row flex items-end gap-3">
+      <div className="visual-vocabulary-game__coach w-full max-w-2xl shrink-0">
+        <div className="visual-vocabulary-game__coach-row flex items-end gap-2 sm:gap-3">
           <img
             src={tomoSpellingIcon}
             alt=""
-            className="visual-vocabulary-game__coach-icon h-20 w-auto sm:h-24 md:h-32"
+            className="visual-vocabulary-game__coach-icon h-16 w-auto shrink-0 sm:h-24 md:h-32"
           />
           <div className="relative flex-1">
             <span className="absolute bottom-6 left-[-6px] h-3 w-3 rotate-45 bg-[#EFE6DA]" />
-            <div className="visual-vocabulary-game__coach-bubble flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-4 py-3 text-lg font-semibold tracking-[0.08em] text-[#020617] ring-1 ring-black/[0.08] sm:text-xl md:text-3xl">
+            <div className="visual-vocabulary-game__coach-bubble flex w-full items-center justify-between gap-3 rounded-2xl bg-[#EFE6DA] px-4 py-3 text-base font-semibold leading-[1.45] tracking-[0.06em] text-[#020617] ring-1 ring-black/[0.08] sm:text-xl md:text-3xl">
               <span
                 className="visual-vocabulary-game__coach-text flex-1 break-words whitespace-pre-line"
                 style={{
-                  minHeight: "3.5rem",
+                  minHeight: "0",
                 }}
               >
                 {displayedQuote}
