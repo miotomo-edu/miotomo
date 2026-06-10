@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import createAccountImage from "../../../assets/img/onboarding/create-account.png";
+import createAccountImage from "../../../assets/img/onboarding/create-account.webp";
 
 function CreateAccount({ onNext, onFinish }) {
   const [email, setEmail] = useState("");

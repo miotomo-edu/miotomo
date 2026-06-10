@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import CreateAccount from "./CreateAccount";
 import TellUsMore from "./TellUsMore";
-import textureBg from "../../../assets/img/onboarding/texture-bg.png";
+import textureBg from "../../../assets/img/onboarding/texture-bg.webp";
 
 function OnboardingFlow({ onFinish }) {
   const [step, setStep] = useState(0);

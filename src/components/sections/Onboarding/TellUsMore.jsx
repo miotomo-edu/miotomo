@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import createAccountImage from "../../../assets/img/onboarding/tell-us-more.png";
+import createAccountImage from "../../../assets/img/onboarding/tell-us-more.webp";
 
 function TellUsMore({ onBack, onFinish }) {
   const [form, setForm] = useState({

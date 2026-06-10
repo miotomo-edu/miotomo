@@ -1,5 +1,5 @@
 import React from "react";
-import tomoCelebrating from "../../assets/img/tomo-celebrating.png";
+import tomoCelebrating from "../../assets/img/tomo-celebrating.webp";
 
 type DemoSubscriptionPageProps = {
   userName: string;

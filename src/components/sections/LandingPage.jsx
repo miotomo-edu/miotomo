@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import placeholder1 from "../../assets/img/onboarding/step1.png";
-import placeholder2 from "../../assets/img/onboarding/step2.png";
-import placeholder3 from "../../assets/img/onboarding/step3.png";
-import placeholder4 from "../../assets/img/onboarding/step4.png";
-import placeholder5 from "../../assets/img/onboarding/step5.png";
-import placeholder1Landscape from "../../assets/img/onboarding/landscape/step1.png";
-import placeholder2Landscape from "../../assets/img/onboarding/landscape/step2.png";
-import placeholder3Landscape from "../../assets/img/onboarding/landscape/step3.png";
-import placeholder4Landscape from "../../assets/img/onboarding/landscape/step4.png";
-import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.png";
+import placeholder1 from "../../assets/img/onboarding/step1.webp";
+import placeholder2 from "../../assets/img/onboarding/step2.webp";
+import placeholder3 from "../../assets/img/onboarding/step3.webp";
+import placeholder4 from "../../assets/img/onboarding/step4.webp";
+import placeholder5 from "../../assets/img/onboarding/step5.webp";
+import placeholder1Landscape from "../../assets/img/onboarding/landscape/step1.webp";
+import placeholder2Landscape from "../../assets/img/onboarding/landscape/step2.webp";
+import placeholder3Landscape from "../../assets/img/onboarding/landscape/step3.webp";
+import placeholder4Landscape from "../../assets/img/onboarding/landscape/step4.webp";
+import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.webp";
 
 const steps = [
   {
