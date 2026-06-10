@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import type { Book } from "./LibrarySection";
 import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
-import tomoCelebrating from "../../assets/img/tomo-celebrating.png";
+import tomoCelebrating from "../../assets/img/tomo-celebrating.webp";
 
 type DotCompletionPageProps = {
   book: Book;

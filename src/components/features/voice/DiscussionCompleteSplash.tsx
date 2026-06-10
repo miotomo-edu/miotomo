@@ -1,4 +1,4 @@
-import discussionCompleteTomo from "../../../assets/img/tomo-discussion-complete-raised-arms.png";
+import discussionCompleteTomo from "../../../assets/img/tomo-discussion-complete-raised-arms.webp";
 
 type DiscussionCompleteSplashProps = {
   onContinue: () => void;

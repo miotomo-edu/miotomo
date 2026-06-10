@@ -26,7 +26,7 @@ import { getBooleanQueryParam } from "../lib/runtimeParams";
 import DiscussionCompleteSplash from "./features/voice/DiscussionCompleteSplash";
 
 const discussionBackgroundAssets = import.meta.glob(
-  "../assets/img/discussion/**/*.png",
+  "../assets/img/discussion/**/*.{webp,png}",
   { eager: true, import: "default" },
 );
 
@@ -46,28 +46,40 @@ const resolveDiscussionBackground = ({
   isListenMode,
   customFilename,
 }) => {
-  const filename = isListenMode ? "listen.png" : "talk.png";
+  const baseFilename = isListenMode ? "listen" : "talk";
+  const filenames = [`${baseFilename}.webp`, `${baseFilename}.png`];
   const orientationPrefix = isLandscape ? "landscape/" : "";
   const candidates = [];
 
   if (bookId) {
     if (customFilename) {
+      if (customFilename.endsWith(".png")) {
+        candidates.push(
+          `../assets/img/discussion/${bookId}/${orientationPrefix}${customFilename.replace(/\.png$/, ".webp")}`,
+        );
+      }
       candidates.push(
         `../assets/img/discussion/${bookId}/${orientationPrefix}${customFilename}`,
       );
     }
-    candidates.push(
-      `../assets/img/discussion/${bookId}/${orientationPrefix}${filename}`,
-    );
+    filenames.forEach((filename) => {
+      candidates.push(
+        `../assets/img/discussion/${bookId}/${orientationPrefix}${filename}`,
+      );
+    });
   }
 
   if (isTeachtime) {
-    candidates.push(
-      `../assets/img/discussion/teachtime/${orientationPrefix}${filename}`,
-    );
+    filenames.forEach((filename) => {
+      candidates.push(
+        `../assets/img/discussion/teachtime/${orientationPrefix}${filename}`,
+      );
+    });
   }
 
-  candidates.push(`../assets/img/discussion/${orientationPrefix}${filename}`);
+  filenames.forEach((filename) => {
+    candidates.push(`../assets/img/discussion/${orientationPrefix}${filename}`);
+  });
 
   const resolvedPath = candidates.find(
     (candidate) => candidate in discussionBackgroundAssets,

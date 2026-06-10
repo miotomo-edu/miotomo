@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import tomoIcon from "../../../assets/img/tomo.svg";
 import tomoSpellingIcon from "../../../assets/img/tomo-spelling.png";
-import vocabularyBackground from "../../../assets/img/vocabulary_bg.png";
+import vocabularyBackground from "../../../assets/img/vocabulary_bg.webp";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
 import VisualSpellingGame from "../spelling/VisualSpellingGame";
