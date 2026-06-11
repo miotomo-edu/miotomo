@@ -13,7 +13,17 @@ import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.w
 import introBackground from "../../assets/img/onboarding/tomo-flying-bg.png";
 
 const TOMO_RUNNING_VIDEO_URL =
-  "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781107038/tomo_s8aqt4.mov";
+  "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781173263/tomo2_oxqtkx.mp4";
+
+const VIDEO_OVERLAY_SENTENCES = [
+  { time: 5, text: "You'll hear a short story about friendship" },
+  { time: 10, text: "Talk to the characters of the story" },
+  { time: 13, text: "Explain it to me, Tomo in your own words" },
+  {
+    time: 19,
+    text: "As you complete the topic, I will learn and collect badges",
+  },
+];
 
 const steps = [
   {
@@ -76,6 +86,7 @@ function LandingPage({ onContinue }) {
   const [useLandscapeImage, setUseLandscapeImage] = useState(false);
   const [videoReadyToContinue, setVideoReadyToContinue] = useState(false);
   const [videoNeedsManualStart, setVideoNeedsManualStart] = useState(false);
+  const [activeVideoOverlays, setActiveVideoOverlays] = useState([]);
   const touchStartRef = useRef({ x: 0, y: 0 });
   const [imageHeight, setImageHeight] = useState(null);
   const containerRef = useRef(null);
@@ -203,6 +214,7 @@ function LandingPage({ onContinue }) {
   useEffect(() => {
     setVideoReadyToContinue(false);
     setVideoNeedsManualStart(false);
+    setActiveVideoOverlays([]);
   }, [currentStep]);
 
   useEffect(() => {
@@ -236,6 +248,19 @@ function LandingPage({ onContinue }) {
     setVideoNeedsManualStart(false);
   };
 
+  const handleVideoTimeUpdate = () => {
+    if (!videoRef.current) return;
+
+    const currentTime = videoRef.current.currentTime;
+    const nextOverlays = VIDEO_OVERLAY_SENTENCES.filter(
+      (entry) => currentTime >= entry.time,
+    );
+
+    setActiveVideoOverlays((previous) =>
+      previous.length === nextOverlays.length ? previous : nextOverlays,
+    );
+  };
+
   useEffect(() => {
     const updateLandscape = () => {
       if (typeof window === "undefined") return;
@@ -261,15 +286,26 @@ function LandingPage({ onContinue }) {
 
     const preloadLink = document.createElement("link");
     preloadLink.rel = "preload";
-    preloadLink.as = "fetch";
+    preloadLink.as = "video";
     preloadLink.href = TOMO_RUNNING_VIDEO_URL;
     preloadLink.crossOrigin = "anonymous";
     document.head.appendChild(preloadLink);
+
+    const preloadedVideo = document.createElement("video");
+    preloadedVideo.preload = "auto";
+    preloadedVideo.playsInline = true;
+    preloadedVideo.crossOrigin = "anonymous";
+    preloadedVideo.muted = true;
+    preloadedVideo.src = TOMO_RUNNING_VIDEO_URL;
+    preloadedVideo.load();
 
     steps.forEach((step) => {
       if (step.type === "video" && step.video) {
         const video = document.createElement("video");
         video.preload = "auto";
+        video.playsInline = true;
+        video.crossOrigin = "anonymous";
+        video.muted = true;
         video.src = step.video;
         video.load();
         return;
@@ -283,6 +319,8 @@ function LandingPage({ onContinue }) {
     });
 
     return () => {
+      preloadedVideo.removeAttribute("src");
+      preloadedVideo.load();
       preloadLink.remove();
     };
   }, []);
@@ -320,7 +358,7 @@ function LandingPage({ onContinue }) {
     currentStep === 0
       ? "Start the adventure"
       : currentStep === steps.length - 1
-        ? "LET'S GO!!!"
+        ? "LET'S START THE ADVENTURE"
         : "Next";
 
   return (
@@ -399,8 +437,25 @@ function LandingPage({ onContinue }) {
               playsInline
               preload="auto"
               onPlay={() => setVideoNeedsManualStart(false)}
+              onTimeUpdate={handleVideoTimeUpdate}
               onEnded={() => setVideoReadyToContinue(true)}
             />
+            {activeVideoOverlays.length > 0 && !videoNeedsManualStart && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-6 pt-10 md:pt-14">
+                <div className="max-w-xl px-2 text-left text-lg font-medium leading-snug text-black md:text-xl">
+                  <ol className="space-y-3">
+                    {activeVideoOverlays.map((entry, index) => (
+                      <li key={entry.time} className="flex items-start gap-3">
+                        <span className="min-w-[1.4rem] font-bold text-black">
+                          {index + 1}.
+                        </span>
+                        <span>{entry.text}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            )}
             {videoNeedsManualStart && (
               <div
                 className="absolute inset-0 flex items-center justify-center px-6"
@@ -439,7 +494,10 @@ function LandingPage({ onContinue }) {
       >
         {/* <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>*/}
         {!isVideoStep && !isIntroStep && (
-          <p className="mb-8 max-w-sm text-4xl font-bold text-white md:max-w-xl">
+          <p
+            className="mb-8 max-w-sm text-3xl font-bold text-white md:max-w-xl"
+            style={{ fontFamily: '"Satoshi", "Nunito", sans-serif' }}
+          >
             {text}
           </p>
         )}
@@ -450,7 +508,7 @@ function LandingPage({ onContinue }) {
             className={`w-full max-w-md rounded-full py-4 text-lg font-medium md:mx-auto md:max-w-lg ${
               isIntroStep
                 ? "bg-[#FAC304] text-[#020617]"
-                : "mb-[40px] bg-white text-black"
+                : "mb-[40px] bg-[#FAC304] text-[#020617]"
             }`}
           >
             {ctaLabel}

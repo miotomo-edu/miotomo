@@ -21,6 +21,15 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Satoshi", "Nunito", sans-serif;
+}
+
 html.screenshot-mode,
 body.screenshot-mode {
   overflow-y: visible;
