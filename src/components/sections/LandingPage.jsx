@@ -326,7 +326,7 @@ function LandingPage({ onContinue }) {
   }, []);
 
   const getStepBackgroundColor = (step) => {
-    if (step.type === "video") return "#FCFCFC";
+    if (step.type === "video") return "#FEFBFC";
     if (step.type === "intro") return "#3D2A68";
     return undefined;
   };
@@ -429,20 +429,22 @@ function LandingPage({ onContinue }) {
         )}
         {isVideoStep && (
           <>
-            <video
-              ref={videoRef}
-              className="h-full w-full object-contain object-center"
-              src={currentStepConfig.video}
-              autoPlay
-              playsInline
-              preload="auto"
-              onPlay={() => setVideoNeedsManualStart(false)}
-              onTimeUpdate={handleVideoTimeUpdate}
-              onEnded={() => setVideoReadyToContinue(true)}
-            />
+            <div className="flex h-full w-full items-end justify-center pb-5 pt-18 md:pb-9 md:pt-24">
+              <video
+                ref={videoRef}
+                className="h-full max-h-[84vh] w-full object-contain object-center"
+                src={currentStepConfig.video}
+                autoPlay
+                playsInline
+                preload="auto"
+                onPlay={() => setVideoNeedsManualStart(false)}
+                onTimeUpdate={handleVideoTimeUpdate}
+                onEnded={() => setVideoReadyToContinue(true)}
+              />
+            </div>
             {activeVideoOverlays.length > 0 && !videoNeedsManualStart && (
               <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-6 pt-10 md:pt-14">
-                <div className="max-w-xl px-2 text-left text-lg font-medium leading-snug text-black md:text-xl">
+                <div className="max-w-xl rounded-[1.75rem] bg-[rgba(254,251,252,0.5)] px-5 py-4 text-left text-lg font-medium leading-snug text-black md:text-xl">
                   <ol className="space-y-3">
                     {activeVideoOverlays.map((entry, index) => (
                       <li key={entry.time} className="flex items-start gap-3">
@@ -482,13 +484,15 @@ function LandingPage({ onContinue }) {
           }}
         />
       )}
-      {!isIntroStep && (
+      {!isIntroStep && !isVideoStep && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[42%] bg-gradient-to-t from-black via-black/85 to-transparent" />
       )}
       {/* Fixed bottom content */}
       <div
         key={`content-${transitionKey}`}
-        className={`relative z-10 mt-auto flex w-full flex-col items-start justify-end pb-[40px] md:items-center md:text-center ${
+        className={`relative z-10 mt-auto flex w-full flex-col items-start justify-end ${
+          isVideoStep ? "pb-3" : "pb-[40px]"
+        } md:items-center md:text-center ${
           isIntroStep ? "text-[#F0E6CF]" : ""
         }`}
       >
@@ -508,7 +512,9 @@ function LandingPage({ onContinue }) {
             className={`w-full max-w-md rounded-full py-4 text-lg font-medium md:mx-auto md:max-w-lg ${
               isIntroStep
                 ? "bg-[#FAC304] text-[#020617]"
-                : "mb-[40px] bg-[#FAC304] text-[#020617]"
+                : isVideoStep
+                  ? "bg-[#FAC304] text-[#020617]"
+                  : "mb-[40px] bg-[#FAC304] text-[#020617]"
             }`}
           >
             {ctaLabel}
@@ -516,7 +522,11 @@ function LandingPage({ onContinue }) {
         )}
 
         {currentStep !== 0 && (
-          <div className="flex w-full justify-center">
+          <div
+            className={`flex w-full justify-center ${
+              isVideoStep ? "mt-2" : ""
+            }`}
+          >
             {steps.map((_, idx) => (
               <button
                 key={idx}
@@ -524,8 +534,12 @@ function LandingPage({ onContinue }) {
                 aria-label={`Go to step ${idx + 1}`}
                 className={`w-3 h-3 mx-1 rounded-full transition-all duration-300 ${
                   idx === currentStep
-                    ? "bg-white w-6"
-                    : "bg-white/50 hover:bg-white/70"
+                    ? isVideoStep
+                      ? "bg-black w-6"
+                      : "bg-white w-6"
+                    : isVideoStep
+                      ? "bg-black/45 hover:bg-black/65"
+                      : "bg-white/50 hover:bg-white/70"
                 }`}
               />
             ))}
