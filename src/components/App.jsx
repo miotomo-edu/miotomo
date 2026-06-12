@@ -176,8 +176,10 @@ const InteractiveVoiceSession = ({
   previewScreen,
 }) => {
   const client = useMemo(() => {
+    const usesDailyTransport =
+      transportType === "daily" || transportType === "local-daily";
     const transport =
-      transportType === "daily"
+      usesDailyTransport
         ? new DailyTransport()
         : new SmallWebRTCTransport({
             enableMic: true,

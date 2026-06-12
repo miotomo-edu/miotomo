@@ -23,10 +23,11 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    VITE_SUPABASE_ANON_KEY=<your-anon-key>
    VITE_DAILY_PROXY_URL=<https endpoint returning room_url + token>
    VITE_SMALL_WEBRTC_URL=<Pipecat offer endpoint>
+   VITE_LOCAL_DAILY_URL=<optional local daily bootstrap endpoint, e.g. http://localhost:8000/api/start-daily-local>
    VITE_PIPECAT_DISCONNECT_BEACON_URL=<optional best-effort session-ended endpoint>
    ```
    The GitHub Pages workflow expects the same variables (store them as repository secrets). The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
-4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the Daily SDK; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; append `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit for full-page DevTools captures; append `?unlockCircleDots=1` to show Play/Resume buttons for incomplete dots on the Circle page even when they are not the current mission dot; the default path shows the full onboarding flow and uses Small WebRTC unless `transport=daily` is set.
+4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the current cloud Daily bootstrap, or `?transport=local-daily` to use the Daily SDK with `VITE_LOCAL_DAILY_URL`; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; append `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit for full-page DevTools captures; append `?unlockCircleDots=1` to show Play/Resume buttons for incomplete dots on the Circle page even when they are not the current mission dot; the default path shows the full onboarding flow and uses Small WebRTC unless a Daily transport is selected.
 5. **Preview hard-to-reach completion screens** – Use `?preview=` for direct UI entry during development:
    - `?skipOnboarding=1&preview=first-circle-intro`
    - `?skipOnboarding=1&preview=circle-page`

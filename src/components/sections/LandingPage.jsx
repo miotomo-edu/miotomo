@@ -13,16 +13,12 @@ import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.w
 import introBackground from "../../assets/img/onboarding/tomo-flying-bg.png";
 
 const TOMO_RUNNING_VIDEO_URL =
-  "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781173263/tomo2_oxqtkx.mp4";
+  "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781255594/tomo-intro-music_w5kbrj.mp4";
 
 const VIDEO_OVERLAY_SENTENCES = [
-  { time: 5, text: "You'll hear a short story about friendship" },
-  { time: 10, text: "Talk to the characters of the story" },
-  { time: 13, text: "Explain it to me, Tomo in your own words" },
-  {
-    time: 19,
-    text: "As you complete the topic, I will learn and collect badges",
-  },
+  { time: 16, text: "Listen to a short story" },
+  { time: 18, text: "Talk to the characters" },
+  { time: 21, text: "Help me understand new words" },
 ];
 
 const steps = [
