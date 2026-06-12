@@ -17,7 +17,7 @@ const TOMO_RUNNING_VIDEO_URL =
 
 const VIDEO_OVERLAY_SENTENCES = [
   { time: 16, text: "Listen to a short story" },
-  { time: 18, text: "Talk to the characters" },
+  { time: 19, text: "Talk to the characters" },
   { time: 21, text: "Help me understand new words" },
 ];
 
