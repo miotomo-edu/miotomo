@@ -36,7 +36,26 @@ function buildSmallWebRTCUrl({
   chapter,
   region = "",
 }) {
-  const params = new URLSearchParams({
+  const params = buildVoiceSessionParams({
+    userName,
+    studentId,
+    botConfig,
+    selectedBook,
+    chapter,
+    region,
+  });
+  return `${base}?${params.toString()}`;
+}
+
+function buildVoiceSessionParams({
+  userName = "",
+  studentId = "",
+  botConfig,
+  selectedBook,
+  chapter,
+  region = "",
+}) {
+  return new URLSearchParams({
     student_id: String(studentId || ""),
     student_name: userName || "",
     chapter_old: String(botConfig?.metadata?.book?.progress ?? ""),
@@ -55,7 +74,6 @@ function buildSmallWebRTCUrl({
       botConfig?.metadata?.character?.modality_handoff_default ?? 1,
     ),
   });
-  return `${base}?${params.toString()}`;
 }
 
 /**
@@ -75,6 +93,10 @@ const resolveEnvVar = (key) => {
 const resolveOptionalEnvVar = (key) => {
   const value = import.meta.env?.[key];
   return typeof value === "string" && value.length > 0 ? value : null;
+};
+
+const usesDailyBootstrap = (transportType) => {
+  return transportType === "daily" || transportType === "local-daily";
 };
 
 const stopClientTracks = (client) => {
@@ -98,7 +120,7 @@ const stopClientTracks = (client) => {
 };
 
 const notifySessionEnded = (reason = "pagehide") => {
-  if (activeSessionMetadata?.transportType !== "daily") {
+  if (!usesDailyBootstrap(activeSessionMetadata?.transportType)) {
     return false;
   }
   const beaconUrl = activeSessionMetadata?.disconnectBeaconUrl;
@@ -399,6 +421,8 @@ export function usePipecatConnection(options = {}) {
       try {
         const resolvedDailyProxyUrl =
           dailyProxyUrl ?? resolveEnvVar("VITE_DAILY_PROXY_URL");
+        const resolvedLocalDailyUrl =
+          resolveOptionalEnvVar("VITE_LOCAL_DAILY_URL");
         const resolvedSmallWebRTCUrl =
           smallWebRTCOfferUrlBase ?? resolveEnvVar("VITE_SMALL_WEBRTC_URL");
         const disconnectBeaconUrl =
@@ -420,45 +444,91 @@ export function usePipecatConnection(options = {}) {
           participantId: "",
         };
 
-        if (botConfig?.transportType === "daily") {
-          // 1) Create Daily room/token via your proxy
+        if (usesDailyBootstrap(botConfig?.transportType)) {
           if (!resolvedDailyProxyUrl) {
             throw new Error(
               "Daily proxy URL missing. Set VITE_DAILY_PROXY_URL or pass dailyProxyUrl to usePipecatConnection connect().",
             );
           }
-          const response = await fetch(
-            `${resolvedDailyProxyUrl}/connect-pipecat`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                config: botConfig,
-                student_id: studentId || "",
-                student_name: userName || "",
-                region: region || "",
-              }),
-            },
-          );
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || `Daily HTTP ${response.status}`);
+          if (botConfig?.transportType === "local-daily") {
+            if (!resolvedLocalDailyUrl) {
+              throw new Error(
+                "Local Daily bootstrap URL missing. Set VITE_LOCAL_DAILY_URL in .env.local.",
+              );
+            }
+            const dailyParams = buildVoiceSessionParams({
+              userName,
+              studentId,
+              botConfig,
+              selectedBook,
+              chapter,
+              region,
+            });
+            const response = await fetch(
+              `${resolvedLocalDailyUrl}?${dailyParams.toString()}`,
+              { method: "POST" },
+            );
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              throw new Error(
+                errData.error || `Local Daily HTTP ${response.status}`,
+              );
+            }
+
+            const { room_url, token, session_id } = await response.json();
+            const roomName = getRoomNameFromUrl(room_url);
+            activeSessionMetadata = {
+              ...activeSessionMetadata,
+              roomUrl: room_url,
+              roomName,
+              sessionId: session_id || "",
+            };
+            setDailyRoomName(roomName);
+
+            const dailyConnectParams = token
+              ? { room_url, token }
+              : { room_url };
+
+            console.log("🔐 Local Daily credentials received", {
+              room_url,
+              hasToken: Boolean(token),
+              roomName,
+              session_id,
+            });
+            await client.connect(dailyConnectParams);
+          } else {
+            const response = await fetch(
+              `${resolvedDailyProxyUrl}/connect-pipecat`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  config: botConfig,
+                  student_id: studentId || "",
+                  student_name: userName || "",
+                  region: region || "",
+                }),
+              },
+            );
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              throw new Error(errData.error || `Daily HTTP ${response.status}`);
+            }
+            const { room_url, token } = await response.json();
+            const roomName = getRoomNameFromUrl(room_url);
+            activeSessionMetadata = {
+              ...activeSessionMetadata,
+              roomUrl: room_url,
+              roomName,
+            };
+            setDailyRoomName(roomName);
+            console.log("🔐 Daily credentials received", {
+              room_url,
+              hasToken: Boolean(token),
+              roomName,
+            });
+            await client.connect({ room_url, token });
           }
-          const { room_url, token } = await response.json();
-          const roomName = getRoomNameFromUrl(room_url);
-          activeSessionMetadata = {
-            ...activeSessionMetadata,
-            roomUrl: room_url,
-            roomName,
-          };
-          setDailyRoomName(roomName);
-          // 2) Connect Pipecat client to Daily
-          console.log("🔐 Daily credentials received", {
-            room_url,
-            hasToken: Boolean(token),
-            roomName,
-          });
-          await client.connect({ room_url, token });
         } else {
           // Small WebRTC transport
           console.log("🌐 Using Small WebRTC transport");
