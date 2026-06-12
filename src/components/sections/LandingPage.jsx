@@ -440,16 +440,27 @@ function LandingPage({ onContinue }) {
             </div>
             {activeVideoOverlays.length > 0 && !videoNeedsManualStart && (
               <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-6 pt-10 md:pt-14">
-                <div className="max-w-xl rounded-[1.75rem] bg-[rgba(254,251,252,0.5)] px-5 py-4 text-left text-lg font-medium leading-snug text-black md:text-xl">
+                <div className="w-full max-w-[31rem] rounded-[1.75rem] bg-[rgba(254,251,252,0.5)] px-5 py-4 text-left text-lg font-medium leading-snug text-black md:text-xl">
                   <ol className="space-y-3">
-                    {activeVideoOverlays.map((entry, index) => (
-                      <li key={entry.time} className="flex items-start gap-3">
-                        <span className="min-w-[1.4rem] font-bold text-black">
-                          {index + 1}.
-                        </span>
-                        <span>{entry.text}</span>
-                      </li>
-                    ))}
+                    {VIDEO_OVERLAY_SENTENCES.map((entry, index) => {
+                      const isVisible = activeVideoOverlays.some(
+                        (activeEntry) => activeEntry.time === entry.time,
+                      );
+
+                      return (
+                        <li
+                          key={entry.time}
+                          className={`flex items-start gap-3 transition-opacity duration-200 ${
+                            isVisible ? "opacity-100" : "opacity-0"
+                          }`}
+                        >
+                          <span className="min-w-[1.4rem] font-bold text-black">
+                            {index + 1}.
+                          </span>
+                          <span>{entry.text}</span>
+                        </li>
+                      );
+                    })}
                   </ol>
                 </div>
               </div>
