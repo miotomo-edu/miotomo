@@ -209,7 +209,10 @@ export const TalkWithBook = ({
     statusReceived: false,
   });
   const introActiveRef = useRef(false);
+  // Latches the intro-triggered session bootstrap so scrubbing back across the
+  // 30-second threshold cannot request another connection for the same intro.
   const introOfferRequestedRef = useRef(false);
+  const introOfferRequestedAtRef = useRef<number | null>(null);
   const introStartedSentRef = useRef(false);
   const introDurationRef = useRef(null);
   const introAudioUrlRef = useRef(null);
@@ -1064,6 +1067,8 @@ export const TalkWithBook = ({
       if (introOfferRequestedRef.current) return;
       if (offerConnectFailedRef.current) return;
       introOfferRequestedRef.current = true;
+      introOfferRequestedAtRef.current =
+        typeof positionOverride === "number" ? positionOverride : null;
       if (
         connectionManagedExternally &&
         typeof onRequestSessionStart === "function"
@@ -1123,6 +1128,7 @@ export const TalkWithBook = ({
     introMetaRef.current = null;
     introActiveRef.current = false;
     introOfferRequestedRef.current = false;
+    introOfferRequestedAtRef.current = null;
     offerConnectFailedRef.current = false;
     introStartedSentRef.current = false;
     introDurationRef.current = null;
