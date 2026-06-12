@@ -103,6 +103,7 @@ export const TalkWithBook = ({
   connectionManagedExternally = false,
   onRequestSessionStart,
   previewScreen = null,
+  trackUsageEvent = async () => {},
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
@@ -131,6 +132,10 @@ export const TalkWithBook = ({
   const isDisconnectingRef = useRef(false);
   const offerConnectFailedRef = useRef(false);
   const introAutoplayBlockedRef = useRef(false);
+  const introAudioStartedTrackedRef = useRef(false);
+  const introAudioCompletedTrackedRef = useRef(false);
+  const conversationStartedTrackedRef = useRef(false);
+  const conversationCompletedTrackedRef = useRef(false);
   const introMetadataLoadedKeyRef = useRef<string | null>(null);
   const sessionPhaseRef = useRef("intro_loading");
   const introHandlersRef = useRef({
@@ -753,8 +758,33 @@ export const TalkWithBook = ({
     [onShowDotCompletion],
   );
 
+  const trackDiscussionEvent = useCallback(
+    async (eventType, metadata = {}) => {
+      await trackUsageEvent(eventType, {
+        section: "discussion",
+        bookId: selectedBook?.id ?? null,
+        chapter: chapter ?? null,
+        dotTitle: dotTitle || null,
+        metadata,
+      });
+    },
+    [chapter, dotTitle, selectedBook?.id, trackUsageEvent],
+  );
+
+  const markConversationCompleted = useCallback(
+    async (metadata = {}) => {
+      if (conversationCompletedTrackedRef.current) return;
+      conversationCompletedTrackedRef.current = true;
+      await trackDiscussionEvent("conversation_completed", metadata);
+    },
+    [trackDiscussionEvent],
+  );
+
   const presentDotCompletionUi = useCallback(
     async (options) => {
+      await markConversationCompleted({
+        open_vocabulary_game: Boolean(options.openVocabularyGame),
+      });
       if (options.openVocabularyGame) {
         setPendingDotCompletionOptions(options);
         setShowDiscussionCompleteSplash(true);
@@ -763,7 +793,7 @@ export const TalkWithBook = ({
 
       await finishDotCompletion(options);
     },
-    [finishDotCompletion],
+    [finishDotCompletion, markConversationCompleted],
   );
 
   const completeDotConversation = useCallback(
@@ -775,13 +805,13 @@ export const TalkWithBook = ({
 
       try {
         await disconnectHere();
-        await finishDotCompletion(options);
+        await presentDotCompletionUi(options);
       } finally {
         dotCompletionInFlightRef.current = false;
         setIsLeavingDiscussion(false);
       }
     },
-    [disconnectHere, finishDotCompletion],
+    [disconnectHere, presentDotCompletionUi],
   );
 
   const handleShowDotCompletion = useCallback(async () => {
@@ -915,6 +945,10 @@ export const TalkWithBook = ({
       });
       startedChatRef.current = true;
       hadConversationRef.current = true;
+      if (!conversationStartedTrackedRef.current) {
+        conversationStartedTrackedRef.current = true;
+        void trackDiscussionEvent("conversation_started");
+      }
       setIsAwaitingFirstBotTurn(true);
       setPhase(userMutedRef.current ? "chat_paused" : "chat_active");
       addLog("✅ start-chat sent");
@@ -930,6 +964,7 @@ export const TalkWithBook = ({
     sendClientMessage,
     conversationReady,
     setPhase,
+    trackDiscussionEvent,
   ]);
 
   const requestOfferStart = useCallback(
@@ -1001,6 +1036,10 @@ export const TalkWithBook = ({
     introDurationRef.current = null;
     introAudioUrlRef.current = null;
     introMetadataLoadedKeyRef.current = null;
+    introAudioStartedTrackedRef.current = false;
+    introAudioCompletedTrackedRef.current = false;
+    conversationStartedTrackedRef.current = false;
+    conversationCompletedTrackedRef.current = false;
     pendingIntroInterruptRef.current = null;
     pendingIntroCompletedRef.current = null;
     botReadyRef.current = false;
@@ -1190,6 +1229,12 @@ export const TalkWithBook = ({
       }
     }
     updateListeningProgress("completed", duration);
+    if (!introAudioCompletedTrackedRef.current) {
+      introAudioCompletedTrackedRef.current = true;
+      void trackDiscussionEvent("intro_audio_completed", {
+        intro_duration_s: duration,
+      });
+    }
     if (!isConnected) {
       pendingIntroCompletedRef.current = duration;
       requestOfferStart(audio?.currentTime ?? 0);
@@ -1210,6 +1255,7 @@ export const TalkWithBook = ({
     maybeStartChat,
     stopIntroAudio,
     setPhase,
+    trackDiscussionEvent,
     updateListeningProgress,
   ]);
 
@@ -1511,6 +1557,10 @@ export const TalkWithBook = ({
     };
     const handlePlay = () => {
       setIsIntroPlaying(true);
+      if (!introAudioStartedTrackedRef.current) {
+        introAudioStartedTrackedRef.current = true;
+        void trackDiscussionEvent("intro_audio_started");
+      }
     };
     const handlePause = () => {
       setIsIntroPlaying(false);
@@ -1571,7 +1621,7 @@ export const TalkWithBook = ({
       stopIntroAudio({ unload: true });
       introAudioRef.current = null;
     };
-  }, [getResolvedIntroDuration, stopIntroAudio]);
+  }, [getResolvedIntroDuration, stopIntroAudio, trackDiscussionEvent]);
 
   useEffect(() => {
     if (

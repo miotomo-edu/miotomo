@@ -32,6 +32,7 @@ import { useStudent, HARDCODED_STUDENT_ID } from "../hooks/useStudent";
 import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { useBrowseCircles } from "../hooks/useBrowseCircles";
+import { useAppUsageTracker } from "../hooks/useAppUsageTracker";
 import { characterData } from "../lib/characters";
 import { getPreviewConfig } from "../lib/previewMode";
 import { getBooleanQueryParam, getQueryParam } from "../lib/runtimeParams";
@@ -118,6 +119,23 @@ const shouldEnableScreenshotMode = () => {
   return getBooleanQueryParam("screenshotMode");
 };
 
+const mapComponentToUsageSection = (componentName) => {
+  switch (componentName) {
+    case "first-circle-intro":
+      return "circle_intro";
+    case "interactive":
+      return "discussion";
+    case "dot-complete":
+      return "dot_complete";
+    case "demo-subscribe":
+      return "demo_subscribe";
+    case "vocabulary-game":
+      return "modality_game";
+    default:
+      return componentName;
+  }
+};
+
 const shouldUseDesktopIpadFrame = () => {
   if (
     typeof window === "undefined" ||
@@ -174,6 +192,7 @@ const InteractiveVoiceSession = ({
   handleNavigationClick,
   handleShowDotCompletion,
   previewScreen,
+  trackUsageEvent,
 }) => {
   const client = useMemo(() => {
     const usesDailyTransport =
@@ -233,6 +252,7 @@ const InteractiveVoiceSession = ({
           onRequestSessionStart={() => setShouldStartSession(true)}
           onShowDotCompletion={handleShowDotCompletion}
           previewScreen={previewScreen}
+          trackUsageEvent={trackUsageEvent}
         />
       </VoiceBotProvider>
 
@@ -363,6 +383,19 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const { data: browseData } = useBrowseCircles(resolvedStudentId);
   const { getConversations } = useConversations();
   const { isAnalyzing, wakeAnalytics } = useAnalytics();
+  const { trackAppOpen, trackEvent, trackLifecycleEvent, trackSectionView } =
+    useAppUsageTracker({
+      studentId: resolvedStudentId,
+      userName,
+      transportType,
+    });
+  const latestUsageContextRef = useRef({
+    section: mapComponentToUsageSection(activeComponent),
+    bookId: selectedBook?.id ?? null,
+    chapter: selectedChapter ?? null,
+    dotTitle: selectedDotTitle || null,
+    conversationId: latestConversationId || null,
+  });
 
   const previewCircleSelection = useMemo(() => {
     if (
@@ -450,6 +483,92 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       window.clearInterval(wakeInterval);
     };
   }, [wakeAnalytics]);
+
+  useEffect(() => {
+    latestUsageContextRef.current = {
+      section: mapComponentToUsageSection(activeComponent),
+      bookId: selectedBook?.id ?? null,
+      chapter: selectedChapter ?? null,
+      dotTitle: selectedDotTitle || null,
+      conversationId: latestConversationId || null,
+    };
+  }, [
+    activeComponent,
+    latestConversationId,
+    selectedBook?.id,
+    selectedChapter,
+    selectedDotTitle,
+  ]);
+
+  useEffect(() => {
+    void trackAppOpen({
+      section: mapComponentToUsageSection(activeComponent),
+      bookId: selectedBook?.id ?? null,
+      chapter: selectedChapter ?? null,
+      dotTitle: selectedDotTitle || null,
+      conversationId: latestConversationId || null,
+      userAgent:
+        typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+      referrer:
+        typeof document !== "undefined" ? document.referrer || "" : undefined,
+    });
+  }, [
+    activeComponent,
+    latestConversationId,
+    selectedBook?.id,
+    selectedChapter,
+    selectedDotTitle,
+    trackAppOpen,
+  ]);
+
+  useEffect(() => {
+    void trackSectionView(mapComponentToUsageSection(activeComponent), {
+      bookId: selectedBook?.id ?? null,
+      chapter: selectedChapter ?? null,
+      dotTitle: selectedDotTitle || null,
+      conversationId: latestConversationId || null,
+    });
+  }, [
+    activeComponent,
+    latestConversationId,
+    selectedBook?.id,
+    selectedChapter,
+    selectedDotTitle,
+    trackSectionView,
+  ]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "hidden") return;
+      const context = latestUsageContextRef.current;
+      trackLifecycleEvent("app_hidden", {
+        section: context.section,
+        bookId: context.bookId,
+        chapter: context.chapter,
+        dotTitle: context.dotTitle,
+        conversationId: context.conversationId,
+      });
+    };
+
+    const handleBeforeUnload = () => {
+      const context = latestUsageContextRef.current;
+      trackLifecycleEvent("app_closed", {
+        section: context.section,
+        bookId: context.bookId,
+        chapter: context.chapter,
+        dotTitle: context.dotTitle,
+        conversationId: context.conversationId,
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [trackLifecycleEvent]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -605,6 +724,28 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       fetchActiveConversations();
     }
   }, [activeComponent, fetchActiveConversations]);
+
+  const trackUsageEvent = useCallback(
+    async (eventType, details = {}) => {
+      await trackEvent(eventType, {
+        section:
+          details.section ?? mapComponentToUsageSection(activeComponent),
+        bookId: details.bookId ?? selectedBook?.id ?? null,
+        chapter: details.chapter ?? selectedChapter ?? null,
+        dotTitle: details.dotTitle ?? selectedDotTitle ?? null,
+        conversationId: details.conversationId ?? latestConversationId ?? null,
+        metadata: details.metadata ?? {},
+      });
+    },
+    [
+      activeComponent,
+      latestConversationId,
+      selectedBook?.id,
+      selectedChapter,
+      selectedDotTitle,
+      trackEvent,
+    ],
+  );
 
   useEffect(() => {
     const shouldClearSelection =
@@ -963,6 +1104,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
             handleNavigationClick={handleNavigationClick}
             handleShowDotCompletion={handleShowDotCompletion}
             previewScreen={previewConfig?.screen ?? null}
+            trackUsageEvent={trackUsageEvent}
           />
         );
       default:
