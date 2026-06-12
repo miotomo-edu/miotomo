@@ -12,13 +12,17 @@ const queryClient = new QueryClient();
 const transportType = getQueryParam("transport");
 const regionParam = getQueryParam("region") || "";
 const testingMode = getBooleanQueryParam("testing");
+const defaultTransportType =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "webrtc"
+    : "daily";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <AnalyticsProvider>
         <App
-          transportType={transportType ?? "daily"}
+          transportType={transportType ?? defaultTransportType}
           region={regionParam}
           testingMode={testingMode}
         />

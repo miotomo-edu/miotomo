@@ -119,6 +119,23 @@ const shouldEnableScreenshotMode = () => {
   return getBooleanQueryParam("screenshotMode");
 };
 
+const requestMicPermissionWarmup = async () => {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+    return;
+  }
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    },
+    video: false,
+  });
+
+  stream.getTracks().forEach((track) => track.stop());
+};
+
 const mapComponentToUsageSection = (componentName) => {
   switch (componentName) {
     case "first-circle-intro":
@@ -805,8 +822,15 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   );
 
   const handlePlayEpisode = useCallback(
-    (book, chapterValue, dotTitle, dotTypeSlug) => {
+    async (book, chapterValue, dotTitle, dotTypeSlug) => {
       if (!book) return;
+
+      try {
+        await requestMicPermissionWarmup();
+      } catch (error) {
+        console.warn("Mic warmup before intro failed:", error);
+      }
+
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
       const nextIsDemoSession =
         activeComponent === "first-circle-intro" && Boolean(book?.demo);
