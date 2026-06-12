@@ -1324,6 +1324,9 @@ export const TalkWithBook = ({
       audio.src = audioUrl;
       audio.currentTime = resumePosition;
       audio.load();
+      // Acquire transport/mic permission before intro playback progresses,
+      // so the browser prompt does not interrupt the final 30 seconds.
+      requestOfferStart(resumePosition);
       if (duration !== null) {
         const remaining = Math.max(0, duration - resumePosition);
         if (remaining <= 30) {
