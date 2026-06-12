@@ -5,6 +5,9 @@ import { supabase } from "./integrations/supabase/client";
 const APP_USAGE_TABLE = "app_usage_events";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const APP_USAGE_TRACKING_DISABLED =
+  import.meta.env.VITE_DISABLE_APP_USAGE_TRACKING === "1" ||
+  import.meta.env.VITE_DISABLE_APP_USAGE_TRACKING === "true";
 
 const createSessionId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -67,6 +70,7 @@ export const useAppUsageTracker = ({
 
   const trackEvent = useCallback(
     async (eventType, details = {}) => {
+      if (APP_USAGE_TRACKING_DISABLED) return;
       try {
         const payload = buildPayload(eventType, details);
         const { error } = await supabase.from(APP_USAGE_TABLE).insert(payload);
@@ -82,6 +86,7 @@ export const useAppUsageTracker = ({
 
   const trackLifecycleEvent = useCallback(
     (eventType, details = {}) => {
+      if (APP_USAGE_TRACKING_DISABLED) return;
       try {
         if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
         const lifecycleKey = JSON.stringify([

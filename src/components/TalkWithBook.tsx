@@ -87,6 +87,94 @@ const resolveDiscussionBackground = ({
   return resolvedPath ? discussionBackgroundAssets[resolvedPath] : "";
 };
 
+const clampVoiceLevel = (value) => {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value * 6));
+};
+
+const getInitialBadgeLabel = (name, fallback) => {
+  const source = typeof name === "string" && name.trim().length > 0 ? name : fallback;
+  return source.trim().charAt(0).toUpperCase();
+};
+
+const getShortDisplayName = (name, fallback) => {
+  const source = typeof name === "string" && name.trim().length > 0 ? name : fallback;
+  return source.trim().split(/\s+/)[0];
+};
+
+const VoiceLevelBars = ({
+  isActive = false,
+  level = 0,
+  color = "#d7e35c",
+}) => {
+  const normalizedLevel = clampVoiceLevel(level);
+  const barHeights = [0.45, 0.72, 0.58, 0.88];
+
+  return (
+    <div
+      className={`talk-turn-bars ${isActive ? "is-active" : ""}`}
+      style={{ "--talk-bars-color": color, "--talk-bars-level": normalizedLevel }}
+      aria-hidden="true"
+    >
+      {barHeights.map((ratio, index) => (
+        <span
+          key={index}
+          className="talk-turn-bars__bar"
+          style={{ "--talk-bar-base": ratio }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const TurnStatusChip = ({
+  name,
+  fallbackInitial,
+  accentColor,
+  level,
+  isActive,
+  modeLabel,
+}) => {
+  const initial = getInitialBadgeLabel(name, fallbackInitial);
+  const shortName = getShortDisplayName(name, fallbackInitial);
+
+  return (
+    <div className="talk-turn-chip animate-fade-in">
+      <div
+        className="talk-turn-chip__badge"
+        style={{ background: accentColor }}
+        aria-hidden="true"
+      >
+        {initial}
+      </div>
+      <div className="talk-turn-chip__meta">
+        <div className="talk-turn-chip__name-row">
+          <span className="talk-turn-chip__name">{shortName}</span>
+          <VoiceLevelBars isActive={isActive} level={level} />
+        </div>
+        {modeLabel ? <span className="talk-turn-chip__mode">{modeLabel}</span> : null}
+      </div>
+    </div>
+  );
+};
+
+const ThinkingIcon = () => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    className="h-[1.05rem] w-[1.05rem]"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9.5 17.75h5" />
+    <path d="M10 21h4" />
+    <path d="M8.2 14.8C6.8 13.7 6 12 6 10.1A6 6 0 0 1 12 4a6 6 0 0 1 6 6.1c0 1.9-.8 3.6-2.2 4.7-.8.7-1.3 1.4-1.5 2.2h-4.6c-.2-.8-.7-1.5-1.5-2.2Z" />
+  </svg>
+);
+
 export const TalkWithBook = ({
   botConfig,
   onNavigate,
@@ -136,6 +224,7 @@ export const TalkWithBook = ({
   const introAudioCompletedTrackedRef = useRef(false);
   const conversationStartedTrackedRef = useRef(false);
   const conversationCompletedTrackedRef = useRef(false);
+  const firstTurnPromptConsumedRef = useRef(false);
   const introMetadataLoadedKeyRef = useRef<string | null>(null);
   const sessionPhaseRef = useRef("intro_loading");
   const introHandlersRef = useRef({
@@ -240,6 +329,9 @@ export const TalkWithBook = ({
   const agentVoiceAnalyser = useMemo(
     () => createAnalyser(botAudioTrack),
     [botAudioTrack, createAnalyser],
+  );
+  const userAudioVolume = useAnalyserVolume(
+    userVoiceAnalyser?.analyser ?? null,
   );
   const botAudioVolume = useAnalyserVolume(
     agentVoiceAnalyser?.analyser ?? null,
@@ -1040,6 +1132,7 @@ export const TalkWithBook = ({
     introAudioCompletedTrackedRef.current = false;
     conversationStartedTrackedRef.current = false;
     conversationCompletedTrackedRef.current = false;
+    firstTurnPromptConsumedRef.current = false;
     pendingIntroInterruptRef.current = null;
     pendingIntroCompletedRef.current = null;
     botReadyRef.current = false;
@@ -1370,9 +1463,6 @@ export const TalkWithBook = ({
       audio.src = audioUrl;
       audio.currentTime = resumePosition;
       audio.load();
-      // Acquire transport/mic permission before intro playback progresses,
-      // so the browser prompt does not interrupt the final 30 seconds.
-      requestOfferStart(resumePosition);
       if (duration !== null) {
         const remaining = Math.max(0, duration - resumePosition);
         if (remaining <= 30) {
@@ -2126,6 +2216,7 @@ export const TalkWithBook = ({
 
     const onUserStartedSpeaking = (payload) => {
       logRtviEvent("UserStartedSpeaking", payload);
+      firstTurnPromptConsumedRef.current = true;
       setIsMicActive(true);
     };
 
@@ -2505,8 +2596,11 @@ export const TalkWithBook = ({
       : isMicActive
         ? "listening"
         : null;
-  const activityCharacterName =
-    activityState === "talking" ? talkingCharacterName : defaultCharacterName;
+  const userDisplayName = getShortDisplayName(userName, "You");
+  const userAccentColor = "#a7c85a";
+  const botAccentColor = characterAccent || "#7566bc";
+  const normalizedBotVolume = clampVoiceLevel(botAudioVolume);
+  const normalizedUserVolume = clampVoiceLevel(userAudioVolume);
   const isTeachtimeDiscussion = botConfig?.metadata?.dotType === "teachtime";
   const [isLandscapeDiscussion, setIsLandscapeDiscussion] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -2575,17 +2669,6 @@ export const TalkWithBook = ({
       backgroundPosition: "center",
     };
   }, [backgroundImage]);
-
-  const showActivityBadge =
-    activityState !== null &&
-    activityCharacterName.length > 0 &&
-    sessionPhase === "chat_active";
-  const activityLabel =
-    activityState === "talking"
-      ? `${activityCharacterName} is talking...`
-      : activityState === "thinking"
-        ? "Thinking..."
-        : "Listening...";
 
   useEffect(() => {
     if (eventMeta.eventType === "celebration_sent") {
@@ -2716,6 +2799,48 @@ export const TalkWithBook = ({
     resolvedListeningStatus === "completed" &&
     resolvedTalkingStatus !== "completed" &&
     !sessionEndingReason;
+  const showTurnHud =
+    !showDiscussionCompleteSplash &&
+    !sessionEndingReason &&
+    !isCelebrating &&
+    !isLeavingDiscussion &&
+    resolvedListeningStatus === "completed" &&
+    resolvedTalkingStatus !== "completed";
+  const shouldShowConnectingPrompt =
+    sessionPhase === "chat_active" &&
+    isAwaitingFirstBotTurn &&
+    !isBotSpeaking &&
+    !isBotThinking &&
+    !isSessionEndingTimeUp;
+  const shouldShowUserTurnPrompt =
+    sessionPhase === "chat_active" &&
+    status === VoiceBotStatus.LISTENING &&
+    !firstTurnPromptConsumedRef.current &&
+    shouldShowMic &&
+    !isMicActive &&
+    !isBotSpeaking &&
+    !isBotThinking &&
+    !isAwaitingFirstBotTurn &&
+    !isSessionEndingTimeUp;
+  const userSpeakingActive =
+    sessionPhase === "chat_active" &&
+    isMicActive &&
+    !isBotSpeaking &&
+    !isBotThinking &&
+    !isSessionEndingTimeUp;
+  const botTurnActive = sessionPhase === "chat_active" && isBotSpeaking;
+  const shouldShowThinkingHud =
+    sessionPhase === "chat_active" && isBotThinking && !isBotSpeaking;
+  const turnChipName = userSpeakingActive ? userDisplayName : talkingCharacterName;
+  const turnChipAccent = userSpeakingActive ? userAccentColor : botAccentColor;
+  const turnChipLevel = userSpeakingActive
+    ? normalizedUserVolume
+    : normalizedBotVolume;
+  const turnChipMode = userSpeakingActive
+    ? "speaking"
+    : botTurnActive
+      ? "speaking"
+      : null;
   const gradientHeight = backgroundHeight
     ? Math.max(0, backgroundHeight * 0.35)
     : null;
@@ -2762,6 +2887,50 @@ export const TalkWithBook = ({
         />
       </div>
 
+      {showTurnHud && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-[12.6rem] z-20 px-4 md:bottom-[14.85rem] md:px-6">
+          <div className="relative min-h-[4.25rem] md:min-h-[5rem]">
+            {(userSpeakingActive || botTurnActive) && (
+              <div className="absolute left-0 top-0 flex justify-start">
+                <TurnStatusChip
+                  name={turnChipName}
+                  fallbackInitial={userSpeakingActive ? "You" : "Tomo"}
+                  accentColor={turnChipAccent}
+                  level={turnChipLevel}
+                  isActive={userSpeakingActive || botTurnActive}
+                  modeLabel={turnChipMode}
+                />
+              </div>
+            )}
+
+            {(shouldShowConnectingPrompt ||
+              shouldShowUserTurnPrompt ||
+              shouldShowThinkingHud) && (
+              <div className="absolute inset-x-0 bottom-0 flex justify-center">
+                <div
+                  className={`talk-turn-message ${shouldShowThinkingHud ? "is-thinking" : "is-listening"} animate-fade-in`}
+                >
+                  {shouldShowThinkingHud ? (
+                    <>
+                      <span className="talk-turn-message__icon">
+                        <ThinkingIcon />
+                      </span>
+                      <span>Thinking...</span>
+                    </>
+                  ) : shouldShowConnectingPrompt ? (
+                    <span>Connecting...</span>
+                  ) : (
+                    <span>
+                      Your turn to talk
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 px-6 pt-4 overflow-hidden text-white">
         <div className="h-full w-full">{renderedServerContent}</div>
       </div>
@@ -2775,7 +2944,7 @@ export const TalkWithBook = ({
 
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
       {!showDiscussionCompleteSplash && (
-        <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-3 px-4">
+        <div className="absolute inset-x-0 bottom-32 flex flex-col items-center gap-3 px-4 md:bottom-36">
           {shouldShowMic && (
             <div className="flex justify-center">
               <AnimationManager
@@ -2930,17 +3099,6 @@ export const TalkWithBook = ({
               See your progress
             </button>
           )}
-        </div>
-      )}
-
-      {!showDiscussionCompleteSplash && showActivityBadge && (
-        <div className="absolute inset-x-0 bottom-24 flex justify-center px-4">
-          <div className="flex justify-center">
-            <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-card backdrop-blur-sm">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
-              {activityLabel}
-            </div>
-          </div>
         </div>
       )}
 
