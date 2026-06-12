@@ -8,6 +8,7 @@ type DotCompletionPageProps = {
   userName: string;
   completedEpisode: number;
   onPreviewNextDot: (book: Book, episode: number) => void;
+  onOpenProgress?: () => void;
   testingMode?: boolean;
 };
 
@@ -70,6 +71,7 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
   userName,
   completedEpisode,
   onPreviewNextDot,
+  onOpenProgress,
   testingMode = false,
 }) => {
   const totalDots = Math.max(Number(book.chapters) || 0, completedEpisode);
@@ -77,17 +79,13 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
     completedEpisode < totalDots ? completedEpisode + 1 : null;
   const remainingDots = Math.max(totalDots - completedEpisode, 0);
   const firstName = getFirstName(userName);
-  const handleSurveyClick = () => {
-    // Placeholder until the survey route/screen is implemented.
-    console.info("Survey CTA clicked");
-  };
   const primaryCtaLabel = testingMode
-    ? "Continue to Survey"
+    ? "See your progress"
     : nextEpisode
       ? `Take a peek at Dot ${nextEpisode}`
       : "See your Circle";
   const handlePrimaryCta = testingMode
-    ? handleSurveyClick
+    ? () => onOpenProgress?.()
     : () =>
         nextEpisode
           ? onPreviewNextDot(book, nextEpisode)

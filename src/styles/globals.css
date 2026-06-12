@@ -831,3 +831,41 @@ html.desktop-ipad-frame {
 .tap-safe * {
   -webkit-tap-highlight-color: transparent;
 }
+
+@keyframes surveyCtaAttention {
+  0%,
+  14%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  2% {
+    transform: translate3d(-4px, 0, 0) rotate(-3deg);
+  }
+  4% {
+    transform: translate3d(5px, 0, 0) rotate(3.2deg);
+  }
+  6% {
+    transform: translate3d(-6px, 1px, 0) rotate(-4deg);
+  }
+  8% {
+    transform: translate3d(6px, -1px, 0) rotate(4deg);
+  }
+  10% {
+    transform: translate3d(-3px, 0, 0) rotate(-2deg);
+  }
+  12% {
+    transform: translate3d(3px, 0, 0) rotate(2deg);
+  }
+}
+
+.survey-cta-attention {
+  animation: surveyCtaAttention 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .survey-cta-attention {
+    animation: none !important;
+  }
+}

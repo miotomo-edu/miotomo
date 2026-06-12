@@ -23,7 +23,7 @@ import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
 import CirclePage from "./sections/CirclePage";
 import { TalkWithBook } from "./TalkWithBook";
-import ProgressSection from "./sections/ProgressSection";
+import ProgressSectionV2 from "./sections/ProgressSectionV2";
 import BottomNavBar from "./common/BottomNavBar";
 import OnboardingFlow from "./sections/Onboarding/OnboardingFlow";
 
@@ -696,9 +696,11 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         setActiveComponent("vocabulary-game");
         return;
       }
-      setActiveComponent(isDemoSession ? "demo-subscribe" : "dot-complete");
+      setActiveComponent(
+        testingMode ? "dot-complete" : isDemoSession ? "demo-subscribe" : "dot-complete",
+      );
     },
-    [selectedBook, selectedChapter, isDemoSession],
+    [selectedBook, selectedChapter, isDemoSession, testingMode],
   );
 
   const handlePreviewNextDotFromCompletion = useCallback(
@@ -882,7 +884,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         );
       case "progress":
         return (
-          <ProgressSection
+          <ProgressSectionV2
             conversationId={latestConversationId || undefined}
             userName={userName}
           />
@@ -905,6 +907,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
             userName={userName}
             completedEpisode={completedDotChapter || selectedChapter || 1}
             onPreviewNextDot={handlePreviewNextDotFromCompletion}
+            onOpenProgress={() => setActiveComponent("progress")}
             testingMode={testingMode}
           />
         );
@@ -1009,7 +1012,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       : activeComponent === "parents"
         ? "bg-[#F6EFE2]"
         : activeComponent === "progress"
-          ? "bg-white"
+          ? "bg-[#4F415F]"
           : activeComponent === "onboarding"
             ? "bg-white"
             : activeComponent === "interactive"
@@ -1033,6 +1036,13 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const navMode =
     isInteractiveView || activeComponent === "circle" ? "back" : "navigation";
   const shouldRenderFloatingNav = shouldShowBottomNav && !testingMode;
+  const testingSurveyId =
+    getQueryParam("surveyId") || import.meta.env.VITE_TESTING_SURVEY_ID || "";
+  const testingSurveyUrl = testingSurveyId
+    ? `https://form.typeform.com/to/${testingSurveyId}#user_id=${encodeURIComponent(
+        resolvedStudentId || "",
+      )}`
+    : "";
   const handleFloatingNavBack = () => {
     if (isInteractiveView) {
       handleNavigationClick("circle");
@@ -1083,6 +1093,20 @@ const App = ({ transportType, region = "", testingMode = false }) => {
           className={`${screenshotMode ? "screenshot-mode-bottom-nav" : ""} ${isInteractiveView ? "backdrop-blur-sm" : ""}`.trim()}
         />
       )}
+      {activeComponent === "progress" && testingSurveyUrl ? (
+        <a
+          href={testingSurveyUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="survey-cta-attention fixed bottom-5 left-5 right-5 z-[95] inline-flex min-h-[3.9rem] items-center justify-center rounded-full bg-white px-6 py-3 text-center text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_20px_44px_rgba(0,0,0,0.42),0_8px_18px_rgba(0,0,0,0.3)] transition duration-200 hover:brightness-[0.98] active:scale-[0.98]"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }}
+        >
+          <span className="block leading-[1.15]">
+            <span className="block">Share a quick thought with us</span>
+            <span className="block">Take the survey</span>
+          </span>
+        </a>
+      ) : null}
       {portraitBlocked && <PortraitOrientationBlocker />}
     </div>
   );
