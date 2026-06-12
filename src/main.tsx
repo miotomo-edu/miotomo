@@ -18,7 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <AnalyticsProvider>
         <App
-          transportType={transportType ?? "webrtc"}
+          transportType={transportType ?? "daily"}
           region={regionParam}
           testingMode={testingMode}
         />
