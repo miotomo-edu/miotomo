@@ -133,9 +133,7 @@ html.desktop-ipad-frame {
   .nav-attention-bump,
   .animate-spin,
   .animate-ping,
-  .slow-spin,
-  .talk-turn-bars__bar,
-  .talk-turn-message__icon {
+  .slow-spin {
     animation: none !important;
   }
 }
@@ -194,27 +192,6 @@ html.desktop-ipad-frame {
   will-change: transform, opacity;
 }
 
-@keyframes talkTurnThinkingPulse {
-  0%,
-  100% {
-    transform: scale(0.95) rotate(-6deg);
-    opacity: 0.75;
-  }
-  50% {
-    transform: scale(1.06) rotate(6deg);
-    opacity: 1;
-  }
-}
-
-@keyframes talkTurnBarPulse {
-  0%,
-  100% {
-    transform: scaleY(0.84);
-  }
-  50% {
-    transform: scaleY(1.16);
-  }
-}
 
 .talk-turn-chip {
   display: inline-flex;
@@ -294,26 +271,10 @@ html.desktop-ipad-frame {
     height 140ms ease-out,
     opacity 140ms ease-out;
   box-shadow: 0 0 8px rgba(215, 227, 92, 0.45);
-  will-change: height, opacity, transform;
+  will-change: height, opacity;
   transform-origin: center bottom;
 }
 
-.talk-turn-bars.is-active .talk-turn-bars__bar {
-  opacity: 0.98;
-  animation: talkTurnBarPulse 0.48s ease-in-out infinite;
-}
-
-.talk-turn-bars.is-active .talk-turn-bars__bar:nth-child(2) {
-  animation-delay: 0.06s;
-}
-
-.talk-turn-bars.is-active .talk-turn-bars__bar:nth-child(3) {
-  animation-delay: 0.12s;
-}
-
-.talk-turn-bars.is-active .talk-turn-bars__bar:nth-child(4) {
-  animation-delay: 0.18s;
-}
 
 .talk-turn-message {
   display: inline-flex;
@@ -345,7 +306,6 @@ html.desktop-ipad-frame {
   align-items: center;
   justify-content: center;
   color: #d7e35c;
-  animation: talkTurnThinkingPulse 1.45s ease-in-out infinite;
 }
 
 @media (min-width: 768px) {

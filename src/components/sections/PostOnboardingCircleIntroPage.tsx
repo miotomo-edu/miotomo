@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Book } from "./LibrarySection";
 import { supabase } from "../../hooks/integrations/supabase/client";
@@ -54,6 +54,26 @@ const PostOnboardingCircleIntroPage: React.FC<
         : null,
     [resolvedBookId, browseData?.circles],
   );
+
+  useEffect(() => {
+    console.log("🎯 Demo circle resolution", {
+      requestedBookId: bookId ?? null,
+      resolvedBookId,
+      availableCircles:
+        browseData?.circles?.map((circle) => ({
+          id: circle.id,
+          title: circle.title,
+          demo: circle.demo,
+        })) ?? [],
+      selectedBook: book
+        ? {
+            id: book.id,
+            title: book.title,
+            demo: book.demo,
+          }
+        : null,
+    });
+  }, [book, bookId, browseData?.circles, resolvedBookId]);
 
   const coverUrl = useCircleCover(book?.thumbnailUrl);
 

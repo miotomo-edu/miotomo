@@ -102,6 +102,13 @@ const getShortDisplayName = (name, fallback) => {
   return source.trim().split(/\s+/)[0];
 };
 
+const BAR_PULSE_KEYFRAMES = [
+  { transform: "scaleY(0.84)" },
+  { transform: "scaleY(1.16)" },
+  { transform: "scaleY(0.84)" },
+];
+const BAR_PULSE_DELAYS_MS = [0, 60, 120, 180];
+
 const VoiceLevelBars = ({
   isActive = false,
   level = 0,
@@ -110,6 +117,28 @@ const VoiceLevelBars = ({
   const normalizedLevel = clampVoiceLevel(level);
   const barHeights = [0.45, 0.72, 0.58, 0.88];
   const barMotionWeights = [0.9, 1.22, 1.02, 1.34];
+  const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const animsRef = useRef<Animation[]>([]);
+
+  useEffect(() => {
+    animsRef.current.forEach((a) => a?.cancel());
+    animsRef.current = [];
+    if (!isActive) return;
+    barRefs.current.forEach((el, i) => {
+      if (!el || typeof el.animate !== "function") return;
+      const anim = el.animate(BAR_PULSE_KEYFRAMES, {
+        duration: 480,
+        delay: BAR_PULSE_DELAYS_MS[i],
+        easing: "ease-in-out",
+        iterations: Infinity,
+      });
+      animsRef.current.push(anim);
+    });
+    return () => {
+      animsRef.current.forEach((a) => a?.cancel());
+      animsRef.current = [];
+    };
+  }, [isActive]);
 
   return (
     <div
@@ -126,6 +155,7 @@ const VoiceLevelBars = ({
         return (
           <span
             key={index}
+            ref={(el) => { barRefs.current[index] = el; }}
             className="talk-turn-bars__bar"
             style={{
               "--talk-bar-base": ratio,
@@ -187,6 +217,31 @@ const ThinkingIcon = () => (
   </svg>
 );
 
+const THINKING_PULSE_KEYFRAMES = [
+  { transform: "scale(0.95) rotate(-6deg)", opacity: "0.75" },
+  { transform: "scale(1.06) rotate(6deg)", opacity: "1" },
+  { transform: "scale(0.95) rotate(-6deg)", opacity: "0.75" },
+];
+
+const AnimatedThinkingIcon = () => {
+  const elRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = elRef.current;
+    if (!el || typeof el.animate !== "function") return;
+    const anim = el.animate(THINKING_PULSE_KEYFRAMES, {
+      duration: 1450,
+      easing: "ease-in-out",
+      iterations: Infinity,
+    });
+    return () => anim.cancel();
+  }, []);
+  return (
+    <span ref={elRef} className="talk-turn-message__icon">
+      <ThinkingIcon />
+    </span>
+  );
+};
+
 export const TalkWithBook = ({
   botConfig,
   onNavigate,
@@ -204,6 +259,7 @@ export const TalkWithBook = ({
   onRequestSessionStart,
   previewScreen = null,
   trackUsageEvent = async () => {},
+  suppressSessionBootstrap = false,
 }) => {
   const client = usePipecatClient();
   const logsRef = useRef(null);
@@ -1084,6 +1140,7 @@ export const TalkWithBook = ({
 
   const requestOfferStart = useCallback(
     (positionOverride) => {
+      if (suppressSessionBootstrap) return;
       if (introOfferRequestedRef.current) return;
       if (offerConnectFailedRef.current) return;
       introOfferRequestedRef.current = true;
@@ -1117,6 +1174,7 @@ export const TalkWithBook = ({
       connectionManagedExternally,
       onRequestSessionStart,
       offerConnectFailedRef,
+      suppressSessionBootstrap,
     ],
   );
 
@@ -2908,8 +2966,9 @@ export const TalkWithBook = ({
     !sessionEndingReason &&
     !isCelebrating &&
     !isLeavingDiscussion &&
-    resolvedListeningStatus === "completed" &&
-    resolvedTalkingStatus !== "completed";
+    ((resolvedListeningStatus === "completed" &&
+      resolvedTalkingStatus !== "completed") ||
+      sessionPhase === "intro_playing");
   const shouldShowConnectingPrompt =
     sessionPhase === "chat_active" &&
     isAwaitingFirstBotTurn &&
@@ -2942,6 +3001,7 @@ export const TalkWithBook = ({
     !isBotSpeaking &&
     !isBotThinking &&
     !isSessionEndingTimeUp;
+  const introPlaybackCharacterActive = sessionPhase === "intro_playing";
   const botTurnActive = sessionPhase === "chat_active" && isBotSpeaking;
   const shouldShowThinkingHud =
     sessionPhase === "chat_active" && isBotThinking && !isBotSpeaking;
@@ -2952,7 +3012,7 @@ export const TalkWithBook = ({
     : normalizedBotVolume;
   const turnChipMode = userSpeakingActive
     ? "speaking"
-    : botTurnActive
+    : botTurnActive || introPlaybackCharacterActive
       ? "speaking"
       : null;
   const gradientHeight = backgroundHeight
@@ -3027,9 +3087,7 @@ export const TalkWithBook = ({
                 >
                   {shouldShowThinkingHud ? (
                     <>
-                      <span className="talk-turn-message__icon">
-                        <ThinkingIcon />
-                      </span>
+                      <AnimatedThinkingIcon />
                       <span>Thinking...</span>
                     </>
                   ) : shouldShowConnectingPrompt ? (

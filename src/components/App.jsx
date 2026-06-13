@@ -119,6 +119,19 @@ const shouldEnableScreenshotMode = () => {
   return getBooleanQueryParam("screenshotMode");
 };
 
+const shouldUsePlaybackOnlyFallback = () => {
+  if (typeof window === "undefined") return false;
+  if (getBooleanQueryParam("playbackOnly")) return true;
+
+  const hostname = window.location.hostname;
+  const isLoopbackHost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1";
+
+  return !window.isSecureContext && !isLoopbackHost;
+};
+
 const requestMicPermissionWarmup = async () => {
   if (
     typeof navigator === "undefined" ||
@@ -213,8 +226,14 @@ const InteractiveVoiceSession = ({
   handleShowDotCompletion,
   previewScreen,
   trackUsageEvent,
+  suppressSessionBootstrap = false,
 }) => {
   const client = useMemo(() => {
+    if (suppressSessionBootstrap) {
+      console.log("▶️ playbackOnly mode active: skipping Pipecat transport/client bootstrap");
+      return null;
+    }
+
     const usesDailyTransport =
       transportType === "daily" || transportType === "local-daily";
     const transport = usesDailyTransport
@@ -244,7 +263,7 @@ const InteractiveVoiceSession = ({
         onBotDisconnected: () => console.log("Bot disconnected"),
       },
     });
-  }, [clientKey, transportType]);
+  }, [clientKey, suppressSessionBootstrap, transportType]);
 
   useEffect(() => {
     return () => {
@@ -272,6 +291,7 @@ const InteractiveVoiceSession = ({
           onShowDotCompletion={handleShowDotCompletion}
           previewScreen={previewScreen}
           trackUsageEvent={trackUsageEvent}
+          suppressSessionBootstrap={suppressSessionBootstrap}
         />
       </VoiceBotProvider>
 
@@ -444,6 +464,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       userName,
       transportType,
     });
+  const playbackOnlyMode = useMemo(() => shouldUsePlaybackOnlyFallback(), []);
   const latestUsageContextRef = useRef({
     section: mapComponentToUsageSection(activeComponent),
     bookId: selectedBook?.id ?? null,
@@ -862,10 +883,12 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     async (book, chapterValue, dotTitle, dotTypeSlug) => {
       if (!book) return;
 
-      try {
-        await requestMicPermissionWarmup();
-      } catch (error) {
-        console.warn("Mic warmup before intro failed:", error);
+      if (!playbackOnlyMode) {
+        try {
+          await requestMicPermissionWarmup();
+        } catch (error) {
+          console.warn("Mic warmup before intro failed:", error);
+        }
       }
 
       const resolvedChapter = normalizeChapterValue(book, chapterValue);
@@ -887,7 +910,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       }
       setActiveComponent("interactive");
     },
-    [normalizeChapterValue, currentCharacter, activeComponent],
+    [normalizeChapterValue, currentCharacter, activeComponent, playbackOnlyMode],
   );
 
   const handleShowDotCompletion = useCallback(
@@ -996,7 +1019,10 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     isInteractiveView && currentCharacter?.bg ? currentCharacter.bg : "";
 
   const shouldShowConnectionManager =
-    isInteractiveView && selectedBook && currentCharacter;
+    isInteractiveView &&
+    selectedBook &&
+    currentCharacter &&
+    !playbackOnlyMode;
 
   useEffect(() => {
     if (!isInteractiveView) {
@@ -1170,6 +1196,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
             handleShowDotCompletion={handleShowDotCompletion}
             previewScreen={previewConfig?.screen ?? null}
             trackUsageEvent={trackUsageEvent}
+            suppressSessionBootstrap={playbackOnlyMode}
           />
         );
       default:
