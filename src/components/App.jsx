@@ -120,7 +120,10 @@ const shouldEnableScreenshotMode = () => {
 };
 
 const requestMicPermissionWarmup = async () => {
-  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.mediaDevices?.getUserMedia
+  ) {
     return;
   }
 
@@ -214,13 +217,12 @@ const InteractiveVoiceSession = ({
   const client = useMemo(() => {
     const usesDailyTransport =
       transportType === "daily" || transportType === "local-daily";
-    const transport =
-      usesDailyTransport
-        ? new DailyTransport()
-        : new SmallWebRTCTransport({
-            enableMic: true,
-            enableCam: false,
-          });
+    const transport = usesDailyTransport
+      ? new DailyTransport()
+      : new SmallWebRTCTransport({
+          enableMic: true,
+          enableCam: false,
+        });
 
     return new PipecatClient({
       transport,
@@ -290,14 +292,50 @@ const InteractiveVoiceSession = ({
   );
 };
 
+const SURVEY_WOBBLE_KEYFRAMES = [
+  { transform: "translate(0, 0) rotate(0deg)", offset: 0 },
+  { transform: "translate(-4px, 0) rotate(-3deg)", offset: 0.02 },
+  { transform: "translate(5px, 0) rotate(3.2deg)", offset: 0.04 },
+  { transform: "translate(-6px, 1px) rotate(-4deg)", offset: 0.06 },
+  { transform: "translate(6px, -1px) rotate(4deg)", offset: 0.08 },
+  { transform: "translate(-3px, 0) rotate(-2deg)", offset: 0.1 },
+  { transform: "translate(3px, 0) rotate(2deg)", offset: 0.12 },
+  { transform: "translate(0, 0) rotate(0deg)", offset: 0.14 },
+  { transform: "translate(0, 0) rotate(0deg)", offset: 1 },
+];
+
+const SurveyCtaButton = ({ href, className }) => {
+  const elRef = useRef(null);
+
+  useEffect(() => {
+    const el = elRef.current;
+    if (!el || typeof el.animate !== "function") return;
+const anim = el.animate(SURVEY_WOBBLE_KEYFRAMES, {
+      duration: 3200,
+      easing: "linear",
+      iterations: Infinity,
+    });
+    return () => anim.cancel();
+  }, []);
+
+  return (
+    <a href={href} target="_blank" rel="noreferrer" ref={elRef} className={className}>
+      <span className="block leading-[1.15]">
+        <span className="block">Share a quick thought!</span>
+        <span className="block">Take the survey</span>
+      </span>
+    </a>
+  );
+};
+
 const App = ({ transportType, region = "", testingMode = false }) => {
   const previewConfig = useMemo(() => getPreviewConfig(), []);
   const screenshotMode = useMemo(() => shouldEnableScreenshotMode(), []);
   const [desktopIpadFrame, setDesktopIpadFrame] = useState(() =>
     shouldUseDesktopIpadFrame(),
   );
-  const [portraitBlocked, setPortraitBlocked] = useState(() =>
-    shouldEnforcePortraitUi() && isLandscapeViewport(),
+  const [portraitBlocked, setPortraitBlocked] = useState(
+    () => shouldEnforcePortraitUi() && isLandscapeViewport(),
   );
   const [activeComponent, setActiveComponent] = useState(() =>
     previewConfig?.screen === "first-circle-intro"
@@ -745,8 +783,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const trackUsageEvent = useCallback(
     async (eventType, details = {}) => {
       await trackEvent(eventType, {
-        section:
-          details.section ?? mapComponentToUsageSection(activeComponent),
+        section: details.section ?? mapComponentToUsageSection(activeComponent),
         bookId: details.bookId ?? selectedBook?.id ?? null,
         chapter: details.chapter ?? selectedChapter ?? null,
         dotTitle: details.dotTitle ?? selectedDotTitle ?? null,
@@ -862,7 +899,11 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         return;
       }
       setActiveComponent(
-        testingMode ? "dot-complete" : isDemoSession ? "demo-subscribe" : "dot-complete",
+        testingMode
+          ? "dot-complete"
+          : isDemoSession
+            ? "demo-subscribe"
+            : "dot-complete",
       );
     },
     [selectedBook, selectedChapter, isDemoSession, testingMode],
@@ -1260,11 +1301,8 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         />
       )}
       {activeComponent === "progress" && testingSurveyUrl ? (
-        <a
-          href={testingSurveyUrl}
-          target="_blank"
-          rel="noreferrer"
-          className={`survey-cta-attention z-[95] inline-flex min-h-[3.9rem] items-center justify-center rounded-full bg-white px-6 py-3 text-center text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_20px_44px_rgba(0,0,0,0.42),0_8px_18px_rgba(0,0,0,0.3)] transition duration-200 hover:brightness-[0.98] active:scale-[0.98] ${
+        <div
+          className={`z-[95] ${
             desktopIpadFrame
               ? "absolute bottom-4 left-4 right-4"
               : "fixed bottom-5 left-5 right-5"
@@ -1275,11 +1313,11 @@ const App = ({ transportType, region = "", testingMode = false }) => {
               : { bottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }
           }
         >
-          <span className="block leading-[1.15]">
-            <span className="block">Share a quick thought with us</span>
-            <span className="block">Take the survey</span>
-          </span>
-        </a>
+          <SurveyCtaButton
+            href={testingSurveyUrl}
+            className="block w-full min-h-[3.9rem] flex items-center justify-center rounded-full bg-white px-6 py-3 text-center text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_20px_44px_rgba(0,0,0,0.42),0_8px_18px_rgba(0,0,0,0.3)] hover:brightness-[0.98] active:scale-[0.98]"
+          />
+        </div>
       ) : null}
       {portraitBlocked && <PortraitOrientationBlocker />}
     </div>
