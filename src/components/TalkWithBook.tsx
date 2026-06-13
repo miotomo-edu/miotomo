@@ -93,12 +93,14 @@ const clampVoiceLevel = (value) => {
 };
 
 const getInitialBadgeLabel = (name, fallback) => {
-  const source = typeof name === "string" && name.trim().length > 0 ? name : fallback;
+  const source =
+    typeof name === "string" && name.trim().length > 0 ? name : fallback;
   return source.trim().charAt(0).toUpperCase();
 };
 
 const getShortDisplayName = (name, fallback) => {
-  const source = typeof name === "string" && name.trim().length > 0 ? name : fallback;
+  const source =
+    typeof name === "string" && name.trim().length > 0 ? name : fallback;
   return source.trim().split(/\s+/)[0];
 };
 
@@ -109,11 +111,7 @@ const BAR_PULSE_KEYFRAMES = [
 ];
 const BAR_PULSE_DELAYS_MS = [0, 60, 120, 180];
 
-const VoiceLevelBars = ({
-  isActive = false,
-  level = 0,
-  color = "#d7e35c",
-}) => {
+const VoiceLevelBars = ({ isActive = false, level = 0, color = "#d7e35c" }) => {
   const normalizedLevel = clampVoiceLevel(level);
   const barHeights = [0.45, 0.72, 0.58, 0.88];
   const barMotionWeights = [0.9, 1.22, 1.02, 1.34];
@@ -155,7 +153,9 @@ const VoiceLevelBars = ({
         return (
           <span
             key={index}
-            ref={(el) => { barRefs.current[index] = el; }}
+            ref={(el) => {
+              barRefs.current[index] = el;
+            }}
             className="talk-turn-bars__bar"
             style={{
               "--talk-bar-base": ratio,
@@ -194,7 +194,9 @@ const TurnStatusChip = ({
           <span className="talk-turn-chip__name">{shortName}</span>
           <VoiceLevelBars isActive={isActive} level={level} />
         </div>
-        {modeLabel ? <span className="talk-turn-chip__mode">{modeLabel}</span> : null}
+        {modeLabel ? (
+          <span className="talk-turn-chip__mode">{modeLabel}</span>
+        ) : null}
       </div>
     </div>
   );
@@ -3005,7 +3007,9 @@ export const TalkWithBook = ({
   const botTurnActive = sessionPhase === "chat_active" && isBotSpeaking;
   const shouldShowThinkingHud =
     sessionPhase === "chat_active" && isBotThinking && !isBotSpeaking;
-  const turnChipName = userSpeakingActive ? userDisplayName : talkingCharacterName;
+  const turnChipName = userSpeakingActive
+    ? userDisplayName
+    : talkingCharacterName;
   const turnChipAccent = userSpeakingActive ? userAccentColor : botAccentColor;
   const turnChipLevel = userSpeakingActive
     ? normalizedUserVolume
@@ -3095,9 +3099,7 @@ export const TalkWithBook = ({
                   ) : shouldShowLocalListeningPrompt ? (
                     <span>Listening...</span>
                   ) : (
-                    <span>
-                      Your turn to talk
-                    </span>
+                    <span>Your turn to talk</span>
                   )}
                 </div>
               </div>
@@ -3264,6 +3266,32 @@ export const TalkWithBook = ({
               Next
             </button>
           )}
+
+          {testingMode &&
+            onShowDotCompletion &&
+            (sessionPhase === "chat_active" ||
+              sessionPhase === "chat_paused") && (
+              <button
+                type="button"
+                onClick={handleShowDotCompletion}
+                disabled={isLeavingDiscussion}
+                className="flex items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/25 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Finish talking
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
+              </button>
+            )}
 
           {isCelebrating && !isConnected && (
             <button
