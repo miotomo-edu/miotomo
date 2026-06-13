@@ -22,6 +22,11 @@ const sanitizePayload = (payload) => {
   );
 };
 
+const getCurrentUrl = () => {
+  if (typeof window === "undefined") return null;
+  return window.location?.href || null;
+};
+
 export const useAppUsageTracker = ({
   studentId = "",
   userName = "",
@@ -48,6 +53,9 @@ export const useAppUsageTracker = ({
       }
       if (details.referrer && !metadata.referrer) {
         metadata.referrer = details.referrer;
+      }
+      if (!metadata.url) {
+        metadata.url = getCurrentUrl();
       }
 
       return sanitizePayload({
