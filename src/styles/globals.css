@@ -194,18 +194,6 @@ html.desktop-ipad-frame {
   will-change: transform, opacity;
 }
 
-@keyframes talkTurnBarBounce {
-  0%,
-  100% {
-    transform: scaleY(calc(0.55 + (var(--talk-bars-level, 0) * var(--talk-bar-base, 0.5))));
-    opacity: 0.5;
-  }
-  45% {
-    transform: scaleY(calc(0.95 + (var(--talk-bars-level, 0) * 1.25)));
-    opacity: 1;
-  }
-}
-
 @keyframes talkTurnThinkingPulse {
   0%,
   100% {
@@ -215,6 +203,16 @@ html.desktop-ipad-frame {
   50% {
     transform: scale(1.06) rotate(6deg);
     opacity: 1;
+  }
+}
+
+@keyframes talkTurnBarPulse {
+  0%,
+  100% {
+    transform: scaleY(0.84);
+  }
+  50% {
+    transform: scaleY(1.16);
   }
 }
 
@@ -287,29 +285,34 @@ html.desktop-ipad-frame {
 
 .talk-turn-bars__bar {
   width: 0.16rem;
-  height: 100%;
+  height: 50%;
+  align-self: flex-end;
   border-radius: 999px;
   background: var(--talk-bars-color);
   opacity: 0.5;
+  transition:
+    height 140ms ease-out,
+    opacity 140ms ease-out;
+  box-shadow: 0 0 8px rgba(215, 227, 92, 0.45);
+  will-change: height, opacity, transform;
   transform-origin: center bottom;
-  transform: scaleY(calc(0.34 + (var(--talk-bar-base, 0.5) * 0.55)));
-  box-shadow: 0 0 8px color-mix(in srgb, var(--talk-bars-color) 52%, transparent);
 }
 
 .talk-turn-bars.is-active .talk-turn-bars__bar {
-  animation: talkTurnBarBounce 0.82s ease-in-out infinite;
+  opacity: 0.98;
+  animation: talkTurnBarPulse 0.48s ease-in-out infinite;
 }
 
 .talk-turn-bars.is-active .talk-turn-bars__bar:nth-child(2) {
-  animation-delay: 0.08s;
+  animation-delay: 0.06s;
 }
 
 .talk-turn-bars.is-active .talk-turn-bars__bar:nth-child(3) {
-  animation-delay: 0.18s;
+  animation-delay: 0.12s;
 }
 
 .talk-turn-bars.is-active .talk-turn-bars__bar:nth-child(4) {
-  animation-delay: 0.28s;
+  animation-delay: 0.18s;
 }
 
 .talk-turn-message {

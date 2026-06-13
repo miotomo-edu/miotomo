@@ -109,20 +109,32 @@ const VoiceLevelBars = ({
 }) => {
   const normalizedLevel = clampVoiceLevel(level);
   const barHeights = [0.45, 0.72, 0.58, 0.88];
+  const barMotionWeights = [0.9, 1.22, 1.02, 1.34];
 
   return (
     <div
       className={`talk-turn-bars ${isActive ? "is-active" : ""}`}
-      style={{ "--talk-bars-color": color, "--talk-bars-level": normalizedLevel }}
+      style={{ "--talk-bars-color": color }}
       aria-hidden="true"
     >
-      {barHeights.map((ratio, index) => (
-        <span
-          key={index}
-          className="talk-turn-bars__bar"
-          style={{ "--talk-bar-base": ratio }}
-        />
-      ))}
+      {barHeights.map((ratio, index) => {
+        const idleHeight = 34 + ratio * 38;
+        const activeHeight = Math.min(
+          100,
+          idleHeight + normalizedLevel * barMotionWeights[index] * 34,
+        );
+        return (
+          <span
+            key={index}
+            className="talk-turn-bars__bar"
+            style={{
+              "--talk-bar-base": ratio,
+              height: `${isActive ? activeHeight : idleHeight}%`,
+              opacity: isActive ? 0.98 : 0.5,
+            }}
+          />
+        );
+      })}
     </div>
   );
 };
