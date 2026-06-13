@@ -1264,8 +1264,16 @@ const App = ({ transportType, region = "", testingMode = false }) => {
           href={testingSurveyUrl}
           target="_blank"
           rel="noreferrer"
-          className="survey-cta-attention fixed bottom-5 left-5 right-5 z-[95] inline-flex min-h-[3.9rem] items-center justify-center rounded-full bg-white px-6 py-3 text-center text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_20px_44px_rgba(0,0,0,0.42),0_8px_18px_rgba(0,0,0,0.3)] transition duration-200 hover:brightness-[0.98] active:scale-[0.98]"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }}
+          className={`survey-cta-attention z-[95] inline-flex min-h-[3.9rem] items-center justify-center rounded-full bg-white px-6 py-3 text-center text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_20px_44px_rgba(0,0,0,0.42),0_8px_18px_rgba(0,0,0,0.3)] transition duration-200 hover:brightness-[0.98] active:scale-[0.98] ${
+            desktopIpadFrame
+              ? "absolute bottom-4 left-4 right-4"
+              : "fixed bottom-5 left-5 right-5"
+          }`}
+          style={
+            desktopIpadFrame
+              ? undefined
+              : { bottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }
+          }
         >
           <span className="block leading-[1.15]">
             <span className="block">Share a quick thought with us</span>
