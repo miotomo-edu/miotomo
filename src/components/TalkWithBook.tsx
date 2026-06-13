@@ -252,6 +252,9 @@ export const TalkWithBook = ({
   const terminalSilenceTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const localListeningDebounceRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -279,7 +282,11 @@ export const TalkWithBook = ({
     useState<{ openVocabularyGame: boolean } | null>(null);
   const [isLeavingDiscussion, setIsLeavingDiscussion] = useState(false);
   const [isAwaitingFirstBotTurn, setIsAwaitingFirstBotTurn] = useState(false);
+  const [hasUnlockedFirstUserTurn, setHasUnlockedFirstUserTurn] =
+    useState(false);
   const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
+  const [isLocalListeningCueVisible, setIsLocalListeningCueVisible] =
+    useState(false);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -733,6 +740,7 @@ export const TalkWithBook = ({
     lastMicControlSentRef.current = { action: "", payloadKey: "" };
     transportMicEnabledRef.current = null;
     setIsAwaitingFirstBotTurn(false);
+    setHasUnlockedFirstUserTurn(false);
     setIsSessionEndingTimeUp(false);
     setPendingServerCompletionOptions(null);
     setSessionEndingReason(null);
@@ -1139,6 +1147,7 @@ export const TalkWithBook = ({
     conversationStartedTrackedRef.current = false;
     conversationCompletedTrackedRef.current = false;
     firstTurnPromptConsumedRef.current = false;
+    setHasUnlockedFirstUserTurn(false);
     pendingIntroInterruptRef.current = null;
     pendingIntroCompletedRef.current = null;
     botReadyRef.current = false;
@@ -2245,6 +2254,7 @@ export const TalkWithBook = ({
       setIsBotSpeaking(false);
       if (startedChatRef.current && isAwaitingFirstBotTurn) {
         setIsAwaitingFirstBotTurn(false);
+        setHasUnlockedFirstUserTurn(true);
         if (!userMutedRef.current) {
           syncMic(true, { force: true });
           startListening();
@@ -2666,6 +2676,82 @@ export const TalkWithBook = ({
     };
   }, [backgroundImage]);
 
+  useEffect(() => {
+    const currentListeningStatus = (
+      listeningStatus ??
+      lastListeningStatusRef.current ??
+      ""
+    ).toLowerCase();
+    const currentTalkingStatus = (
+      talkingStatus ??
+      lastTalkingStatusRef.current ??
+      "not_started"
+    ).toLowerCase();
+    const micVisibilityEligible =
+      currentListeningStatus === "completed" &&
+      currentTalkingStatus !== "completed" &&
+      !sessionEndingReason;
+    const canShowLocalListeningCue =
+      sessionPhase === "chat_active" &&
+      micVisibilityEligible &&
+      hasUnlockedFirstUserTurn &&
+      !firstTurnPromptConsumedRef.current &&
+      !isMicActive &&
+      !isBotSpeaking &&
+      !isBotThinking &&
+      !isAwaitingFirstBotTurn &&
+      !isSessionEndingTimeUp;
+
+    if (!canShowLocalListeningCue) {
+      if (localListeningDebounceRef.current) {
+        clearTimeout(localListeningDebounceRef.current);
+        localListeningDebounceRef.current = null;
+      }
+      setIsLocalListeningCueVisible(false);
+      return;
+    }
+
+    const LOCAL_LISTENING_THRESHOLD = 0.15;
+    const LOCAL_LISTENING_DEBOUNCE_MS = 150;
+    const hasLocalVoiceActivity =
+      normalizedUserVolume >= LOCAL_LISTENING_THRESHOLD;
+
+    if (hasLocalVoiceActivity) {
+      if (!localListeningDebounceRef.current && !isLocalListeningCueVisible) {
+        localListeningDebounceRef.current = setTimeout(() => {
+          localListeningDebounceRef.current = null;
+          setIsLocalListeningCueVisible(true);
+        }, LOCAL_LISTENING_DEBOUNCE_MS);
+      }
+    } else {
+      if (localListeningDebounceRef.current) {
+        clearTimeout(localListeningDebounceRef.current);
+        localListeningDebounceRef.current = null;
+      }
+      setIsLocalListeningCueVisible(false);
+    }
+
+    return () => {
+      if (localListeningDebounceRef.current) {
+        clearTimeout(localListeningDebounceRef.current);
+        localListeningDebounceRef.current = null;
+      }
+    };
+  }, [
+    hasUnlockedFirstUserTurn,
+    isAwaitingFirstBotTurn,
+    isBotSpeaking,
+    isBotThinking,
+    isLocalListeningCueVisible,
+    isMicActive,
+    isSessionEndingTimeUp,
+    normalizedUserVolume,
+    sessionPhase,
+    listeningStatus,
+    talkingStatus,
+    sessionEndingReason,
+  ]);
+
   const talkBackgroundStyle = useMemo(() => {
     return {
       backgroundColor: "#000",
@@ -2820,9 +2906,19 @@ export const TalkWithBook = ({
     !isSessionEndingTimeUp;
   const shouldShowUserTurnPrompt =
     sessionPhase === "chat_active" &&
-    status === VoiceBotStatus.LISTENING &&
+    hasUnlockedFirstUserTurn &&
     !firstTurnPromptConsumedRef.current &&
     shouldShowMic &&
+    !isMicActive &&
+    !isBotSpeaking &&
+    !isBotThinking &&
+    !isAwaitingFirstBotTurn &&
+    !isSessionEndingTimeUp &&
+    isConnected;
+  const shouldShowLocalListeningPrompt =
+    sessionPhase === "chat_active" &&
+    hasUnlockedFirstUserTurn &&
+    isLocalListeningCueVisible &&
     !isMicActive &&
     !isBotSpeaking &&
     !isBotThinking &&
@@ -2910,6 +3006,7 @@ export const TalkWithBook = ({
             )}
 
             {(shouldShowConnectingPrompt ||
+              shouldShowLocalListeningPrompt ||
               shouldShowUserTurnPrompt ||
               shouldShowThinkingHud) && (
               <div className="absolute inset-x-0 bottom-0 flex justify-center">
@@ -2925,6 +3022,8 @@ export const TalkWithBook = ({
                     </>
                   ) : shouldShowConnectingPrompt ? (
                     <span>Connecting...</span>
+                  ) : shouldShowLocalListeningPrompt ? (
+                    <span>Listening...</span>
                   ) : (
                     <span>
                       Your turn to talk
