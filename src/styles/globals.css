@@ -133,8 +133,13 @@ html.desktop-ipad-frame {
   .nav-attention-bump,
   .animate-spin,
   .animate-ping,
-  .slow-spin {
+  .slow-spin,
+  .landing-intro-flight {
     animation: none !important;
+  }
+
+  .landing-intro-flight {
+    transform: translate3d(82vw, -44vh, 0) scale(1.2) rotate(0deg) !important;
   }
 }
 
@@ -192,6 +197,23 @@ html.desktop-ipad-frame {
   will-change: transform, opacity;
 }
 
+@keyframes landingIntroFlightPath {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.4) rotate(18deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(52vw, -50vh, 0) scale(1.6) rotate(0deg);
+  }
+}
+
+.landing-intro-flight {
+  animation: landingIntroFlightPath 2s cubic-bezier(0.22, 0.84, 0.18, 1) 0.12s
+    both;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
 
 .talk-turn-chip {
   display: inline-flex;
@@ -274,7 +296,6 @@ html.desktop-ipad-frame {
   will-change: height, opacity;
   transform-origin: center bottom;
 }
-
 
 .talk-turn-message {
   display: inline-flex;

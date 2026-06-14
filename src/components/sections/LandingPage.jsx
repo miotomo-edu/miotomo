@@ -11,6 +11,7 @@ import placeholder3Landscape from "../../assets/img/onboarding/landscape/step3.w
 import placeholder4Landscape from "../../assets/img/onboarding/landscape/step4.webp";
 import placeholder5Landscape from "../../assets/img/onboarding/landscape/step5.webp";
 import introBackground from "../../assets/img/onboarding/tomo-flying-bg.png";
+import introFlyingTomo from "../../assets/img/onboarding/tomo-flying-solo.png";
 
 const TOMO_RUNNING_VIDEO_URL =
   "https://res.cloudinary.com/dl7wz4oiy/video/upload/v1781255594/tomo-intro-music_w5kbrj.mp4";
@@ -405,8 +406,17 @@ function LandingPage({ onContinue }) {
         }}
       >
         {isIntroStep && (
-          <div className="flex h-full w-full items-center justify-center px-7 pb-40 pt-16 md:px-12">
-            <div className="max-w-md text-left text-[#F0E6CF] md:max-w-2xl md:text-center">
+          <div className="relative flex h-full w-full items-center justify-start overflow-hidden px-7 pb-32 pt-16 md:px-12 md:pb-36">
+            <div className="pointer-events-none absolute inset-0">
+              <div className="landing-intro-flight absolute bottom-[6%] left-[4%] w-[8.75rem] sm:bottom-[7%] sm:left-[5%] sm:w-[10.5rem] md:bottom-[8%] md:left-[6%] md:w-[12rem] lg:w-[13rem]">
+                <img
+                  src={introFlyingTomo}
+                  alt=""
+                  className="block h-auto w-full drop-shadow-[0_18px_30px_rgba(17,7,35,0.24)]"
+                />
+              </div>
+            </div>
+            <div className="relative z-10 max-w-[15.5rem] text-left text-[#F0E6CF] sm:max-w-[18rem] md:max-w-2xl md:text-center">
               <h1
                 className="text-5xl font-semibold leading-[0.98] tracking-[-0.04em] md:text-6xl"
                 style={{ fontFamily: '"Fraunces", serif', color: "#F0E6CF" }}
