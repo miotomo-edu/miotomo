@@ -84,12 +84,14 @@ function LandingPage({ onContinue }) {
   const [videoReadyToContinue, setVideoReadyToContinue] = useState(false);
   const [videoNeedsManualStart, setVideoNeedsManualStart] = useState(false);
   const [activeVideoOverlays, setActiveVideoOverlays] = useState([]);
+  const [introFlightStarted, setIntroFlightStarted] = useState(false);
   const touchStartRef = useRef({ x: 0, y: 0 });
   const [imageHeight, setImageHeight] = useState(null);
   const containerRef = useRef(null);
   const preloadRef = useRef(false);
   const transitionTimerRef = useRef(null);
   const videoRef = useRef(null);
+  const introFlightImageRef = useRef(null);
 
   const startTransition = (nextStep) => {
     if (nextStep === currentStep) return;
@@ -212,7 +214,25 @@ function LandingPage({ onContinue }) {
     setVideoReadyToContinue(false);
     setVideoNeedsManualStart(false);
     setActiveVideoOverlays([]);
+    setIntroFlightStarted(false);
   }, [currentStep]);
+
+  useEffect(() => {
+    if (!isIntroStep) return undefined;
+
+    const maybeStartFlight = () => {
+      window.requestAnimationFrame(() => {
+        setIntroFlightStarted(true);
+      });
+    };
+
+    const image = introFlightImageRef.current;
+    if (image?.complete) {
+      maybeStartFlight();
+    }
+
+    return undefined;
+  }, [isIntroStep, transitionKey]);
 
   useEffect(() => {
     if (!isVideoStep || !videoRef.current) return undefined;
@@ -408,11 +428,19 @@ function LandingPage({ onContinue }) {
         {isIntroStep && (
           <div className="relative flex h-full w-full items-center justify-start overflow-hidden px-7 pb-32 pt-16 md:px-12 md:pb-36">
             <div className="pointer-events-none absolute inset-0">
-              <div className="landing-intro-flight absolute bottom-[6%] left-[4%] w-[8.75rem] sm:bottom-[7%] sm:left-[5%] sm:w-[10.5rem] md:bottom-[8%] md:left-[6%] md:w-[12rem] lg:w-[13rem]">
+              <div
+                className={`absolute right-[3%] top-[10%] w-[8.75rem] sm:right-[4%] sm:top-[9%] sm:w-[10.5rem] md:right-[6%] md:top-[8%] md:w-[12rem] lg:w-[13rem] ${
+                  introFlightStarted
+                    ? "landing-intro-flight"
+                    : "landing-intro-flight--pre"
+                }`}
+              >
                 <img
+                  ref={introFlightImageRef}
                   src={introFlyingTomo}
                   alt=""
                   className="block h-auto w-full drop-shadow-[0_18px_30px_rgba(17,7,35,0.24)]"
+                  onLoad={() => setIntroFlightStarted(true)}
                 />
               </div>
             </div>
