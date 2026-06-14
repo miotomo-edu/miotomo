@@ -2607,6 +2607,10 @@ export const TalkWithBook = ({
   }, [eventMeta.gameType, modalityKey]);
 
   const renderedServerContent = useMemo(() => {
+    if (sessionEndingReason === "function-call-user") {
+      return <div className="h-full w-full" />;
+    }
+
     if (sessionEndingReason) {
       return (
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-6 py-5 text-center text-white">
@@ -2662,7 +2666,10 @@ export const TalkWithBook = ({
     panelKey,
     serverEvent,
     eventMeta.eventType,
+    handleShowDotCompletion,
     isCelebrating,
+    isLeavingDiscussion,
+    onShowDotCompletion,
     sessionEndingReason,
   ]);
 
@@ -2701,6 +2708,9 @@ export const TalkWithBook = ({
   const shouldUseListeningBackground =
     isListenMode || activityState !== "talking";
   const discussionCustomFilename = useMemo(() => {
+    if (isListenMode) {
+      return "talk.png";
+    }
     if (shouldUseListeningBackground) {
       return "listening.png";
     }
@@ -2712,7 +2722,7 @@ export const TalkWithBook = ({
       }
     }
     return null;
-  }, [activityState, shouldUseListeningBackground, talkingCharacterName]);
+  }, [activityState, isListenMode, shouldUseListeningBackground, talkingCharacterName]);
   const backgroundImage = resolveDiscussionBackground({
     bookId: selectedBook?.id,
     isTeachtime: isTeachtimeDiscussion,
@@ -3025,6 +3035,8 @@ export const TalkWithBook = ({
   const gradientTop = backgroundHeight
     ? Math.max(0, backgroundHeight - gradientHeight)
     : null;
+  const shouldShowFunctionCallUserOutro =
+    sessionEndingReason === "function-call-user";
   const isBotAudioMuted =
     sessionPhase === "intro_loading" ||
     sessionPhase === "intro_playing" ||
@@ -3104,6 +3116,31 @@ export const TalkWithBook = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {shouldShowFunctionCallUserOutro && (
+        <div className="absolute inset-x-0 bottom-[9.35rem] z-30 flex justify-center px-6 md:bottom-[10.5rem]">
+          <div className="flex w-full max-w-[22rem] flex-col items-center gap-4 text-center text-white">
+            <div className="flex flex-col items-center gap-2">
+              <span className="font-display text-4xl font-extrabold tracking-tight text-[#FFF5D6]">
+                Thanks for talking today
+              </span>
+              <span className="text-base font-medium leading-7 text-white/78">
+                Let&apos;s keep going.
+              </span>
+            </div>
+            {onShowDotCompletion ? (
+              <button
+                type="button"
+                onClick={handleShowDotCompletion}
+                disabled={isLeavingDiscussion}
+                className="inline-flex min-h-[3.65rem] items-center justify-center rounded-full bg-[#FAC304] px-8 py-3 text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_16px_36px_rgba(0,0,0,0.28)] transition hover:brightness-[0.98] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            ) : null}
           </div>
         </div>
       )}
