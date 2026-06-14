@@ -3,6 +3,9 @@
 
 :root {
   --font-display: "Baloo 2", "Nunito", sans-serif;
+  --gold: #fac304;
+  --lizard-green: #b6c356;
+  --button-gold: var(--lizard-green);
 }
 
 html,
@@ -124,6 +127,50 @@ html.desktop-ipad-frame {
 :focus-visible {
   outline: 2px solid #fac304;
   outline-offset: 2px;
+}
+
+button {
+  background: var(--button-gold) !important;
+}
+
+.talk-with-book button {
+  background: transparent !important;
+}
+
+.talk-with-book .discussion-complete-splash__button {
+  background: var(--lizard-green) !important;
+}
+
+.visual-vocabulary-game__replay {
+  background: transparent !important;
+}
+
+.progress-v2 .progress-v2-toggle__button {
+  background: transparent !important;
+}
+
+.progress-v2 .progress-v2-toggle__button--active {
+  background: #f0e6cf !important;
+}
+
+.progress-v2 .progress-v2-nav__button {
+  background: transparent !important;
+}
+
+.progress-v2 .progress-v2-day__button {
+  background: transparent !important;
+}
+
+.progress-v2 .progress-v2-day__button--selected {
+  background: var(--gold) !important;
+}
+
+.progress-v2 .progress-v2-day__button--session {
+  background: rgba(182, 195, 86, 0.12) !important;
+}
+
+.progress-v2 .progress-v2-day__button--idle {
+  background: rgba(240, 230, 207, 0.04) !important;
 }
 
 /* Accessibility: stop only high-motion looping animations, keep UI transitions and subtle hints */

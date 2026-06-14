@@ -574,6 +574,7 @@ const NavBar: React.FC<{
 
   return (
     <div
+      className="progress-v2-nav"
       style={{
         display: "flex",
         alignItems: "center",
@@ -589,6 +590,7 @@ const NavBar: React.FC<{
         type="button"
         onClick={onPrev}
         disabled={!canPrev}
+        className="progress-v2-nav__button"
         style={navButtonStyle(!canPrev)}
       >
         ‹
@@ -607,6 +609,7 @@ const NavBar: React.FC<{
         type="button"
         onClick={onNext}
         disabled={!canNext}
+        className="progress-v2-nav__button"
         style={navButtonStyle(!canNext)}
       >
         ›
@@ -1881,7 +1884,7 @@ const ProgressSectionV2: React.FC<ProgressSectionV2Props> = ({
         };
 
   return (
-    <section style={{ ...progressThemeVars, ...pageStyle }}>
+    <section className="progress-v2" style={{ ...progressThemeVars, ...pageStyle }}>
       <div
         style={{
           display: "flex",
@@ -1918,6 +1921,9 @@ const ProgressSectionV2: React.FC<ProgressSectionV2Props> = ({
               key={value}
               type="button"
               onClick={() => setRange(value)}
+              className={`progress-v2-toggle__button ${
+                range === value ? "progress-v2-toggle__button--active" : ""
+              }`}
               style={{
                 ...baseButtonStyle,
                 background: range === value ? "#f0e6cf" : "transparent",
@@ -1963,6 +1969,13 @@ const ProgressSectionV2: React.FC<ProgressSectionV2Props> = ({
                 <button
                   key={`${currentDay.date}-${index}`}
                   type="button"
+                  className={`progress-v2-day__button ${
+                    isSelected
+                      ? "progress-v2-day__button--selected"
+                      : hasSession
+                        ? "progress-v2-day__button--session"
+                        : "progress-v2-day__button--idle"
+                  }`}
                   onClick={() => {
                     if (hasSession) {
                       setDayIndex(index);

@@ -1086,7 +1086,10 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
           <p className="max-w-xl text-lg leading-8 text-[#020617]/60 md:text-2xl">
             Next up: spelling the word you just learned.
           </p>
-          <div className="text-sm uppercase tracking-super text-brand-primary md:text-base">
+          <div
+            className="text-sm uppercase tracking-super md:text-base"
+            style={{ color: "var(--lizard-green)" }}
+          >
             Score: {completionCorrectCount} / {completionItemCount}
           </div>
         </div>

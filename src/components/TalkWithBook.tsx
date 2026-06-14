@@ -3045,7 +3045,7 @@ export const TalkWithBook = ({
 
   return (
     <div
-      className={`inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass} bg-black text-white`}
+      className={`talk-with-book inset-0 flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${characterBgClass} bg-black text-white`}
       style={talkBackgroundStyle}
       ref={backgroundRef}
     >

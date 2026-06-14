@@ -644,7 +644,10 @@ const VisualSpellingGame: React.FC<VisualSpellingGameProps> = ({
               ? "Nice listening and nice spelling."
               : `The word was ${targetWord}.`}
           </p>
-          <div className="text-sm uppercase tracking-super text-brand-primary md:text-base">
+          <div
+            className="text-sm uppercase tracking-super md:text-base"
+            style={{ color: "var(--lizard-green)" }}
+          >
             Score: {isCompletionPreview ? 1 : correctCount} /{" "}
             {isCompletionPreview ? 1 : words.length}
           </div>

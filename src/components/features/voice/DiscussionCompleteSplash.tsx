@@ -56,7 +56,7 @@ const DiscussionCompleteSplash = ({
             type="button"
             onClick={onContinue}
             disabled={isContinuing}
-            className="w-full rounded-full bg-brand-primary px-8 py-4 text-lg font-bold uppercase tracking-wider text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 md:px-10 md:py-5 md:text-xl"
+            className="discussion-complete-splash__button w-full rounded-full px-8 py-4 text-lg font-bold uppercase tracking-wider text-[#2a2629] shadow-elevated shadow-inset-highlight transition hover:brightness-[1.03] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 md:px-10 md:py-5 md:text-xl"
           >
             {isContinuing ? "Opening vocabulary..." : "Go to Vocabulary"}
           </button>

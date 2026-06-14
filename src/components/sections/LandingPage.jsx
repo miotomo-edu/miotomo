@@ -554,13 +554,10 @@ function LandingPage({ onContinue }) {
         {(!isVideoStep || videoReadyToContinue) && (
           <button
             onClick={handleNext}
-            className={`w-full max-w-md rounded-full py-4 text-lg font-medium md:mx-auto md:max-w-lg ${
-              isIntroStep
-                ? "bg-[#FAC304] text-[#020617]"
-                : isVideoStep
-                  ? "bg-[#FAC304] text-[#020617]"
-                  : "mb-[40px] bg-[#FAC304] text-[#020617]"
+            className={`w-full max-w-md rounded-full py-4 text-lg font-medium text-[#020617] md:mx-auto md:max-w-lg ${
+              !isIntroStep && !isVideoStep ? "mb-[40px]" : ""
             }`}
+            style={{ background: "var(--lizard-green)" }}
           >
             {ctaLabel}
           </button>
