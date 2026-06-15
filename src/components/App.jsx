@@ -1055,7 +1055,13 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const renderComponent = () => {
     switch (activeComponent) {
       case "landing":
-        return <LandingPage onContinue={handleLandingContinue} />;
+        return (
+          <LandingPage
+            onContinue={handleLandingContinue}
+            studentId={resolvedStudentId}
+            studentName={student?.name ?? userName}
+          />
+        );
       case "onboarding":
         return (
           <OnboardingFlow
@@ -1200,7 +1206,12 @@ const App = ({ transportType, region = "", testingMode = false }) => {
           />
         );
       default:
-        return <LandingPage />;
+        return (
+          <LandingPage
+            studentId={resolvedStudentId}
+            studentName={student?.name ?? userName}
+          />
+        );
     }
   };
 
