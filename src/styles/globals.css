@@ -157,6 +157,10 @@ button {
   background: transparent !important;
 }
 
+.progress-v2 .progress-v2-drawer__button {
+  background: #32294A !important;
+}
+
 .progress-v2 .progress-v2-day__button {
   background: transparent !important;
 }

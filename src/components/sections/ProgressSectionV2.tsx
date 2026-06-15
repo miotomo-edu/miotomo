@@ -1143,10 +1143,11 @@ const Drawer: React.FC<{
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
+        className="progress-v2-drawer__button"
         style={{
           ...baseButtonStyle,
           width: "100%",
-          background: "#322a4a",
+          background: "#32294A",
           border: "1px solid rgba(240,230,207,0.08)",
           borderRadius: open ? "16px 16px 0 0" : 16,
           padding: "16px 18px",
