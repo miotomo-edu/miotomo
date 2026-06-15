@@ -31,7 +31,7 @@ const steps = [
     type: "intro",
     image: introBackground,
     title: "Teach Tomo about Earth",
-    text: "A voice-first adventure where curious children aged 6–12 teach an alien about Earth, building critical thinking and spoken confidence.",
+    text: "A voice AI first adventure where curious children aged 6–12 teach an alien about Earth, building critical thinking and spoken confidence.",
   },
   {
     id: 2,
@@ -109,8 +109,11 @@ function LandingPage({ onContinue, studentId = "", studentName = "" }) {
   const transitionTimerRef = useRef(null);
   const videoRef = useRef(null);
   const introFlightImageRef = useRef(null);
-  const { saveConsent, saving: savingConsent, error: consentError } =
-    useParentalConsent();
+  const {
+    saveConsent,
+    saving: savingConsent,
+    error: consentError,
+  } = useParentalConsent();
 
   const startTransition = (nextStep) => {
     if (nextStep === currentStep) return;
