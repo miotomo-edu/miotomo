@@ -1615,9 +1615,7 @@ const MonthlyView: React.FC<{
             <div
               key={`${adventure.title}-${index}`}
               style={{
-                background: adventure.done
-                  ? "linear-gradient(135deg,#2d2060 0%,#1e1040 100%)"
-                  : "#322a4a",
+                background: "#322a4a",
                 border: `1px solid ${
                   adventure.done
                     ? "rgba(182,195,86,0.3)"
@@ -1628,9 +1626,7 @@ const MonthlyView: React.FC<{
                 display: "flex",
                 alignItems: "center",
                 gap: 14,
-                boxShadow: adventure.done
-                  ? "0 6px 20px -10px rgba(182,195,86,0.25)"
-                  : "none",
+                boxShadow: "none",
               }}
             >
               <div

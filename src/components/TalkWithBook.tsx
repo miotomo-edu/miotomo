@@ -357,6 +357,10 @@ export const TalkWithBook = ({
   const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
   const [isLocalListeningCueVisible, setIsLocalListeningCueVisible] =
     useState(false);
+  const [discussionLengthSeconds, setDiscussionLengthSeconds] = useState<number | null>(null);
+  const [timerRemaining, setTimerRemaining] = useState<number | null>(null);
+  const discussionStartedAtRef = useRef<number | null>(null);
+  const discussionElapsedRef = useRef<number>(0);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -1869,6 +1873,36 @@ export const TalkWithBook = ({
   }, [sessionPhase, conversationReady, isBotReady, maybeStartChat]);
 
   useEffect(() => {
+    if (sessionPhase !== "chat_active" || discussionLengthSeconds === null) {
+      if (discussionStartedAtRef.current !== null) {
+        discussionElapsedRef.current += Math.floor(
+          (Date.now() - discussionStartedAtRef.current) / 1000,
+        );
+        discussionStartedAtRef.current = null;
+      }
+      return;
+    }
+    discussionStartedAtRef.current = Date.now();
+    const tick = () => {
+      const elapsed =
+        discussionElapsedRef.current +
+        Math.floor((Date.now() - (discussionStartedAtRef.current ?? Date.now())) / 1000);
+      setTimerRemaining(Math.max(0, discussionLengthSeconds - elapsed));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => {
+      clearInterval(id);
+      if (discussionStartedAtRef.current !== null) {
+        discussionElapsedRef.current += Math.floor(
+          (Date.now() - discussionStartedAtRef.current) / 1000,
+        );
+        discussionStartedAtRef.current = null;
+      }
+    };
+  }, [sessionPhase, discussionLengthSeconds]);
+
+  useEffect(() => {
     if (!isSessionEndingTimeUp || !pendingServerCompletionOptions) {
       if (terminalSilenceTimeoutRef.current) {
         clearTimeout(terminalSilenceTimeoutRef.current);
@@ -1986,6 +2020,10 @@ export const TalkWithBook = ({
     micEnabledRef.current = false;
     setIsMicEnabledUi(false);
     stopIntroAudio({ unload: true });
+    setDiscussionLengthSeconds(null);
+    setTimerRemaining(null);
+    discussionStartedAtRef.current = null;
+    discussionElapsedRef.current = 0;
   }, [selectedBook?.id, chapter, resetIntroState, stopIntroAudio]);
 
   useEffect(() => {
@@ -2003,7 +2041,7 @@ export const TalkWithBook = ({
       try {
         const { data, error } = await supabase
           .from("circles_dots")
-          .select("audio, duration, circle_id")
+          .select("audio, duration, circle_id, discussion_length_seconds")
           .eq("circle_id", selectedBook.id)
           .eq("episode", episode)
           .order("created_at", { ascending: false })
@@ -2025,6 +2063,9 @@ export const TalkWithBook = ({
           audio_url: data?.audio ?? null,
           duration: data?.duration ?? null,
         });
+        if (typeof data?.discussion_length_seconds === "number") {
+          setDiscussionLengthSeconds(data.discussion_length_seconds);
+        }
         introMetadataLoadedKeyRef.current = requestKey;
       } catch (err) {
         if (
@@ -3058,7 +3099,7 @@ export const TalkWithBook = ({
         }}
       />
       {/* Top scrim — ensures header text is legible on any background image */}
-      <div className="absolute inset-x-0 top-0 h-52 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none" />
       <div className="flex-none">
         <BookTitle
           book={selectedBook}
@@ -3075,6 +3116,16 @@ export const TalkWithBook = ({
             disconnectHere();
           }}
         />
+        {timerRemaining !== null && (
+          <div className="relative z-10 px-6 -mt-2 pb-2 flex items-center gap-1.5 text-sm font-semibold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+            <span aria-hidden="true">⏱</span>
+            <span className="font-mono tabular-nums">
+              {String(Math.floor(timerRemaining / 60)).padStart(2, "0")}:
+              {String(timerRemaining % 60).padStart(2, "0")}
+            </span>
+            <span className="font-sans">left</span>
+          </div>
+        )}
       </div>
 
       {showTurnHud && (
