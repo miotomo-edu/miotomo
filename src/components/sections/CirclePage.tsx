@@ -5,7 +5,6 @@ import { useBooks } from "../../hooks/useBooks";
 import { useCircleCover } from "../../hooks/useCircleCover";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import CircleCard from "../features/browse/CircleCard";
-import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
 import { VocabularyIcon } from "../common/icons/VocabularyIcon";
 import { StarIcon } from "../common/icons/StarIcon";
 
@@ -31,8 +30,6 @@ type EpisodeMeta = {
 
 type NextDotCardProps = {
   episode: number;
-  totalDots: number;
-  completedDots: number;
   title: string;
   typeName?: string;
   typeSlug?: string;
@@ -245,8 +242,6 @@ const getDotTags = (
 
 const NextDotCard: React.FC<NextDotCardProps> = ({
   episode,
-  totalDots,
-  completedDots,
   title,
   typeName,
   typeSlug,
@@ -256,67 +251,50 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
   const tags = getDotTags(typeSlug, typeName, vocabulary);
 
   return (
-    <section className="relative mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
-      <div className="px-5 pb-5 pt-5 pr-28 md:px-7 md:pb-6 md:pt-6 md:pr-36">
-        <div className="flex items-center gap-3 text-lg font-medium text-white/78 md:text-xl">
-          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-brand-primary" fill="currentColor">
+    <section className="mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
+      <div className="px-5 pb-5 pt-5 md:px-7 md:pb-6 md:pt-6">
+        <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/60">
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0 text-[#b6c356]" fill="currentColor">
             <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.3l-3.7 1.9.7-4.1-3-2.9 4.2-.7z" />
           </svg>
-          <span>Today&apos;s Mission</span>
+          <span>Today&apos;s Episode</span>
         </div>
-        <div className="mt-5 flex items-center gap-4">
-          <div className="flex min-w-0 items-start gap-4">
-            <CircleDotsSymbol
-              totalDots={totalDots}
-              completedDots={completedDots}
-              currentDot={episode}
-              label={episode}
-              size={56}
-              ringColor="#ffffff"
-              inactiveDotFill="#ffffff"
-              inactiveDotStroke="#ffffff"
-              completedDotFill="#FAC304"
-              completedDotStroke="#FAC304"
-              labelColor="#ffffff"
-              className="shrink-0 self-start md:h-[68px] md:w-[68px]"
-            />
-            <div className="min-w-0">
-              <div className="font-display text-3xl font-bold leading-[0.96] tracking-[-0.02em] md:text-4xl">
-                {title}
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/72 md:text-base">
-                {tags.map((tag) => (
-                  <span
-                    key={`${episode}-${tag.label}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium"
-                  >
-                    <LineTagIcon
-                      icon={tag.icon}
-                      className="h-[1.05em] w-[1.05em] shrink-0 text-white/85"
-                    />
-                    <span>{tag.label}</span>
-                  </span>
-                ))}
-              </div>
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#b6c356] text-lg font-bold text-black md:h-14 md:w-14 md:text-xl">
+            {episode}
+          </div>
+          <div className="min-w-0 pt-1">
+            <div className="font-display text-2xl font-bold leading-[1.1] tracking-[-0.02em] md:text-3xl">
+              {title}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {tags.map((tag) => (
+                <span
+                  key={`${episode}-${tag.label}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-white/60"
+                >
+                  <LineTagIcon
+                    icon={tag.icon}
+                    className="h-[1.05em] w-[1.05em] shrink-0 text-white/70"
+                  />
+                  <span>{tag.label}</span>
+                </span>
+              ))}
             </div>
           </div>
         </div>
-      </div>
-      <button
-        type="button"
-        onClick={onPlay}
-        aria-label={`Play ${title}`}
-        className="absolute right-5 top-1/2 flex h-18 w-18 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-black shadow-glow-gold transition hover:scale-[1.02] md:right-7 md:h-24 md:w-24"
-      >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 16 16"
-          className="ml-1 h-8 w-8 md:h-10 md:w-10"
-          fill="currentColor"
+        <button
+          type="button"
+          onClick={onPlay}
+          aria-label={`Play ${title}`}
+          className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#b6c356] py-4 text-base font-bold text-black transition hover:brightness-105 active:scale-[0.98]"
         >
-          <path d="M4 2.5v11l9-5.5-9-5.5z" />
-        </svg>
-      </button>
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="ml-0.5 h-5 w-5" fill="currentColor">
+            <path d="M4 2.5v11l9-5.5-9-5.5z" />
+          </svg>
+          Play Episode {episode}
+        </button>
+      </div>
     </section>
   );
 };
@@ -973,7 +951,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   const completedDotCount = completedDots.length;
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-white">
+    <div className="min-h-screen w-full flex flex-col bg-[#4F415F]">
       <header
         className="sticky top-0 w-full overflow-hidden"
         style={{ height: "62vh" }}
@@ -992,6 +970,15 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(244,238,224,0)_0%,rgba(27,29,22,0.08)_42%,rgba(12,14,12,0.86)_100%)]" />
         <div className="relative z-20 flex h-full flex-col px-6 py-6">
+          <div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-1.5 rounded-full !bg-white/90 px-4 py-2 text-sm font-semibold text-black backdrop-blur-sm transition hover:!bg-white active:scale-[0.97]"
+            >
+              ← Back
+            </button>
+          </div>
           <div className="mt-auto flex flex-col items-start gap-2 pb-16 text-white">
             <h1
               className="font-display text-left text-5xl font-bold leading-[1.02] md:text-5xl"
@@ -1003,27 +990,25 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
       </header>
 
-      <section className="relative z-10 -mt-16 bg-white px-6 pb-24 pt-8">
+      <section className="relative z-10 -mt-16 bg-[#4F415F] px-6 pb-24 pt-8">
         <div className="flex items-center justify-between">
           {isLoading && (
-            <span className="text-sm text-black/45 md:text-base">
+            <span className="text-sm text-white/45 md:text-base">
               Loading...
             </span>
           )}
         </div>
         {loadError && (
-          <div className="mt-3 text-sm text-red-600">{loadError}</div>
+          <div className="mt-3 text-sm text-red-400">{loadError}</div>
         )}
         {!episodeCount && (
-          <div className="mt-4 text-sm text-black/45">
+          <div className="mt-4 text-sm text-white/45">
             No episodes available yet.
           </div>
         )}
         {shouldShowTodayMission && nextEpisode ? (
           <NextDotCard
             episode={nextEpisode.episode}
-            totalDots={episodeCount}
-            completedDots={completedDotCount}
             title={nextEpisode.title || `Dot ${nextEpisode.episode}`}
             typeName={typeNamesByEpisode[nextEpisode.episode] || undefined}
             typeSlug={typeSlugsByEpisode[nextEpisode.episode] || undefined}
@@ -1032,9 +1017,14 @@ const CirclePage: React.FC<CirclePageProps> = ({
           />
         ) : null}
         {episodeCount > 0 && (
-          <h2 className="font-display mb-3 text-2xl font-bold text-[#020617]">
-            All Dots
-          </h2>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="font-display text-2xl font-bold text-white">
+              Your journey
+            </h2>
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/45">
+              {episodeCount} episodes
+            </span>
+          </div>
         )}
         <div className="mt-0 flex flex-col">
           {episodes.map((episode, index) => {
@@ -1062,46 +1052,32 @@ const CirclePage: React.FC<CirclePageProps> = ({
             if (isCurrent) {
               return (
                 <React.Fragment key={episode.episode}>
-                  <div className="flex w-full items-start gap-4 rounded-3xl px-4 py-4 ring-2 ring-brand-primary/50 bg-brand-primary/[0.06]">
-                    <CircleDotsSymbol
-                      totalDots={episodeCount}
-                      completedDots={completedDotCount}
-                      currentDot={episode.episode}
-                      label={episode.episode}
-                      size={52}
-                      ringColor="#0a1024"
-                      inactiveDotFill="#0a1024"
-                      inactiveDotStroke="#0a1024"
-                      completedDotFill="#FAC304"
-                      completedDotStroke="#FAC304"
-                      labelColor="#0a1024"
-                      className="shrink-0 self-start"
-                    />
+                  <div className="flex w-full items-start gap-4 rounded-3xl px-4 py-4 ring-2 ring-[#b6c356]/50 bg-[#b6c356]/[0.06]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#b6c356] text-base font-bold text-black md:h-[52px] md:w-[52px]">
+                      {episode.episode}
+                    </div>
                     <div className="py-1">
-                      <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-2.5 py-0.5 text-xs font-bold text-black">
-                        <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3" fill="currentColor">
-                          <path d="M4 2.5v11l9-5.5-9-5.5z" />
-                        </svg>
-                        Now playing
+                      <div className="mb-1.5 text-xs font-bold uppercase tracking-widest text-[#b6c356]">
+                        Current episode
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-black/50">
+                      <div className="font-display text-2xl font-bold leading-tight text-white">
+                        {title}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-white/55">
                         {tags.map((tag) => (
                           <span
                             key={`${episode.episode}-${tag.label}`}
                             className="inline-flex items-center gap-1.5 text-xs font-medium"
                           >
-                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-black" />
+                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-white/70" />
                             <span>{tag.label}</span>
                           </span>
                         ))}
                       </div>
-                      <div className="font-display text-2xl font-bold leading-tight text-black">
-                        {title}
-                      </div>
                     </div>
                   </div>
                   {index < episodes.length - 1 && (
-                    <div className="my-3 h-px w-full bg-black/8" />
+                    <div className="my-3 h-px w-full bg-white/10" />
                   )}
                 </React.Fragment>
               );
@@ -1122,30 +1098,25 @@ const CirclePage: React.FC<CirclePageProps> = ({
                 <div
                   className={`flex w-full items-start justify-between rounded-3xl px-4 py-4 transition md:px-5 md:py-5 ${
                     isCurrent
-                      ? "bg-black text-white shadow-elevated"
-                      : "bg-white/78 text-black"
+                      ? "bg-white/10 text-white"
+                      : "bg-transparent text-white"
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <CircleDotsSymbol
-                      totalDots={episodeCount}
-                      completedDots={completedDotCount}
-                      currentDot={episode.episode}
-                      label={episode.episode}
-                      size={52}
-                      ringColor={isCurrent ? "#ffffff" : "#0a1024"}
-                      inactiveDotFill={isCurrent ? "#ffffff" : "#0a1024"}
-                      inactiveDotStroke={isCurrent ? "#ffffff" : "#0a1024"}
-                      completedDotFill="#FAC304"
-                      completedDotStroke="#FAC304"
-                      labelColor={isCurrent ? "#ffffff" : "#0a1024"}
-                      className="shrink-0 self-start md:h-[60px] md:w-[60px]"
-                    />
+                    {isCompleted ? (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#b6c356] md:h-[52px] md:w-[52px]">
+                        <svg aria-hidden="true" viewBox="0 0 16 16" className="h-5 w-5" fill="none">
+                          <path d="M3.5 8.5l3.5 3.5 5.5-7" stroke="#0a1024" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white/20 text-base font-bold text-white/35 md:h-[52px] md:w-[52px]">
+                        {episode.episode}
+                      </div>
+                    )}
                     <div className="py-1">
                       <div
-                        className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm ${
-                          isCurrent ? "text-white/60" : "text-black/50"
-                        }`}
+                        className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-white/55"
                       >
                         {tags.map((tag) => (
                           <span
@@ -1154,24 +1125,20 @@ const CirclePage: React.FC<CirclePageProps> = ({
                           >
                             <LineTagIcon
                               icon={tag.icon}
-                              className={`h-[1.05em] w-[1.05em] shrink-0 ${
-                                isCurrent ? "text-white/85" : "text-black"
-                              }`}
+                              className="h-[1.05em] w-[1.05em] shrink-0 text-white/70"
                             />
                             <span>{tag.label}</span>
                           </span>
                         ))}
                         {isCompleted ? (
-                          <span className="font-semibold text-[#b07b00]">
+                          <span className="font-semibold text-[#b6c356]">
                             {tags.length > 0 ? "· " : ""}
                             Completed
                           </span>
                         ) : null}
                       </div>
                       <div
-                        className={`font-display text-2xl font-bold leading-tight ${
-                          isCurrent ? "text-white" : "text-black"
-                        }`}
+                        className="font-display text-2xl font-bold leading-tight text-white"
                       >
                         {title}
                       </div>
@@ -1181,7 +1148,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                             type="button"
                             onClick={() => handlePlay(episode.episode)}
                             disabled={isUpdating}
-                            className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black/18 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
+                            className="inline-flex items-center gap-2 rounded-full !bg-white/15 px-4 py-2.5 text-sm font-semibold text-white transition hover:!bg-white/22 active:scale-[0.97] disabled:cursor-not-allowed md:px-5 md:text-base"
                           >
                             <svg
                               aria-hidden="true"
@@ -1200,7 +1167,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   <div className="flex items-center gap-3" />
                 </div>
                 {index < episodes.length - 1 && (
-                  <div className="my-3 h-px w-full bg-black/8" />
+                  <div className="my-3 h-px w-full bg-white/10" />
                 )}
               </React.Fragment>
             );
@@ -1208,7 +1175,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         </div>
         {continueItems.length > 0 && (
           <div className="mt-12">
-            <h3 className="text-lg font-semibold text-black">Continue</h3>
+            <h3 className="text-lg font-semibold text-white">Continue</h3>
             <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {continueItems.map((item) => (
                 <CircleCard
