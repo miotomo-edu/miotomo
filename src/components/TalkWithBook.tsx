@@ -357,7 +357,9 @@ export const TalkWithBook = ({
   const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
   const [isLocalListeningCueVisible, setIsLocalListeningCueVisible] =
     useState(false);
-  const [discussionLengthSeconds, setDiscussionLengthSeconds] = useState<number | null>(null);
+  const [discussionLengthSeconds, setDiscussionLengthSeconds] = useState<
+    number | null
+  >(null);
   const [timerRemaining, setTimerRemaining] = useState<number | null>(null);
   const discussionStartedAtRef = useRef<number | null>(null);
   const discussionElapsedRef = useRef<number>(0);
@@ -1886,7 +1888,9 @@ export const TalkWithBook = ({
     const tick = () => {
       const elapsed =
         discussionElapsedRef.current +
-        Math.floor((Date.now() - (discussionStartedAtRef.current ?? Date.now())) / 1000);
+        Math.floor(
+          (Date.now() - (discussionStartedAtRef.current ?? Date.now())) / 1000,
+        );
       setTimerRemaining(Math.max(0, discussionLengthSeconds - elapsed));
     };
     tick();
@@ -2763,7 +2767,12 @@ export const TalkWithBook = ({
       }
     }
     return null;
-  }, [activityState, isListenMode, shouldUseListeningBackground, talkingCharacterName]);
+  }, [
+    activityState,
+    isListenMode,
+    shouldUseListeningBackground,
+    talkingCharacterName,
+  ]);
   const backgroundImage = resolveDiscussionBackground({
     bookId: selectedBook?.id,
     isTeachtime: isTeachtimeDiscussion,
@@ -3355,7 +3364,7 @@ export const TalkWithBook = ({
             </button>
           )}
 
-          {testingMode &&
+          {/*{testingMode &&
             onShowDotCompletion &&
             (sessionPhase === "chat_active" ||
               sessionPhase === "chat_paused") && (
@@ -3379,7 +3388,7 @@ export const TalkWithBook = ({
                   <path d="M3 8h10M9 4l4 4-4 4" />
                 </svg>
               </button>
-            )}
+            )}*/}
 
           {isCelebrating && !isConnected && (
             <button
