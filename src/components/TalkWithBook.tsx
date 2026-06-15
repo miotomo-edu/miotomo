@@ -3181,13 +3181,38 @@ export const TalkWithBook = ({
       )}
 
       {shouldShowFunctionCallUserOutro && (
-        <div className="absolute inset-x-0 bottom-[9.35rem] z-30 flex justify-center px-6 md:bottom-[10.5rem]">
-          <div className="flex w-full max-w-[22rem] flex-col items-center gap-4 text-center text-white">
+        <div
+          className="absolute inset-x-0 z-30 flex justify-center px-6"
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)" }}
+        >
+          <div className="flex w-full max-w-[22rem] flex-col items-center gap-3 text-center text-white md:gap-4">
+            <div className="flex w-full justify-end">
+              <button
+                type="button"
+                onClick={handleShowDotCompletion}
+                disabled={isLeavingDiscussion || !onShowDotCompletion}
+                aria-label="Next"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/14 text-white shadow-[0_12px_28px_rgba(0,0,0,0.2)] backdrop-blur-sm transition hover:bg-white/20 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
+              </button>
+            </div>
             <div className="flex flex-col items-center gap-2">
-              <span className="font-display text-4xl font-extrabold tracking-tight text-[#FFF5D6]">
+              <span className="font-display text-3xl font-extrabold tracking-tight text-[#FFF5D6] md:text-4xl">
                 Thanks for talking today
               </span>
-              <span className="text-base font-medium leading-7 text-white/78">
+              <span className="text-sm font-medium leading-6 text-white/78 md:text-base md:leading-7">
                 Let&apos;s keep going.
               </span>
             </div>
@@ -3196,7 +3221,7 @@ export const TalkWithBook = ({
                 type="button"
                 onClick={handleShowDotCompletion}
                 disabled={isLeavingDiscussion}
-                className="inline-flex min-h-[3.65rem] items-center justify-center rounded-full bg-[#FAC304] px-8 py-3 text-base font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_16px_36px_rgba(0,0,0,0.28)] transition hover:brightness-[0.98] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex min-h-[3.4rem] items-center justify-center rounded-full bg-[#FAC304] px-7 py-3 text-sm font-black uppercase tracking-[0.04em] text-[#2A1F11] shadow-[0_16px_36px_rgba(0,0,0,0.28)] transition hover:brightness-[0.98] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 md:min-h-[3.65rem] md:px-8 md:text-base"
               >
                 Next
               </button>
@@ -3364,7 +3389,7 @@ export const TalkWithBook = ({
             </button>
           )}
 
-          {/*{testingMode &&
+          {testingMode &&
             onShowDotCompletion &&
             (sessionPhase === "chat_active" ||
               sessionPhase === "chat_paused") && (
@@ -3388,7 +3413,7 @@ export const TalkWithBook = ({
                   <path d="M3 8h10M9 4l4 4-4 4" />
                 </svg>
               </button>
-            )}*/}
+            )}
 
           {isCelebrating && !isConnected && (
             <button

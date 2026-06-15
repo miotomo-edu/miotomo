@@ -1035,7 +1035,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         title="Nice Listening!"
         description="You heard some intersting words. Let's slow down and understand them together"
         subtitle="Next: Word meaning"
-        buttonLabel="Understand the words"
+        buttonLabel="Go to vocabulary"
         onStart={() => setShowIntro(false)}
         backgroundImage={vocabularyBackground}
         lightBackground

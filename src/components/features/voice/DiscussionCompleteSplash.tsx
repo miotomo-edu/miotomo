@@ -15,10 +15,32 @@ const DiscussionCompleteSplash = ({
   const entryClass = prefersReducedMotion ? "" : "animate-fade-in";
 
   return (
-    <div className="absolute inset-0 z-40 overflow-hidden bg-white/12 text-white backdrop-blur-xl">
+    <div className="absolute inset-0 z-40 overflow-y-auto bg-white/12 text-white backdrop-blur-xl">
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,24,0.18)_0%,rgba(10,14,24,0.32)_100%)]" />
 
-      <div className="relative flex min-h-screen flex-col px-6 pb-8 pt-10 md:px-10 md:pb-10">
+      <div className="relative flex min-h-[100dvh] flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-10 md:px-10 md:pb-10">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={isContinuing}
+            aria-label="Go to vocabulary"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/14 text-white shadow-[0_12px_28px_rgba(0,0,0,0.2)] backdrop-blur-sm transition hover:bg-white/20 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 8h10M9 4l4 4-4 4" />
+            </svg>
+          </button>
+        </div>
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center text-center">
           <img
             src={discussionCompleteTomo}
@@ -49,7 +71,7 @@ const DiscussionCompleteSplash = ({
         </div>
 
         <div
-          className={`mx-auto w-full max-w-3xl ${entryClass}`}
+          className={`mx-auto mt-8 w-full max-w-3xl shrink-0 ${entryClass}`}
           style={prefersReducedMotion ? undefined : { animationDelay: "220ms" }}
         >
           <button
