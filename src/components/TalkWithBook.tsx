@@ -3389,7 +3389,7 @@ export const TalkWithBook = ({
             </button>
           )}
 
-          {testingMode &&
+          {/*{testingMode &&
             onShowDotCompletion &&
             (sessionPhase === "chat_active" ||
               sessionPhase === "chat_paused") && (
@@ -3413,7 +3413,7 @@ export const TalkWithBook = ({
                   <path d="M3 8h10M9 4l4 4-4 4" />
                 </svg>
               </button>
-            )}
+            )}*/}
 
           {isCelebrating && !isConnected && (
             <button
