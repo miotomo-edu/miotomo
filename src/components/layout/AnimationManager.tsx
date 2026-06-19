@@ -8,6 +8,7 @@ interface Props {
   userVoiceAnalyser?: AnalyserNode;
   isUserSpeaking?: boolean;
   isBotSpeaking?: boolean;
+  isBotTurnPending?: boolean;
   isMicEnabled?: boolean;
   characterImages?: {
     idle: string;
@@ -26,19 +27,24 @@ interface MicOrbProps {
   isPaused: boolean;
   isListening: boolean;
   isTalking: boolean;
+  isWaitingForBot: boolean;
 }
 
 const MicOrb: React.FC<MicOrbProps> = ({
   isPaused,
   isListening,
   isTalking,
+  isWaitingForBot,
 }) => {
+  const showSpeaker = isTalking || isWaitingForBot;
   const ringClass = isTalking
-    ? "absolute inset-0 rounded-full border border-white/70 animate-pulse"
+    ? "absolute inset-0 rounded-full border border-white/45"
     : "absolute inset-0 rounded-full border border-transparent";
   const orbClass = isPaused
     ? "bg-white/10 border-white/30 text-white/50"
-    : isListening
+    : showSpeaker
+      ? "bg-white/18 border-white/70 text-white"
+      : isListening
       ? "bg-white/20 border-white text-white"
       : "bg-white/15 border-white/60 text-white/80";
 
@@ -48,45 +54,75 @@ const MicOrb: React.FC<MicOrbProps> = ({
       <span
         className={`relative flex h-20 w-20 items-center justify-center rounded-full border-2 shadow-[0_8px_24px_rgba(0,0,0,0.35)] sm:h-24 sm:w-24 ${orbClass}`}
       >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="h-8 w-8 sm:h-9 sm:w-9"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 4C10.343 4 9 5.343 9 7V12C9 13.657 10.343 15 12 15C13.657 15 15 13.657 15 12V7C15 5.343 13.657 4 12 4Z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          />
-          <path
-            d="M6 11V12C6 15.314 8.686 18 12 18C15.314 18 18 15.314 18 12V11"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-          <path
-            d="M12 18V21"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-          <path
-            d="M9 21H15"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-          {isPaused && (
+        {showSpeaker ? (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-9 w-9 sm:h-10 sm:w-10"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
-              d="M6 6L18 18"
+              d="M4 10.2V13.8C4 14.46 4.54 15 5.2 15H7.6L12 18.5V5.5L7.6 9H5.2C4.54 9 4 9.54 4 10.2Z"
+              fill="currentColor"
+              opacity="0.95"
+            />
+            <path
+              className={isTalking ? "speaker-wave speaker-wave--near" : ""}
+              d="M15.2 9.2C16.05 10.8 16.05 13.2 15.2 14.8"
               stroke="currentColor"
               strokeWidth="1.8"
               strokeLinecap="round"
             />
-          )}
-        </svg>
+            <path
+              className={isTalking ? "speaker-wave speaker-wave--far" : ""}
+              d="M18 7C19.9 9.7 19.9 14.3 18 17"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-8 w-8 sm:h-9 sm:w-9"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 4C10.343 4 9 5.343 9 7V12C9 13.657 10.343 15 12 15C13.657 15 15 13.657 15 12V7C15 5.343 13.657 4 12 4Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            />
+            <path
+              d="M6 11V12C6 15.314 8.686 18 12 18C15.314 18 18 15.314 18 12V11"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M12 18V21"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M9 21H15"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+            {isPaused && (
+              <path
+                d="M6 6L18 18"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            )}
+          </svg>
+        )}
       </span>
     </div>
   );
@@ -97,6 +133,7 @@ const AnimationManager: React.FC<Props> = ({
   userVoiceAnalyser,
   isUserSpeaking = false,
   isBotSpeaking = false,
+  isBotTurnPending = false,
   isMicEnabled = false,
   characterImages,
   characterName,
@@ -176,7 +213,9 @@ const AnimationManager: React.FC<Props> = ({
   );
   const isPausedDisplay = isSleepingDisplay;
   const isListeningState = Boolean(isMicEnabled && !isBotSpeaking);
-  const isTalkingState = Boolean(isMicEnabled && isBotSpeaking);
+  const isTalkingState = Boolean(isBotSpeaking);
+  const isWaitingForBotState = Boolean(isBotTurnPending && !isBotSpeaking);
+  const orbDisabled = isCelebrating || isMicToggleDisabled;
 
   return (
     <div className="flex items-center justify-center gap-4">
@@ -184,14 +223,19 @@ const AnimationManager: React.FC<Props> = ({
         <button
           onClick={handleOrbClick}
           className="relative inline-flex items-center justify-center"
-          disabled={isCelebrating || isMicToggleDisabled}
-          aria-label="Toggle microphone"
+          disabled={orbDisabled}
+          aria-label={
+            isTalkingState || isWaitingForBotState
+              ? "Character speaking"
+              : "Toggle microphone"
+          }
         >
           {useMicOrb ? (
             <MicOrb
               isPaused={isPausedDisplay}
               isListening={isListeningState}
               isTalking={isTalkingState}
+              isWaitingForBot={isWaitingForBotState}
             />
           ) : (
             <CharacterAvatar

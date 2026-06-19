@@ -355,6 +355,8 @@ export const TalkWithBook = ({
     useState<{ openVocabularyGame: boolean } | null>(null);
   const [isLeavingDiscussion, setIsLeavingDiscussion] = useState(false);
   const [isAwaitingFirstBotTurn, setIsAwaitingFirstBotTurn] = useState(false);
+  const [hasFirstBotUtteranceStarted, setHasFirstBotUtteranceStarted] =
+    useState(false);
   const [hasUnlockedFirstUserTurn, setHasUnlockedFirstUserTurn] =
     useState(false);
   const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
@@ -1138,6 +1140,7 @@ export const TalkWithBook = ({
         conversationStartedTrackedRef.current = true;
         void trackDiscussionEvent("conversation_started");
       }
+      setHasFirstBotUtteranceStarted(false);
       setIsAwaitingFirstBotTurn(true);
       setPhase(userMutedRef.current ? "chat_paused" : "chat_active");
       addLog("✅ start-chat sent");
@@ -1235,6 +1238,7 @@ export const TalkWithBook = ({
     conversationStartedTrackedRef.current = false;
     conversationCompletedTrackedRef.current = false;
     firstTurnPromptConsumedRef.current = false;
+    setHasFirstBotUtteranceStarted(false);
     setHasUnlockedFirstUserTurn(false);
     if (firstUserTurnCueDismissRef.current) {
       clearTimeout(firstUserTurnCueDismissRef.current);
@@ -2384,6 +2388,9 @@ export const TalkWithBook = ({
 
     const onBotStartedSpeaking = (payload) => {
       logRtviEvent("BotStartedSpeaking", payload);
+      if (startedChatRef.current && isAwaitingFirstBotTurn) {
+        setHasFirstBotUtteranceStarted(true);
+      }
       setIsBotSpeaking(true);
       setIsBotThinking(false);
       if (isSessionEndingTimeUp) {
@@ -3088,6 +3095,14 @@ export const TalkWithBook = ({
     !isCelebrating &&
     !isLeavingDiscussion &&
     !isSessionEndingTimeUp;
+  const shouldHideOrbBeforeFirstBotUtterance =
+    shouldShowMic &&
+    !hasFirstBotUtteranceStarted &&
+    !hasUnlockedFirstUserTurn &&
+    (sessionPhase === "intro_done" ||
+      sessionPhase === "chat_active" ||
+      sessionPhase === "chat_paused" ||
+      isAwaitingFirstBotTurn);
   const shouldShowLocalListeningPrompt =
     sessionPhase === "chat_active" &&
     hasUnlockedFirstUserTurn &&
@@ -3350,13 +3365,16 @@ export const TalkWithBook = ({
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
       {!showDiscussionCompleteSplash && (
         <div className="absolute inset-x-0 bottom-32 flex flex-col items-center gap-3 px-4 md:bottom-36">
-          {shouldShowMic && !shouldShowFirstUserTurnCue && (
+          {shouldShowMic &&
+            !shouldShowFirstUserTurnCue &&
+            !shouldHideOrbBeforeFirstBotUtterance && (
             <div className="flex justify-center">
               <AnimationManager
                 agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
                 userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
                 isUserSpeaking={isMicActive}
                 isBotSpeaking={isBotSpeaking}
+                isBotTurnPending={isAwaitingFirstBotTurn}
                 isMicEnabled={isMicEnabledUi}
                 characterImages={currentCharacter?.images}
                 characterName={currentCharacter?.name}
@@ -3367,7 +3385,7 @@ export const TalkWithBook = ({
                 useMicOrb
               />
             </div>
-          )}
+            )}
           {showIntroPlayer && (
             <div
               className={`flex w-full max-w-md flex-col gap-2 transition-opacity md:max-w-2xl md:gap-3 ${
