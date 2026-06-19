@@ -3368,24 +3368,24 @@ export const TalkWithBook = ({
           {shouldShowMic &&
             !shouldShowFirstUserTurnCue &&
             !shouldHideOrbBeforeFirstBotUtterance && (
-            <div className="flex justify-center">
-              <AnimationManager
-                agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
-                userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
-                isUserSpeaking={isMicActive}
-                isBotSpeaking={isBotSpeaking}
-                isBotThinking={isBotThinking}
-                isBotTurnPending={isAwaitingFirstBotTurn}
-                isMicEnabled={isMicEnabledUi}
-                characterImages={currentCharacter?.images}
-                characterName={currentCharacter?.name}
-                onMicToggle={handleMicToggle}
-                isCelebrating={isCelebrating}
-                forceAwake={isIntroActive}
-                isMicToggleDisabled={isIntroActive}
-                useMicOrb
-              />
-            </div>
+              <div className="flex justify-center">
+                <AnimationManager
+                  agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
+                  userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
+                  isUserSpeaking={isMicActive}
+                  isBotSpeaking={isBotSpeaking}
+                  isBotThinking={isBotThinking}
+                  isBotTurnPending={isAwaitingFirstBotTurn}
+                  isMicEnabled={isMicEnabledUi}
+                  characterImages={currentCharacter?.images}
+                  characterName={currentCharacter?.name}
+                  onMicToggle={handleMicToggle}
+                  isCelebrating={isCelebrating}
+                  forceAwake={isIntroActive}
+                  isMicToggleDisabled={isIntroActive}
+                  useMicOrb
+                />
+              </div>
             )}
           {showIntroPlayer && (
             <div
@@ -3514,7 +3514,7 @@ export const TalkWithBook = ({
             </button>
           )}
 
-          {testingMode &&
+          {/*{testingMode &&
             onShowDotCompletion &&
             (sessionPhase === "chat_active" ||
               sessionPhase === "chat_paused") && (
@@ -3538,7 +3538,7 @@ export const TalkWithBook = ({
                   <path d="M3 8h10M9 4l4 4-4 4" />
                 </svg>
               </button>
-            )}
+            )}*/}
 
           {isCelebrating && !isConnected && (
             <button
