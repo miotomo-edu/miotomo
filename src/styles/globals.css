@@ -182,6 +182,7 @@ button {
   .mic-pulse,
   .hero-play-pulse,
   .nav-attention-bump,
+  .first-turn-cue-ring,
   .animate-spin,
   .animate-ping,
   .slow-spin,
@@ -209,6 +210,24 @@ button {
 
 .animate-fade-in {
   animation: fadeInSoft 0.28s ease-out;
+}
+
+@keyframes firstTurnCueRingPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.first-turn-cue-ring {
+  animation: firstTurnCueRingPulse 1.65s ease-in-out infinite;
+  animation-delay: var(--cue-ring-delay, 0ms);
+  transform-origin: center;
 }
 
 @keyframes heroPlayPulse {

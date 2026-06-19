@@ -325,6 +325,9 @@ export const TalkWithBook = ({
   const localListeningDebounceRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const firstUserTurnCueDismissRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const [isMicActive, setIsMicActive] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
@@ -356,6 +359,9 @@ export const TalkWithBook = ({
     useState(false);
   const [isSessionEndingTimeUp, setIsSessionEndingTimeUp] = useState(false);
   const [isLocalListeningCueVisible, setIsLocalListeningCueVisible] =
+    useState(false);
+  const [showFirstUserTurnCue, setShowFirstUserTurnCue] = useState(false);
+  const [isFirstUserTurnCueLeaving, setIsFirstUserTurnCueLeaving] =
     useState(false);
   const [discussionLengthSeconds, setDiscussionLengthSeconds] = useState<
     number | null
@@ -451,6 +457,10 @@ export const TalkWithBook = ({
       if (terminalSilenceTimeoutRef.current) {
         clearTimeout(terminalSilenceTimeoutRef.current);
         terminalSilenceTimeoutRef.current = null;
+      }
+      if (firstUserTurnCueDismissRef.current) {
+        clearTimeout(firstUserTurnCueDismissRef.current);
+        firstUserTurnCueDismissRef.current = null;
       }
     };
   }, []);
@@ -1226,6 +1236,12 @@ export const TalkWithBook = ({
     conversationCompletedTrackedRef.current = false;
     firstTurnPromptConsumedRef.current = false;
     setHasUnlockedFirstUserTurn(false);
+    if (firstUserTurnCueDismissRef.current) {
+      clearTimeout(firstUserTurnCueDismissRef.current);
+      firstUserTurnCueDismissRef.current = null;
+    }
+    setShowFirstUserTurnCue(false);
+    setIsFirstUserTurnCueLeaving(false);
     pendingIntroInterruptRef.current = null;
     pendingIntroCompletedRef.current = null;
     botReadyRef.current = false;
@@ -2354,6 +2370,15 @@ export const TalkWithBook = ({
 
     const onUserStoppedSpeaking = (payload) => {
       logRtviEvent("UserStoppedSpeaking", payload);
+      setIsFirstUserTurnCueLeaving(true);
+      if (firstUserTurnCueDismissRef.current) {
+        clearTimeout(firstUserTurnCueDismissRef.current);
+      }
+      firstUserTurnCueDismissRef.current = setTimeout(() => {
+        firstUserTurnCueDismissRef.current = null;
+        setShowFirstUserTurnCue(false);
+        setIsFirstUserTurnCueLeaving(false);
+      }, 320);
       setIsMicActive(false);
     };
 
@@ -2372,6 +2397,14 @@ export const TalkWithBook = ({
       if (startedChatRef.current && isAwaitingFirstBotTurn) {
         setIsAwaitingFirstBotTurn(false);
         setHasUnlockedFirstUserTurn(true);
+        if (!firstTurnPromptConsumedRef.current) {
+          if (firstUserTurnCueDismissRef.current) {
+            clearTimeout(firstUserTurnCueDismissRef.current);
+            firstUserTurnCueDismissRef.current = null;
+          }
+          setIsFirstUserTurnCueLeaving(false);
+          setShowFirstUserTurnCue(true);
+        }
         if (!userMutedRef.current) {
           syncMic(true, { force: true });
           startListening();
@@ -3048,6 +3081,13 @@ export const TalkWithBook = ({
     !isAwaitingFirstBotTurn &&
     !isSessionEndingTimeUp &&
     isConnected;
+  const shouldShowFirstUserTurnCue =
+    showFirstUserTurnCue &&
+    !showDiscussionCompleteSplash &&
+    !sessionEndingReason &&
+    !isCelebrating &&
+    !isLeavingDiscussion &&
+    !isSessionEndingTimeUp;
   const shouldShowLocalListeningPrompt =
     sessionPhase === "chat_active" &&
     hasUnlockedFirstUserTurn &&
@@ -3180,6 +3220,72 @@ export const TalkWithBook = ({
         </div>
       )}
 
+      {shouldShowFirstUserTurnCue && (
+        <div
+          className={`pointer-events-none absolute inset-0 z-[25] flex flex-col justify-end overflow-hidden transition duration-300 ease-out ${
+            isFirstUserTurnCueLeaving
+              ? "translate-y-2 opacity-0"
+              : "translate-y-0 opacity-100"
+          }`}
+          aria-live="polite"
+        >
+          <div className="absolute inset-x-0 bottom-0 h-[58vh] bg-gradient-to-t from-black via-black/78 to-transparent" />
+          <div
+            className="relative flex flex-col items-center px-6 text-center"
+            style={{
+              paddingBottom:
+                "max(4.6rem, calc(env(safe-area-inset-bottom, 0px) + 4.2rem))",
+            }}
+          >
+            <div
+              className="relative mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-[var(--lizard-green)] text-[#1B1B1B] shadow-[0_0_38px_rgba(182,195,86,0.56)]"
+              style={{
+                boxShadow:
+                  "0 0 0 7px rgba(255,255,255,0.08), 0 0 38px rgba(182,195,86,0.56)",
+              }}
+            >
+              <span
+                className="first-turn-cue-ring absolute inset-[-1.1rem] rounded-full border border-white/12"
+                style={{ "--cue-ring-delay": "0ms" }}
+              />
+              <span
+                className="first-turn-cue-ring absolute inset-[-2.05rem] rounded-full border border-white/8"
+                style={{ "--cue-ring-delay": "180ms" }}
+              />
+              <span
+                className="first-turn-cue-ring absolute inset-[-3rem] rounded-full border border-white/5"
+                style={{ "--cue-ring-delay": "360ms" }}
+              />
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="relative h-10 w-10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3Z" />
+                <path d="M5 11a7 7 0 0 0 14 0" />
+                <path d="M12 18v3" />
+                <path d="M8 21h8" />
+              </svg>
+            </div>
+            <h2 className="font-display text-[clamp(2.15rem,11vw,4.25rem)] font-black leading-[0.92] text-[#FFF5D6] drop-shadow-[0_4px_20px_rgba(0,0,0,0.55)]">
+              Your turn,
+              <br />
+              <span className="text-[var(--lizard-green)]">
+                {userDisplayName}!
+              </span>
+            </h2>
+            <p className="mt-5 max-w-[18rem] text-xl font-extrabold leading-tight text-white/86 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] md:max-w-none md:text-2xl">
+              Go ahead, Lucius and Marcus are listening!
+            </p>
+          </div>
+        </div>
+      )}
+
       {shouldShowFunctionCallUserOutro && (
         <div
           className="absolute inset-x-0 z-30 flex justify-center px-6"
@@ -3244,7 +3350,7 @@ export const TalkWithBook = ({
       <BotAudio volume={1} playbackRate={1} muted={isBotAudioMuted} />
       {!showDiscussionCompleteSplash && (
         <div className="absolute inset-x-0 bottom-32 flex flex-col items-center gap-3 px-4 md:bottom-36">
-          {shouldShowMic && (
+          {shouldShowMic && !shouldShowFirstUserTurnCue && (
             <div className="flex justify-center">
               <AnimationManager
                 agentVoiceAnalyser={agentVoiceAnalyser?.analyser || null}
