@@ -306,12 +306,18 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
 
             <div className="current-circle-hero__content w-full border-white/12 bg-[linear-gradient(180deg,rgba(15,15,13,0)_0%,rgba(9,9,8,0.32)_12%,rgba(8,8,7,0.84)_100%)] pb-0 pt-7 md:pt-8">
               <div className="current-circle-hero__inner px-5 md:px-8">
+                {item.kicker ? (
+                  <div className="current-circle-hero__kicker mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/90">
+                    <span className="h-2 w-2 rounded-full bg-[#b6c356]" aria-hidden="true" />
+                    {item.kicker}
+                  </div>
+                ) : null}
                 <button
                   type="button"
                   onClick={() =>
                     onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
                   }
-                  className="current-circle-hero__title-link min-w-0 max-w-[19rem] text-left md:max-w-[28rem]"
+                  className="current-circle-hero__title-link min-w-0 max-w-[19rem] !bg-transparent text-left md:max-w-[28rem]"
                   aria-label={`Open ${item.book.title}`}
                 >
                   <h1
@@ -325,22 +331,15 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     <span className="truncate">{`Dot ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
                   </div>
                 </button>
-                <div className="current-circle-hero__chevron pointer-events-none mt-5 flex justify-center text-white/82">
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 20 20"
-                    className="current-circle-hero__chevron-icon h-7 w-7 animate-bounce"
-                    fill="none"
-                  >
-                    <path
-                      d="M5 7.5L10 12.5L15 7.5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenCircle(item.book, Math.max(activeEpisodeNumber, 1))
+                  }
+                  className="current-circle-hero__open-button mt-5 w-full rounded-full border border-white/30 !bg-white/12 py-4 text-base font-bold text-white backdrop-blur-md transition hover:!bg-white/20 active:scale-[0.98]"
+                >
+                  Open adventure →
+                </button>
               </div>
             </div>
           </div>

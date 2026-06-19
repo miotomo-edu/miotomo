@@ -38,7 +38,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
     <button
       type="button"
       onClick={onSelect}
-      className="browse-circle-card group flex w-40 shrink-0 flex-col gap-2 text-left md:w-64 md:gap-3"
+      className="browse-circle-card group flex w-40 shrink-0 flex-col gap-2 text-left !bg-transparent md:w-64 md:gap-3"
       aria-label={`Open circle: ${book.title}`}
     >
       <div className="browse-circle-card__cover relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-white/70 ring-1 ring-black/10">
@@ -63,15 +63,15 @@ const CircleCard: React.FC<CircleCardProps> = ({
       </div>
       <div className="browse-circle-card__meta space-y-0.5">
         {kicker ? (
-          <div className="browse-circle-card__kicker text-xs font-semibold uppercase tracking-wide text-gray-600 md:text-sm">
+          <div className="browse-circle-card__kicker text-xs font-semibold uppercase tracking-wide text-white/70 md:text-sm">
             {kicker}
           </div>
         ) : null}
-        <div className="browse-circle-card__title font-display text-sm font-semibold text-gray-900 md:text-xl">
+        <div className="browse-circle-card__title font-display text-sm font-semibold text-white md:text-xl">
           {book.title}
         </div>
         {meta ? (
-          <div className="browse-circle-card__detail text-xs font-medium text-gray-500 md:text-base">
+          <div className="browse-circle-card__detail text-xs font-medium text-white/55 md:text-base">
             {meta}
           </div>
         ) : null}

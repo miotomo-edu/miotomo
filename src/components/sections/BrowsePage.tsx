@@ -130,7 +130,7 @@ const BrowseRowSkeleton: React.FC = () => (
 const BrowsePageSkeleton: React.FC = () => (
   <div className="min-h-screen bg-white">
     <S className="h-screen w-full rounded-none" />
-    <div className="relative z-10 -mt-8 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+    <div className="relative z-10 -mt-8 rounded-t-[32px] bg-[#4F415F] px-4 pb-24 pt-8">
       <div className="space-y-10">
         <BrowseRowSkeleton />
         <BrowseRowSkeleton />
@@ -345,7 +345,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     return {
       book,
       badge: undefined,
-      kicker: "CONTINUE TALKING",
+      kicker: "CONTINUE",
       totalDots,
       completedDots,
       currentDot: continueItem?.chapter,
@@ -501,7 +501,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   return (
-    <div className="browse-page min-h-screen bg-white">
+    <div className="browse-page min-h-screen bg-[#4F415F]">
       {currentCircleItem ? (
         <CurrentCircleHero
           studentId={studentId}
@@ -513,10 +513,10 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         />
       ) : null}
 
-      <div className="browse-page__content relative z-10 space-y-10 rounded-t-[32px] bg-white px-4 pb-24 pt-8">
+      <div className="browse-page__content relative z-10 space-y-10 rounded-t-[32px] bg-[#4F415F] px-4 pb-24 pt-8">
         <div>
-          <h2 className="browse-page__section-title font-display text-2xl font-bold text-[#020617]">
-            Explore Circles
+          <h2 className="browse-page__section-title font-display text-2xl font-bold text-white">
+            Explore Adventures
           </h2>
           <div className="mt-2">
             <CategoryChips />
