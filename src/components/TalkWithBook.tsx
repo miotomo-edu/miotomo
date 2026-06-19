@@ -3253,22 +3253,22 @@ export const TalkWithBook = ({
             }}
           >
             <div
-              className="relative mb-7 flex h-24 w-24 items-center justify-center rounded-full bg-[var(--lizard-green)] text-[#1B1B1B] shadow-[0_0_38px_rgba(182,195,86,0.56)]"
+              className="relative mb-7 flex h-24 w-24 items-center justify-center rounded-full border border-white/24 bg-white/18 text-white shadow-[0_0_38px_rgba(255,255,255,0.18)] backdrop-blur-sm"
               style={{
                 boxShadow:
-                  "0 0 0 7px rgba(255,255,255,0.08), 0 0 38px rgba(182,195,86,0.56)",
+                  "0 0 0 7px rgba(255,255,255,0.08), 0 0 38px rgba(255,255,255,0.18)",
               }}
             >
               <span
-                className="first-turn-cue-ring absolute inset-[-1.1rem] rounded-full border border-white/12"
+                className="first-turn-cue-ring absolute inset-[-1.1rem] rounded-full border border-white/28"
                 style={{ "--cue-ring-delay": "0ms" }}
               />
               <span
-                className="first-turn-cue-ring absolute inset-[-2.05rem] rounded-full border border-white/8"
+                className="first-turn-cue-ring absolute inset-[-2.05rem] rounded-full border border-white/20"
                 style={{ "--cue-ring-delay": "180ms" }}
               />
               <span
-                className="first-turn-cue-ring absolute inset-[-3rem] rounded-full border border-white/5"
+                className="first-turn-cue-ring absolute inset-[-3rem] rounded-full border border-white/14"
                 style={{ "--cue-ring-delay": "360ms" }}
               />
               <svg
