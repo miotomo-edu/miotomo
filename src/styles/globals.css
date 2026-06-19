@@ -184,6 +184,7 @@ button {
   .nav-attention-bump,
   .first-turn-cue-ring,
   .speaker-wave,
+  .thinking-spark,
   .animate-spin,
   .animate-ping,
   .slow-spin,
@@ -251,6 +252,32 @@ button {
 
 .speaker-wave--far {
   animation-delay: 120ms;
+}
+
+@keyframes thinkingSparkPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0) scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-0.08rem) scale(1.08);
+  }
+}
+
+.thinking-spark {
+  animation: thinkingSparkPulse 1.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.thinking-spark--two {
+  animation-delay: 160ms;
+}
+
+.thinking-spark--three {
+  animation-delay: 320ms;
 }
 
 @keyframes heroPlayPulse {

@@ -3374,6 +3374,7 @@ export const TalkWithBook = ({
                 userVoiceAnalyser={userVoiceAnalyser?.analyser || null}
                 isUserSpeaking={isMicActive}
                 isBotSpeaking={isBotSpeaking}
+                isBotThinking={isBotThinking}
                 isBotTurnPending={isAwaitingFirstBotTurn}
                 isMicEnabled={isMicEnabledUi}
                 characterImages={currentCharacter?.images}

@@ -8,6 +8,7 @@ interface Props {
   userVoiceAnalyser?: AnalyserNode;
   isUserSpeaking?: boolean;
   isBotSpeaking?: boolean;
+  isBotThinking?: boolean;
   isBotTurnPending?: boolean;
   isMicEnabled?: boolean;
   characterImages?: {
@@ -27,6 +28,7 @@ interface MicOrbProps {
   isPaused: boolean;
   isListening: boolean;
   isTalking: boolean;
+  isThinking: boolean;
   isWaitingForBot: boolean;
 }
 
@@ -34,6 +36,7 @@ const MicOrb: React.FC<MicOrbProps> = ({
   isPaused,
   isListening,
   isTalking,
+  isThinking,
   isWaitingForBot,
 }) => {
   const showSpeaker = isTalking || isWaitingForBot;
@@ -44,6 +47,8 @@ const MicOrb: React.FC<MicOrbProps> = ({
     ? "bg-white/10 border-white/30 text-white/50"
     : showSpeaker
       ? "bg-white/18 border-white/70 text-white"
+      : isThinking
+      ? "bg-white/14 border-white/55 text-white/90"
       : isListening
       ? "bg-white/20 border-white text-white"
       : "bg-white/15 border-white/60 text-white/80";
@@ -79,6 +84,49 @@ const MicOrb: React.FC<MicOrbProps> = ({
               d="M18 7C19.9 9.7 19.9 14.3 18 17"
               stroke="currentColor"
               strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : isThinking ? (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-9 w-9 sm:h-10 sm:w-10"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.2 15.1C6.85 13.95 6.1 12.33 6.1 10.55C6.1 7.18 8.75 4.5 12 4.5C15.25 4.5 17.9 7.18 17.9 10.55C17.9 12.33 17.15 13.95 15.8 15.1C15.08 15.72 14.63 16.42 14.47 17.2H9.53C9.37 16.42 8.92 15.72 8.2 15.1Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M10 20H14"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <path
+              className="thinking-spark thinking-spark--one"
+              d="M7.2 6.1L6.2 5.1"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <path
+              className="thinking-spark thinking-spark--two"
+              d="M16.8 6.1L17.8 5.1"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <path
+              className="thinking-spark thinking-spark--three"
+              d="M12 3V2"
+              stroke="currentColor"
+              strokeWidth="1.7"
               strokeLinecap="round"
             />
           </svg>
@@ -133,6 +181,7 @@ const AnimationManager: React.FC<Props> = ({
   userVoiceAnalyser,
   isUserSpeaking = false,
   isBotSpeaking = false,
+  isBotThinking = false,
   isBotTurnPending = false,
   isMicEnabled = false,
   characterImages,
@@ -214,6 +263,7 @@ const AnimationManager: React.FC<Props> = ({
   const isPausedDisplay = isSleepingDisplay;
   const isListeningState = Boolean(isMicEnabled && !isBotSpeaking);
   const isTalkingState = Boolean(isBotSpeaking);
+  const isThinkingState = Boolean(isBotThinking && !isBotSpeaking);
   const isWaitingForBotState = Boolean(isBotTurnPending && !isBotSpeaking);
   const orbDisabled = isCelebrating || isMicToggleDisabled;
 
@@ -227,6 +277,8 @@ const AnimationManager: React.FC<Props> = ({
           aria-label={
             isTalkingState || isWaitingForBotState
               ? "Character speaking"
+              : isThinkingState
+                ? "Thinking"
               : "Toggle microphone"
           }
         >
@@ -235,6 +287,7 @@ const AnimationManager: React.FC<Props> = ({
               isPaused={isPausedDisplay}
               isListening={isListeningState}
               isTalking={isTalkingState}
+              isThinking={isThinkingState}
               isWaitingForBot={isWaitingForBotState}
             />
           ) : (
