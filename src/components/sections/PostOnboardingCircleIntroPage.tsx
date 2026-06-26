@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Book } from "./LibrarySection";
+import type { Book } from "../../types";
 import { supabase } from "../../hooks/integrations/supabase/client";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import { useCircleCover } from "../../hooks/useCircleCover";
@@ -239,7 +239,8 @@ const PostOnboardingCircleIntroPage: React.FC<
   }
 
   const firstDot = dots.find((dot) => dot.episode === 1) ?? dots[0] ?? null;
-  const heroTitle = firstDot?.title || detailBook.title || "Your first adventure";
+  const heroTitle =
+    firstDot?.title || detailBook.title || "Your first adventure";
 
   const handleStartAdventure = () => {
     if (!detailBook || !firstDot) return;

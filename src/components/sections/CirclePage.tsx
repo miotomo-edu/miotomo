@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Book } from "./LibrarySection";
+import type { Book } from "../../types";
 import { supabase } from "../../hooks/integrations/supabase/client";
 import { useBooks } from "../../hooks/useBooks";
 import { useCircleCover } from "../../hooks/useCircleCover";
@@ -215,9 +215,7 @@ const getDotTags = (
         },
       ];
     case "debating":
-      return [
-        { icon: "debate", label: typeName || "Take a side" },
-      ];
+      return [{ icon: "debate", label: typeName || "Take a side" }];
     case "vocabulary":
       return [{ icon: "vocabulary", label: "Vocabulary" }];
     case "spelling":
@@ -254,7 +252,12 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
     <section className="mb-8 overflow-hidden rounded-[32px] border border-black/10 bg-[linear-gradient(180deg,#111111_0%,#181512_100%)] text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
       <div className="px-5 pb-5 pt-5 md:px-7 md:pb-6 md:pt-6">
         <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/60">
-          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0 text-[#b6c356]" fill="currentColor">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="h-3.5 w-3.5 shrink-0 text-[#b6c356]"
+            fill="currentColor"
+          >
             <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.3l-3.7 1.9.7-4.1-3-2.9 4.2-.7z" />
           </svg>
           <span>Today&apos;s Episode</span>
@@ -289,7 +292,12 @@ const NextDotCard: React.FC<NextDotCardProps> = ({
           aria-label={`Play ${title}`}
           className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#b6c356] py-4 text-base font-bold text-black transition hover:brightness-105 active:scale-[0.98]"
         >
-          <svg aria-hidden="true" viewBox="0 0 16 16" className="ml-0.5 h-5 w-5" fill="currentColor">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="ml-0.5 h-5 w-5"
+            fill="currentColor"
+          >
             <path d="M4 2.5v11l9-5.5-9-5.5z" />
           </svg>
           Play Episode {episode}
@@ -1069,7 +1077,10 @@ const CirclePage: React.FC<CirclePageProps> = ({
                             key={`${episode.episode}-${tag.label}`}
                             className="inline-flex items-center gap-1.5 text-xs font-medium"
                           >
-                            <LineTagIcon icon={tag.icon} className="h-[1.05em] w-[1.05em] shrink-0 text-white/70" />
+                            <LineTagIcon
+                              icon={tag.icon}
+                              className="h-[1.05em] w-[1.05em] shrink-0 text-white/70"
+                            />
                             <span>{tag.label}</span>
                           </span>
                         ))}
@@ -1105,8 +1116,19 @@ const CirclePage: React.FC<CirclePageProps> = ({
                   <div className="flex items-start gap-4">
                     {isCompleted ? (
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#b6c356] md:h-[52px] md:w-[52px]">
-                        <svg aria-hidden="true" viewBox="0 0 16 16" className="h-5 w-5" fill="none">
-                          <path d="M3.5 8.5l3.5 3.5 5.5-7" stroke="#0a1024" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 16 16"
+                          className="h-5 w-5"
+                          fill="none"
+                        >
+                          <path
+                            d="M3.5 8.5l3.5 3.5 5.5-7"
+                            stroke="#0a1024"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </div>
                     ) : (
@@ -1115,9 +1137,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                       </div>
                     )}
                     <div className="py-1">
-                      <div
-                        className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-white/55"
-                      >
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-white/55">
                         {tags.map((tag) => (
                           <span
                             key={`${episode.episode}-${tag.label}`}
@@ -1137,9 +1157,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
                           </span>
                         ) : null}
                       </div>
-                      <div
-                        className="font-display text-2xl font-bold leading-tight text-white"
-                      >
+                      <div className="font-display text-2xl font-bold leading-tight text-white">
                         {title}
                       </div>
                       {showRowButton ? (

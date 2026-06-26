@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import type { Book } from "../../sections/LibrarySection";
+import type { Book } from "../../../types";
 import { useCircleCover } from "../../../hooks/useCircleCover";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import { useBooks } from "../../../hooks/useBooks";
@@ -308,7 +308,10 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
               <div className="current-circle-hero__inner px-5 md:px-8">
                 {item.kicker ? (
                   <div className="current-circle-hero__kicker mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/90">
-                    <span className="h-2 w-2 rounded-full bg-[#b6c356]" aria-hidden="true" />
+                    <span
+                      className="h-2 w-2 rounded-full bg-[#b6c356]"
+                      aria-hidden="true"
+                    />
                     {item.kicker}
                   </div>
                 ) : null}
@@ -327,7 +330,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                     {item.book.title}
                   </h1>
                   <div className="current-circle-hero__subtitle mt-5 flex items-center gap-3 text-lg font-medium text-white/90 md:text-[1.75rem]">
-                    <span className="current-circle-hero__dot h-2.5 w-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
+                    <span className="current-circle-hero__dot h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--lizard-green)] shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
                     <span className="truncate">{`Dot ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
                   </div>
                 </button>

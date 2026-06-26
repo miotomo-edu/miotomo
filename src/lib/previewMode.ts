@@ -1,4 +1,4 @@
-import type { Book } from "../components/sections/LibrarySection";
+import type { Book } from "../types";
 
 export type PreviewScreen =
   | "first-circle-intro"
@@ -52,7 +52,10 @@ export const getPreviewConfig = (
   const params = new URLSearchParams(search);
   const previewValue = params.get("preview")?.trim().toLowerCase();
 
-  if (!previewValue || !PREVIEW_SCREENS.includes(previewValue as PreviewScreen)) {
+  if (
+    !previewValue ||
+    !PREVIEW_SCREENS.includes(previewValue as PreviewScreen)
+  ) {
     return null;
   }
 
@@ -67,7 +70,8 @@ export const getPreviewConfig = (
       ? Math.max(requestedTotalDots, completedDot)
       : Math.max(requestedTotalDots, completedDot + 1);
   const userName = params.get("previewName")?.trim() || DEFAULT_PREVIEW_NAME;
-  const bookTitle = params.get("previewBookTitle")?.trim() || DEFAULT_PREVIEW_BOOK_TITLE;
+  const bookTitle =
+    params.get("previewBookTitle")?.trim() || DEFAULT_PREVIEW_BOOK_TITLE;
   const book: Book = {
     id: `preview-${screen}`,
     title: bookTitle,

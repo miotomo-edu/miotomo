@@ -1,5 +1,5 @@
 import React from "react";
-import { Book } from "../sections/LibrarySection";
+import type { Book } from "../../types";
 import { getBookSectionType } from "../../utils/bookUtils";
 
 type BookTitleProps = {
@@ -36,7 +36,7 @@ const BookTitle = ({
             ? "bg-white/10 hover:bg-white/20"
             : darkBackButton
               ? "bg-black hover:bg-black/85"
-            : "hover:bg-gray-200 hover:text-blue-600"
+              : "hover:bg-gray-200 hover:text-blue-600"
         }`}
         aria-label="Back"
         type="button"

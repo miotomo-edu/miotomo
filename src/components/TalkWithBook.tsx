@@ -14,8 +14,6 @@ import {
   useVoiceBot,
   VoiceBotStatus,
 } from "../context/VoiceBotContextProvider.jsx";
-import { isMobile } from "react-device-detect";
-
 import { usePipecatConnection } from "../hooks/usePipecatConnection";
 import { useConversations } from "../hooks/useConversations";
 import { useAnalytics } from "../hooks/useAnalytics";

@@ -5,7 +5,7 @@ import talkBackground from "../../../assets/img/spelling_bg.webp";
 import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
 import type { PreviewScreen } from "../../../lib/previewMode";
-import type { Book } from "../../sections/LibrarySection";
+import type { Book } from "../../../types";
 
 type LetterStatus = "correct" | "present" | "absent" | "empty";
 

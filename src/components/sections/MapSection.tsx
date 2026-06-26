@@ -1,7 +1,7 @@
 import React from "react";
 import BookTitle from "../layout/BookTitle";
 import { characterData, Character } from "../../lib/characters";
-import { Book } from "./LibrarySection";
+import type { Book } from "../../types";
 
 type MapSectionProps = {
   book: Book;

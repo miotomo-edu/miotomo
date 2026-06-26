@@ -12,8 +12,7 @@ import { DailyTransport } from "@pipecat-ai/daily-transport";
 
 import Layout from "./layout/Layout";
 import LandingPage from "./sections/LandingPage";
-import HomePage from "./sections/HomePage";
-import LibraryPage from "./sections/LibraryPage";
+import BrowsePage from "./sections/BrowsePage";
 import PostOnboardingCircleIntroPage from "./sections/PostOnboardingCircleIntroPage";
 import DotCompletionPage from "./sections/DotCompletionPage";
 import DemoSubscriptionPage from "./sections/DemoSubscriptionPage";
@@ -125,9 +124,7 @@ const shouldUsePlaybackOnlyFallback = () => {
 
   const hostname = window.location.hostname;
   const isLoopbackHost =
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "::1";
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
 
   return !window.isSecureContext && !isLoopbackHost;
 };
@@ -230,7 +227,9 @@ const InteractiveVoiceSession = ({
 }) => {
   const client = useMemo(() => {
     if (suppressSessionBootstrap) {
-      console.log("▶️ playbackOnly mode active: skipping Pipecat transport/client bootstrap");
+      console.log(
+        "▶️ playbackOnly mode active: skipping Pipecat transport/client bootstrap",
+      );
       return null;
     }
 
@@ -330,7 +329,7 @@ const SurveyCtaButton = ({ href, className }) => {
   useEffect(() => {
     const el = elRef.current;
     if (!el || typeof el.animate !== "function") return;
-const anim = el.animate(SURVEY_WOBBLE_KEYFRAMES, {
+    const anim = el.animate(SURVEY_WOBBLE_KEYFRAMES, {
       duration: 3200,
       easing: "linear",
       iterations: Infinity,
@@ -339,7 +338,13 @@ const anim = el.animate(SURVEY_WOBBLE_KEYFRAMES, {
   }, []);
 
   return (
-    <a href={href} target="_blank" rel="noreferrer" ref={elRef} className={className}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      ref={elRef}
+      className={className}
+    >
       <span className="block leading-[1.15]">
         <span className="block">Share a quick thought!</span>
         <span className="block">Take the survey</span>
@@ -910,7 +915,12 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       }
       setActiveComponent("interactive");
     },
-    [normalizeChapterValue, currentCharacter, activeComponent, playbackOnlyMode],
+    [
+      normalizeChapterValue,
+      currentCharacter,
+      activeComponent,
+      playbackOnlyMode,
+    ],
   );
 
   const handleShowDotCompletion = useCallback(
@@ -1019,10 +1029,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     isInteractiveView && currentCharacter?.bg ? currentCharacter.bg : "";
 
   const shouldShowConnectionManager =
-    isInteractiveView &&
-    selectedBook &&
-    currentCharacter &&
-    !playbackOnlyMode;
+    isInteractiveView && selectedBook && currentCharacter && !playbackOnlyMode;
 
   useEffect(() => {
     if (!isInteractiveView) {
@@ -1078,7 +1085,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         );
       case "home":
         return (
-          <HomePage
+          <BrowsePage
             userName={userName}
             studentId={resolvedStudentId}
             onOpenCircle={openCirclePage}
@@ -1087,23 +1094,25 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         );
       case "library":
         return (
-          <LibraryPage
+          <BrowsePage
             userName={userName}
             studentId={resolvedStudentId}
             collapseHeroSignal={libraryHeroCollapseSignal}
             onOpenCircle={openCirclePage}
             onPlayEpisode={handlePlayEpisode}
+            showContinueRow={false}
           />
         );
       case "circle":
         if (!selectedBook) {
           return (
-            <LibraryPage
+            <BrowsePage
               userName={userName}
               studentId={resolvedStudentId}
               collapseHeroSignal={libraryHeroCollapseSignal}
               onOpenCircle={openCirclePage}
               onPlayEpisode={handlePlayEpisode}
+              showContinueRow={false}
             />
           );
         }
@@ -1130,12 +1139,13 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       case "dot-complete":
         if (!selectedBook) {
           return (
-            <LibraryPage
+            <BrowsePage
               userName={userName}
               studentId={resolvedStudentId}
               collapseHeroSignal={libraryHeroCollapseSignal}
               onOpenCircle={openCirclePage}
               onPlayEpisode={handlePlayEpisode}
+              showContinueRow={false}
             />
           );
         }

@@ -120,7 +120,7 @@ html.desktop-ipad-frame {
 }
 
 .bg-library {
-  background: #fff;
+  background: #4f415f;
 }
 
 /* Accessibility: keyboard focus ring */
@@ -158,7 +158,7 @@ button {
 }
 
 .progress-v2 .progress-v2-drawer__button {
-  background: #32294A !important;
+  background: #32294a !important;
 }
 
 .progress-v2 .progress-v2-day__button {
@@ -332,8 +332,7 @@ button {
 
 .landing-intro-flight {
   animation: landingIntroFlightPath 1.45s cubic-bezier(0.22, 0.84, 0.18, 1)
-    0.12s
-    both;
+    0.12s both;
   transform-origin: center center;
   will-change: transform, opacity;
 }

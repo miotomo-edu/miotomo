@@ -1,6 +1,6 @@
 import React from "react";
 import CircleCard from "./CircleCard";
-import type { Book } from "../../sections/LibrarySection";
+import type { Book } from "../../../types";
 
 export type BrowseRowItem = {
   book: Book;
@@ -27,7 +27,7 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
   onSelect,
   emptyMessage,
 }) => (
-<section className="browse-row space-y-3">
+  <section className="browse-row space-y-3">
     <div className="flex items-center gap-2.5">
       <span
         className="inline-block h-5 w-1.5 flex-shrink-0 rounded-full bg-[#b6c356]"
