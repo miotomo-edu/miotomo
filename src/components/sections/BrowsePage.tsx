@@ -49,9 +49,9 @@ const DOMAIN_BUCKETS = [
 ];
 
 const LENGTH_BUCKETS = [
-  { key: "quick", label: "Quick Dots" },
-  { key: "medium", label: "Medium Dots" },
-  { key: "long", label: "Long Dots" },
+  { key: "quick", label: "Quick Episodes" },
+  { key: "medium", label: "Medium Episodes" },
+  { key: "long", label: "Long Episodes" },
 ];
 
 const normalizeTag = (value: string) =>
@@ -497,7 +497,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   }
 
   if (error) {
-    return <div className="p-6 text-gray-600">Error loading circles.</div>;
+    return <div className="p-6 text-gray-600">Error loading adventures.</div>;
   }
 
   return (

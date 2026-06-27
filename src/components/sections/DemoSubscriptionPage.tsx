@@ -89,7 +89,7 @@ const DemoSubscriptionPage: React.FC<DemoSubscriptionPageProps> = ({
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/25 text-[11px]">
               ✦
             </span>
-            <span>Dot 1 completed</span>
+            <span>Episode 1 completed</span>
           </div>
 
           <h1 className="mt-3 font-display text-[2.05rem] font-bold leading-[0.94] tracking-[-0.03em] text-white md:max-w-[16ch] md:text-[2.4rem]">

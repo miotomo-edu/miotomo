@@ -28,7 +28,7 @@ Requires `.env.local` with:
 
 ## Architecture
 
-**What it is:** An AI-powered learning companion app for children (ages 7-12). Children listen to audio episodes (Dots) within topic journeys (Circles), then have structured voice conversations that deepen comprehension, build vocabulary, and develop verbal reasoning. The single AI character is **Tomo** — a Keeper of Knowledge from the planet Motara — who is present across the UI, games, badges, and the culminating Teachtime session. Each Circle also features topic-native expert characters (e.g. a T-Rex, a Roman senator) who host the Dot voice sessions, but these are Circle-specific and not persistent app characters.
+**What it is:** An AI-powered learning companion app for children (ages 7-12). Children listen to Episodes within topic journeys called Adventures, then have structured voice conversations that deepen comprehension, build vocabulary, and develop verbal reasoning. The single AI character is **Tomo** — a Keeper of Knowledge from the planet Motara — who is present across the UI, games, badges, and the culminating Teachtime session. Each Adventure also features topic-native expert characters (e.g. a T-Rex, a Roman senator) who host the Episode voice sessions, but these are Adventure-specific and not persistent app characters.
 
 **Stack:** React 19 + Vite, TypeScript (migration from JSX in progress), TailwindCSS v4, Pipecat AI (WebRTC voice), Supabase (PostgreSQL), React Query (TanStack Query).
 
@@ -50,11 +50,11 @@ Pipecat handles the WebRTC voice connection. The flow: user speaks → Deepgram 
 
 ### Character
 
-**Tomo** is the only persistent AI character. He appears in the app UI, hosts Spelling and Vocabulary games (framed as Tomo asking the child for help), tracks badges, and leads the Teachtime session at the end of each Circle. `src/lib/characters.ts` contains Tomo's config: voice ID, background color, SVG avatars per state (idle/listening/sleeping/celebrating), and the modality/prompt mappings used when connecting to the Pipecat backend.
+**Tomo** is the only persistent AI character. He appears in the app UI, hosts Spelling and Vocabulary games (framed as Tomo asking the child for help), tracks badges, and leads the Teachtime session at the end of each Adventure. `src/lib/characters.ts` contains Tomo's config: voice ID, background color, SVG avatars per state (idle/listening/sleeping/celebrating), and the modality/prompt mappings used when connecting to the Pipecat backend.
 
 ### Data Persistence
 
-Supabase tables: `students`, `books`, `conversations`, `dot_progress`. Conversations auto-save with elapsed time, full transcript, and dot progress on session end.
+Supabase tables: `students`, `books`, `conversations`, `dot_progress`. Conversations auto-save with elapsed time, full transcript, and Episode progress on session end.
 
 ### Dynamic Backgrounds
 

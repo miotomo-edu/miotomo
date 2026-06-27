@@ -49,7 +49,7 @@ const CircleDotsSymbol: React.FC<CircleDotsSymbolProps> = ({
       viewBox="0 0 100 100"
       className={className}
       role="img"
-      aria-label={`${completed} of ${count} dots completed`}
+      aria-label={`${completed} of ${count} episodes completed`}
     >
       <circle
         cx={center}

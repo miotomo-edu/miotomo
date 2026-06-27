@@ -219,7 +219,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   const activeDotTitle =
     activeEpisode?.title?.trim() ||
     item.nextDotTitle?.trim() ||
-    `Dot ${activeEpisodeNumber}`;
+    `Episode ${activeEpisodeNumber}`;
 
   const handlePlayEpisode = (
     episode: number,
@@ -297,7 +297,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   }
                   className="rounded-full border border-white/40 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-super text-white backdrop-blur-md transition hover:bg-white/22"
                 >
-                  Open circle
+                  Open adventure
                 </button>
               </div>
             ) : null}
@@ -331,7 +331,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
                   </h1>
                   <div className="current-circle-hero__subtitle mt-5 flex items-center gap-3 text-lg font-medium text-white/90 md:text-[1.75rem]">
                     <span className="current-circle-hero__dot h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--lizard-green)] shadow-[0_0_14px_rgba(250,195,4,0.7)]" />
-                    <span className="truncate">{`Dot ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
+                    <span className="truncate">{`Episode ${activeEpisodeNumber}: ${activeDotTitle}`}</span>
                   </div>
                 </button>
                 <button

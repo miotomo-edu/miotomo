@@ -39,7 +39,7 @@ const CircleCard: React.FC<CircleCardProps> = ({
       type="button"
       onClick={onSelect}
       className="browse-circle-card group flex w-40 shrink-0 flex-col gap-2 text-left !bg-transparent md:w-64 md:gap-3"
-      aria-label={`Open circle: ${book.title}`}
+      aria-label={`Open adventure: ${book.title}`}
     >
       <div className="browse-circle-card__cover relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-white/70 ring-1 ring-black/10">
         {coverUrl ? (

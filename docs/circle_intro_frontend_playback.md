@@ -1,7 +1,7 @@
-# Circle Intro Playback: Frontend-Driven Architecture
+# Adventure Intro Playback: Frontend-Driven Architecture
 
 ## Overview
-We are moving the intro audio playback for circles from server-side streaming to frontend playback. The backend will no longer decode and stream the intro audio. Instead, the frontend will fetch and play the audio asset directly (mp3/opus), and the backend will only manage state and conversation start.
+We are moving Adventure intro audio playback from server-side streaming to frontend playback. The backend will no longer decode and stream the intro audio. Instead, the frontend will fetch and play the audio asset directly (mp3/opus), and the backend will only manage state and conversation start.
 
 This improves scale (CDN caching, no server CPU for decoding), reduces latency, and keeps the pipeline focused on real-time conversation audio only.
 

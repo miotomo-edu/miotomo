@@ -7,9 +7,9 @@ Miotomo is an AI reading companion for 6–12 year olds. Kids pick a book, tap a
 - **Character modalities** – `src/lib/characters.ts` defines avatars, accent colors, celebration art, and modality metadata; the talk screen inherits the color and surfaces modality-specific panels like `VocabularyPanel`.
 - **Prompt system** – Pipecat now owns the full prompt; the frontend simply passes book/chapter/character metadata. Keep any new prompt experiments in `src/lib` for reference or backend handoff.
 - **Supabase integration** – `useStudent`, `useConversations`, and `useProgress` hydrate dashboards and persist transcripts (see `src/hooks/integrations/supabase`).
-- **Circle page** – Tapping a book opens the circle page with episode titles and Play buttons; Play jumps straight into the chat with the chosen episode.
-- **Browse experience** – Home/Library render a full-screen current-circle hero plus a Netflix-style stack of rows driven by `circles_catalog`, `books`, and `dot_progress`.
-- **Floating navigation** – The app now uses a top-right floating rail that opens on tap, compacts after scroll, and turns into a close control on Circle/Talk screens.
+- **Adventure page** – Tapping a book opens the Adventure page with Episode titles and Play buttons; Play jumps straight into the chat with the chosen Episode.
+- **Browse experience** – Home/Library render a full-screen current-Adventure hero plus a Netflix-style stack of rows driven by `circles_catalog`, `books`, and `dot_progress`.
+- **Floating navigation** – The app now uses a top-right floating rail that opens on tap, compacts after scroll, and turns into a close control on Adventure/Talk screens.
 
 ## Tech Stack
 React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS · @pipecat-ai client, transports, and React bindings (Deepgram-powered STT/TTS) · Supabase · React Query · TanStack Query for data fetching.
@@ -27,7 +27,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    VITE_PIPECAT_DISCONNECT_BEACON_URL=<optional best-effort session-ended endpoint>
    ```
    The GitHub Pages workflow expects the same variables (store them as repository secrets). The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
-4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the current cloud Daily bootstrap, or `?transport=local-daily` to use the Daily SDK with `VITE_LOCAL_DAILY_URL`; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; append `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit for full-page DevTools captures; append `?unlockCircleDots=1` to show Play/Resume buttons for incomplete dots on the Circle page even when they are not the current mission dot; the default path shows the full onboarding flow and uses Small WebRTC unless a Daily transport is selected.
+4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the current cloud Daily bootstrap, or `?transport=local-daily` to use the Daily SDK with `VITE_LOCAL_DAILY_URL`; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; append `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit for full-page DevTools captures; append `?unlockCircleDots=1` to show Play/Resume buttons for incomplete Episodes on the Adventure page even when they are not the current mission Episode; the default path shows the full onboarding flow and uses Small WebRTC unless a Daily transport is selected.
 5. **Preview hard-to-reach completion screens** – Use `?preview=` for direct UI entry during development:
    - `?skipOnboarding=1&preview=first-circle-intro`
    - `?skipOnboarding=1&preview=circle-page`
@@ -41,8 +41,8 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    - `?skipOnboarding=1&preview=spelling-intro`
    - `?skipOnboarding=1&preview=spelling-game`
    - `?skipOnboarding=1&preview=spelling-complete`
-   - `first-circle-intro` uses the student's demo circle when available
-   - `circle-page` uses the current student circle when browse data is available
+   - `first-circle-intro` uses the student's demo Adventure when available
+   - `circle-page` uses the current student Adventure when browse data is available
    - Optional params: `previewName=Sam`, `previewDot=3`, `previewTotalDots=6`, `previewBookTitle=Ocean Secrets`, `studentId=...`
 
 ## Useful Scripts
@@ -55,18 +55,18 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
 | `npx prettier --write "src/**/*.{ts,tsx,js,jsx,css,md}"` | Format code & Markdown. |
 
 ## Architecture Overview
-- `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, mirrors the chosen character’s accent color across the view, drives the floating top-right nav/close control, supports `skipOnboarding=1` to boot directly into Library for local QA, supports `preview=` to open selected Circle/game/completion screens directly including the discussion-complete splash, and keeps document-level scrolling as the default shell behavior.
-- `src/components/sections/CirclePage.tsx` – Renders the circle detail page and enforces progressive dot unlocks by default; append `?unlockCircleDots=1` to expose Play/Resume buttons on incomplete rows for QA/debugging.
+- `src/components/App.jsx` – Handles navigation (Landing → Onboarding → Library/Home/Map → Talk), wires book + character selection, mirrors the chosen character’s accent color across the view, drives the floating top-right nav/close control, supports `skipOnboarding=1` to boot directly into Library for local QA, supports `preview=` to open selected Adventure/game/completion screens directly including the discussion-complete splash, and keeps document-level scrolling as the default shell behavior.
+- `src/components/sections/CirclePage.tsx` – Renders the Adventure detail page and enforces progressive Episode unlocks by default; append `?unlockCircleDots=1` to expose Play/Resume buttons on incomplete rows for QA/debugging.
 - `src/components/TalkWithBook.tsx` – Conversation surface: subscribes to RTVI events, controls mic state, pushes updates into `VoiceBotContext`, and now relies on the floating close control instead of an in-header back button.
 - `src/hooks/usePipecatConnection.js` – Reusable Pipecat connect/disconnect layer. It now performs best-effort teardown on `pagehide` and can notify a backend endpoint via `navigator.sendBeacon()` or `fetch(..., { keepalive: true })` when `VITE_PIPECAT_DISCONNECT_BEACON_URL` is configured. If that env var is absent, it falls back to `${VITE_DAILY_PROXY_URL}/disconnect-pipecat`.
 - `src/context/VoiceBotContextProvider.tsx` – Stores transcripts, latency metrics, sleep/thinking/speaking state, and auto-save behavior.
 - `src/hooks` – Reusable data hooks; notable ones are `usePipecatConnection` (connect/disconnect wrapper), `useConversations` (Supabase persistence), and `useStudent` (progress + streaks).
 - `src/components/sections` – Library, Map (modality picker), Progress, Rewards, Settings, etc.
-- `src/components/sections/BrowsePage.tsx` – Full-screen current-circle hero plus browse rows (continue, new, theme/mood/length/domain) driven by `useBrowseCircles`.
-- `src/components/features/browse/CurrentCircleHero.tsx` – Full-screen current circle hero. The play button starts the active dot, tapping the title area opens the circle page, and a down-chevron hint suggests that more content sits below the fold.
+- `src/components/sections/BrowsePage.tsx` – Full-screen current-Adventure hero plus browse rows (continue, new, theme/mood/length/domain) driven by `useBrowseCircles`.
+- `src/components/features/browse/CurrentCircleHero.tsx` – Full-screen current Adventure hero. The play button starts the active Episode, tapping the title area opens the Adventure page, and a down-chevron hint suggests that more content sits below the fold.
 - `src/lib` – Prompt markdown files, constants, characters, and Pipecat config helpers.
 - `src/styles` – Tailwind entry + shared CSS (e.g., floating-nav entrance animation, hero pulse, and shared shell styling).
-- `src/components/sections/CirclePage.tsx` – Circle detail page with cover/title and episode list; Play routes directly into the chat.
+- `src/components/sections/CirclePage.tsx` – Adventure detail page with cover/title and Episode list; Play routes directly into the chat.
 
 ```
 src
@@ -79,9 +79,9 @@ src
 ```
 
 ## Voice + Prompt Flow
-1. `App` opens the circle page after a book tap; readers pick an episode and Play to jump into the chat with the selected chapter metadata.
+1. `App` opens the Adventure page after a book tap; readers pick an Episode and Play to jump into the chat with the selected chapter metadata.
 2. `App` selects a book + character and feeds metadata into `TalkWithBook`.
-2. `TalkWithBook` plays the circle intro audio locally, waits for `BotReady`, syncs the mic, sends `start-chat`, and renders the server-side event feed (`VocabularyPanel` etc.).
+2. `TalkWithBook` plays the Adventure intro audio locally, waits for `BotReady`, syncs the mic, sends `start-chat`, and renders the server-side event feed (`VocabularyPanel` etc.).
 3. Avatar clicks pause/resume chat and send RTVI `pauseListening`/`resumeListening` control messages; intro controls stay disabled during active chat.
 4. `useConversation` (features/voice) merges bot and user utterances for display and analytics, while `VoiceBotContext` records latency and behind-the-scenes events.
 5. When Pipecat emits `celebration_sent`, `AnimationManager` swaps the character into its thumbs-up pose so the avatar keeps celebrating through the end of the session.
@@ -89,7 +89,7 @@ src
 7. Warm-up calls run via `useAnalytics.wakeAnalytics()`: on app start and every 45 seconds (`src/components/App.jsx`), plus on `BotReady` (`src/components/TalkWithBook.tsx`). It pings analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) to reduce cold starts.
 
 ## Data & Persistence
-- Supabase tables: `students`, `books`, `conversations`, `dot_progress`. `dot_progress` tracks per-dot listening/talking status and elapsed seconds for the circle list UI.
+- Supabase tables: `students`, `books`, `conversations`, `dot_progress`. `dot_progress` tracks per-Episode listening/talking status and elapsed seconds for the Adventure list UI.
 - Update `src/hooks/integrations/supabase/types.ts` via your preferred generator when schema changes.
 
 ## Testing & QA

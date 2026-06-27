@@ -38,7 +38,7 @@ const PREVIEW_SCREENS: PreviewScreen[] = [
 ];
 
 const DEFAULT_PREVIEW_NAME = "friend";
-const DEFAULT_PREVIEW_BOOK_TITLE = "Preview Circle";
+const DEFAULT_PREVIEW_BOOK_TITLE = "Preview Adventure";
 
 const parsePositiveInteger = (value: string | null, fallback: number) => {
   const numeric = Number(value);

@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import type { Book } from "../../types";
-import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
 import tomoCelebrating from "../../assets/img/tomo-celebrating.webp";
 
 type DotCompletionPageProps = {
@@ -82,8 +81,8 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
   const primaryCtaLabel = testingMode
     ? "See your progress"
     : nextEpisode
-      ? `Take a peek at Dot ${nextEpisode}`
-      : "See your Circle";
+      ? `Take a peek at Episode ${nextEpisode}`
+      : "See your Adventure";
   const handlePrimaryCta = testingMode
     ? () => onOpenProgress?.()
     : () =>
@@ -93,12 +92,12 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
 
   const remainingMessage = useMemo(() => {
     if (remainingDots === 0) {
-      return "You finished every Dot in this Circle. Your badge is complete.";
+      return "You finished every Episode in this Adventure. Your badge is complete.";
     }
     if (remainingDots === 1) {
-      return "You are 1 dot away from completing your Badge!";
+      return "You are 1 episode away from completing your Badge!";
     }
-    return `You are ${remainingDots} dots away from completing your Badge!`;
+    return `You are ${remainingDots} episodes away from completing your Badge!`;
   }, [remainingDots]);
 
   return (
@@ -108,30 +107,19 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
           <div className="flex flex-col md:col-start-1 md:row-start-1 md:w-full md:max-w-[42rem]">
             <div>
               <div className="flex items-center gap-3 md:gap-4">
-                <CircleDotsSymbol
-                  totalDots={Math.max(totalDots, 1)}
-                  completedDots={completedEpisode}
-                  currentDot={completedEpisode}
-                  label={completedEpisode}
-                  size={52}
-                  ringColor="#0a1024"
-                  inactiveDotFill="#0a1024"
-                  inactiveDotStroke="#0a1024"
-                  completedDotFill="#FAC304"
-                  completedDotStroke="#FAC304"
-                  labelColor="#0a1024"
-                  className="md:h-[64px] md:w-[64px]"
-                />
+                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#b6c356] text-base font-bold text-black md:h-16 md:w-16">
+                  {completedEpisode}
+                </div>
                 <p className="font-display text-2xl font-bold leading-[1.02] tracking-[-0.03em] text-[#020617] md:text-3xl lg:text-3xl">
-                  {`Dot ${completedEpisode} completed`}
+                  {`Episode ${completedEpisode} completed`}
                 </p>
               </div>
 
               <div className="mt-6 md:mt-5 lg:mt-8">
                 <h1 className="font-display text-4xl font-bold leading-[0.94] tracking-[-0.05em] text-[#020617] md:max-w-[11ch] md:text-5xl md:leading-[0.88] lg:text-5xl">
                   {remainingDots === 0
-                    ? `Circle complete, ${firstName}!`
-                    : `You completed a Dot, ${firstName}!`}
+                    ? `Adventure complete, ${firstName}!`
+                    : `You completed an Episode, ${firstName}!`}
                 </h1>
                 <p className="mt-3 max-w-[20ch] text-xl leading-[1.45] text-[#020617]/82 md:max-w-[22ch] md:text-2xl lg:max-w-[20ch] lg:text-2xl">
                   {remainingMessage}
@@ -201,28 +189,17 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
 
           <div className="mt-0 shrink-0 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:col-start-1 md:row-start-3 md:mt-0 md:w-full md:max-w-[42rem] md:pb-0">
             <div className="hidden items-center gap-3 md:flex md:gap-4">
-              <CircleDotsSymbol
-                totalDots={Math.max(totalDots, 1)}
-                completedDots={completedEpisode}
-                currentDot={nextEpisode}
-                label={nextEpisode ?? completedEpisode}
-                size={52}
-                ringColor="#0a1024"
-                inactiveDotFill="#0a1024"
-                inactiveDotStroke="#0a1024"
-                completedDotFill="#FAC304"
-                completedDotStroke="#FAC304"
-                labelColor="#0a1024"
-                className="md:h-[64px] md:w-[64px]"
-              />
+              <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#b6c356] text-base font-bold text-black md:h-16 md:w-16">
+                {nextEpisode ?? completedEpisode}
+              </div>
               <p className="text-2xl leading-[1.2] text-[#020617] md:max-w-[18ch] md:text-2xl lg:max-w-[16ch] lg:text-3xl">
                 {nextEpisode ? (
                   <>
                     Come back tomorrow for{" "}
-                    <span className="font-bold">{`Dot ${nextEpisode}`}</span>
+                    <span className="font-bold">{`Episode ${nextEpisode}`}</span>
                   </>
                 ) : (
-                  <span className="font-bold">Circle completed</span>
+                  <span className="font-bold">Adventure completed</span>
                 )}
               </p>
             </div>

@@ -3,7 +3,7 @@
 This document describes how the Visual Vocabulary game works in the frontend.
 
 ### Source Data
-- Vocab items are loaded from Supabase `vocab_items` with `circle_id` + `dot`.
+- Vocabulary items are loaded per Adventure and Episode from Supabase `vocab_items` using `circle_id` + `dot`.
 - Fields used: `word_id`, `target_word`, `context_text`, `context_audio_url`, `tomo_prompt_text`, `language`, `feedback_text_map`.
 - Items are ordered by `index` then `created_at`.
 
