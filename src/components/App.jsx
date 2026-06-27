@@ -1336,7 +1336,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
           onItemClick={handleNavigationClick}
           onBackClick={handleFloatingNavBack}
           scrollContainerRef={mainRef}
-          orientation="vertical"
+          orientation="horizontal"
           mode={navMode}
           activeComponentName={
             activeComponent === "first-circle-intro" ||

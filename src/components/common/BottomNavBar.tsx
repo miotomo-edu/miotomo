@@ -161,7 +161,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
   const navClassName =
     orientation === "vertical"
       ? `vertical-floating-nav fixed right-4 z-[90] flex flex-col items-center rounded-[999px] border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.26)] transition-[width,padding,background-color] duration-200 md:right-6 ${isExpanded ? isCompactExpanded ? "w-[54px] gap-0.5 px-1 py-1.5" : "w-[76px] gap-1 px-1.5 py-2" : "w-[50px] h-[50px] p-1"}`
-      : "bottom-navbar-fixed flex justify-around items-center h-16 z-10";
+      : "bottom-navbar-fixed fab-nav";
   const shouldShowClosedAttentionBump =
     orientation === "vertical" && !isBackMode && !isExpanded;
 
@@ -325,7 +325,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
         // Ensure icon is always sized the same
         const icon = item.icon ? (
           React.cloneElement(item.icon as React.ReactElement, {
-            className: "w-6 h-6",
+            className: "w-[22px] h-[22px]",
             strokeWidth: isActive ? 2.5 : 1.5,
           })
         ) : (
@@ -335,12 +335,12 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
           <button
             key={index}
             onClick={() => handleButtonClick(item.componentName)}
-            className={`group flex cursor-pointer flex-col items-center justify-center rounded-[22px] transition duration-200 ${orientation === "vertical" ? "w-full gap-1 px-2 py-3 hover:bg-white/[0.08]" : "p-2"}`}
+            className={`group flex cursor-pointer flex-col items-center justify-center transition duration-200 fab-nav__tab ${isActive ? "is-active" : ""}`}
             type="button"
             aria-current={isActive ? "page" : undefined}
           >
             <span
-              className={`flex items-center justify-center transition-colors duration-150 ${orientation === "vertical" ? "" : "mb-1"}`}
+              className="flex items-center justify-center transition-colors duration-150"
               style={{
                 color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
               }}
@@ -348,7 +348,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
               {icon}
             </span>
             <span
-              className={`transition-colors duration-150 ${orientation === "vertical" ? "text-[10px] font-semibold uppercase tracking-[0.18em]" : "text-xs"}`}
+              className="transition-colors duration-150"
               style={{
                 color: isActive ? "#FAC304" : "rgba(255,255,255,0.55)",
                 fontWeight: isActive ? 700 : 400,
@@ -357,7 +357,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
               {item.label}
             </span>
             <span
-              className={`block rounded-full transition-all duration-150 ${orientation === "vertical" ? "mt-1 h-1 w-5" : "mt-1 h-1 w-1"}`}
+              className="hidden"
               style={{
                 backgroundColor: isActive ? "#FAC304" : "transparent",
               }}
