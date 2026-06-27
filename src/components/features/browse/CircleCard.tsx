@@ -1,5 +1,5 @@
 import React from "react";
-import type { Book } from "../../sections/LibrarySection";
+import type { Book } from "../../../types";
 import { useCircleCover } from "../../../hooks/useCircleCover";
 
 type CircleCardProps = {

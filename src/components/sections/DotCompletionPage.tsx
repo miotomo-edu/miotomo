@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import type { Book } from "./LibrarySection";
+import type { Book } from "../../types";
 import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
 import tomoCelebrating from "../../assets/img/tomo-celebrating.webp";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import VisualVocabularyGame from "../features/vocabulary/VisualVocabularyGame";
 import type { PreviewScreen } from "../../lib/previewMode";
-import type { Book } from "./LibrarySection";
+import type { Book } from "../../types";
 
 type RewardsSectionProps = {
   onComplete?: () => void;

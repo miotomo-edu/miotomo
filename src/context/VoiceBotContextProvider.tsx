@@ -155,7 +155,6 @@ export function VoiceBotProvider({ children }: Props) {
     if (state.sleepTimer > defaultSleepTimeoutSeconds) {
       startSleeping();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sleepTimer]);
 
   const addVoicebotMessage = (newMessage: VoiceBotMessage) => {

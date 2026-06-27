@@ -44,7 +44,11 @@ function buildSmallWebRTCUrl({
     chapter,
     region,
   });
-  return `${base}?${params.toString()}`;
+  const offerBase =
+    import.meta.env.DEV && base.startsWith("http://localhost:8000/api/offer")
+      ? base.replace("http://localhost:8000", "")
+      : base;
+  return `${offerBase}?${params.toString()}`;
 }
 
 function buildVoiceSessionParams({

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./integrations/supabase/client";
-import { Book as LocalBook } from "../components/sections/LibrarySection";
+import type { Book as LocalBook } from "../types";
 
 type CatalogRow = {
   circle_id?: string | null;
@@ -58,25 +58,28 @@ export function useBrowseCircles(studentId?: string) {
   return useQuery({
     queryKey: ["browse-circles", studentId],
     queryFn: async (): Promise<BrowseData> => {
-      const [booksResult, catalogResult, progressResult, dotsResult] = await Promise.all([
-        supabase
-          .from("books")
-          .select("id, title, author, cover, chapters, section_type, demo, demo_order")
-          .eq("type", "circle"),
-        supabase.from("circles_catalog").select("*"),
-        studentId
-          ? supabase
-              .from("dot_progress")
-              .select(
-                "book_id, episode, listening_status, talking_status, last_active_at",
-              )
-              .eq("student_id", studentId)
-          : Promise.resolve({ data: [], error: null }),
-        supabase
-          .from("circles_dots")
-          .select("circle_id, episode, title")
-          .order("created_at", { ascending: false }),
-      ]);
+      const [booksResult, catalogResult, progressResult, dotsResult] =
+        await Promise.all([
+          supabase
+            .from("books")
+            .select(
+              "id, title, author, cover, chapters, section_type, demo, demo_order",
+            )
+            .eq("type", "circle"),
+          supabase.from("circles_catalog").select("*"),
+          studentId
+            ? supabase
+                .from("dot_progress")
+                .select(
+                  "book_id, episode, listening_status, talking_status, last_active_at",
+                )
+                .eq("student_id", studentId)
+            : Promise.resolve({ data: [], error: null }),
+          supabase
+            .from("circles_dots")
+            .select("circle_id, episode, title")
+            .order("created_at", { ascending: false }),
+        ]);
 
       if (booksResult.error) throw booksResult.error;
       if (catalogResult.error) throw catalogResult.error;
@@ -106,7 +109,8 @@ export function useBrowseCircles(studentId?: string) {
         return {
           ...localBook,
           demo: Boolean(book.demo),
-          demoOrder: typeof book.demo_order === "number" ? book.demo_order : null,
+          demoOrder:
+            typeof book.demo_order === "number" ? book.demo_order : null,
           catalog: catalogById.get(book.id) ?? null,
         };
       });

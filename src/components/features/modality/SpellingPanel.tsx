@@ -1,69 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { extractField, extractLetters, StatusDots } from "./panelEventUtils";
 
 interface Props {
   event: unknown;
   isWaiting: boolean;
 }
-
-type FieldKey =
-  | "word"
-  | "total_words"
-  | "word_position"
-  | "correct"
-  | "event_type"
-  | "phase"
-  | "game_type"
-  | "data";
-
-type SpellingPayload = {
-  word?: string;
-  total_words?: number;
-  word_position?: number;
-  correct?: boolean;
-  event_type?: string;
-  phase?: string;
-  game_type?: string;
-  data?: SpellingPayload;
-  letters?: string[];
-};
-
-const extractField = (
-  event: unknown,
-  field: FieldKey,
-): string | number | boolean | null => {
-  if (!event || typeof event !== "object") return null;
-  const typed = event as SpellingPayload;
-  const value = typed[field];
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return value;
-  }
-
-  if (typed.data) {
-    return extractField(typed.data, field);
-  }
-
-  return null;
-};
-
-const extractLetters = (event: unknown): string[] | null => {
-  if (!event || typeof event !== "object") return null;
-  const typed = event as SpellingPayload;
-  if (Array.isArray(typed.letters)) {
-    return typed.letters.map((letter) =>
-      typeof letter === "string" ? letter : "",
-    );
-  }
-
-  if (typed.data) {
-    return extractLetters(typed.data);
-  }
-
-  return null;
-};
 
 const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
   const word = extractField(event, "word") as string | null;
@@ -192,29 +133,11 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 py-5 text-center">
       {total > 0 && (
-        <div className="flex items-center gap-3">
-          {Array.from({ length: total }).map((_, index) => {
-            const circleIndex = index + 1;
-            const isCurrent = circleIndex === currentIndex;
-            const statusClass = (() => {
-              const status = statuses[index];
-              if (status === "correct") return "bg-green-500 border-green-500";
-              if (status === "incorrect") return "bg-red-500 border-red-500";
-              return "bg-white/10 border-white/40";
-            })();
-
-            const currentGlow = isCurrent
-              ? "shadow-[0_0_12px_rgba(99,102,241,0.7)]"
-              : "";
-
-            return (
-              <span
-                key={circleIndex}
-                className={`flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-200 ${statusClass} ${currentGlow}`}
-              />
-            );
-          })}
-        </div>
+        <StatusDots
+          total={total}
+          currentIndex={currentIndex}
+          statuses={statuses}
+        />
       )}
 
       <div className="flex w-full max-w-full items-center justify-center gap-2 overflow-hidden">
@@ -227,7 +150,7 @@ const SpellingPanel: React.FC<Props> = ({ event, isWaiting }) => {
               maxWidth: `${Math.max(100 / letters.length, 12)}%`,
             }}
           >
-            {shouldRevealLetters ? letter : detectedLetters[index] ?? ""}
+            {shouldRevealLetters ? letter : (detectedLetters[index] ?? "")}
           </div>
         ))}
       </div>

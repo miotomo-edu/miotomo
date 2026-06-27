@@ -3,7 +3,7 @@ import { useBrowseCircles } from "../../hooks/useBrowseCircles";
 import BrowseRow, { type BrowseRowItem } from "../features/browse/BrowseRow";
 import CategoryChips from "../features/browse/CategoryChips";
 import CurrentCircleHero from "../features/browse/CurrentCircleHero";
-import type { Book } from "./LibrarySection";
+import type { Book } from "../../types";
 
 type BrowsePageProps = {
   userName: string;

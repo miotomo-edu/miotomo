@@ -6,7 +6,7 @@ import { supabase } from "../../../hooks/integrations/supabase/client";
 import PreGameScreen from "../modality/PreGameScreen";
 import VisualSpellingGame from "../spelling/VisualSpellingGame";
 import type { PreviewScreen } from "../../../lib/previewMode";
-import type { Book } from "../../sections/LibrarySection";
+import type { Book } from "../../../types";
 
 type Attempt = {
   text: string;
@@ -522,7 +522,6 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
         audioRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleListen = () => {
