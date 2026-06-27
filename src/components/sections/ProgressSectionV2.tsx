@@ -78,7 +78,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         day: "M",
         date: "Jun 9",
         s: true,
-        dot: "Dot 3",
+        dot: "Episode 3",
         circle: "Friendship",
         dur: 12,
         speak: 5,
@@ -88,7 +88,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         q: {
           text: "I think Tomo should just be honest even if it hurts.",
           skill: "Diplomacy",
-          session: "Dot 3",
+          session: "Episode 3",
         },
         skills: [
           {
@@ -105,7 +105,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         date: "Jun 11",
         s: true,
         today: true,
-        dot: "Dot 4",
+        dot: "Episode 4",
         circle: "Friendship",
         dur: 14,
         speak: 6,
@@ -115,7 +115,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         q: {
           text: "Lucius knew he was wrong but didn't want to admit it — that's really hard.",
           skill: "Critical thinking",
-          session: "Dot 4",
+          session: "Episode 4",
         },
         skills: [
           {
@@ -148,7 +148,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         day: "T",
         date: "Jun 5",
         s: true,
-        dot: "Dot 1",
+        dot: "Episode 1",
         circle: "Friendship",
         dur: 9,
         speak: 3,
@@ -158,7 +158,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         q: {
           text: "Being a good friend means being there even when it's hard.",
           skill: "Storytelling",
-          session: "Dot 1",
+          session: "Episode 1",
         },
         skills: [
           {
@@ -174,7 +174,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         day: "S",
         date: "Jun 7",
         s: true,
-        dot: "Dot 2",
+        dot: "Episode 2",
         circle: "Friendship",
         dur: 11,
         speak: 4,
@@ -184,7 +184,7 @@ const PROG_WEEKS: ProgressWeek[] = [
         q: {
           text: "A real friend tells you the truth even when it's hard to hear.",
           skill: "Storytelling",
-          session: "Dot 2",
+          session: "Episode 2",
         },
         skills: [
           {
@@ -239,17 +239,17 @@ const PROG_MONTHS: ProgressMonth[] = [
         ],
         quotes: [
           {
-            session: "Dot 4",
+            session: "Episode 4",
             text: "Lucius betrayed his friend because he wanted power — but I think he was also scared.",
             skill: "Critical thinking",
           },
           {
-            session: "Dot 2",
+            session: "Episode 2",
             text: "A real friend tells you the truth even when it's hard to hear.",
             skill: "Storytelling",
           },
           {
-            session: "Dot 5",
+            session: "Episode 5",
             text: "I think they should talk instead of fighting because fighting makes it worse.",
             skill: "Diplomacy",
           },
@@ -263,7 +263,7 @@ const PROG_MONTHS: ProgressMonth[] = [
         words: ["Brave", "Afraid", "Challenge", "Bold", "Fear"],
         quotes: [
           {
-            session: "Dot 3",
+            session: "Episode 3",
             text: "Courage isn't when you're not scared — it's when you do it anyway.",
             skill: "Critical thinking",
           },
@@ -275,7 +275,7 @@ const PROG_MONTHS: ProgressMonth[] = [
         name: "Critical thinking",
         pct: 72,
         prev: 18,
-        cap: "Held counter-arguments across 4 Dots.",
+        cap: "Held counter-arguments across 4 Episodes.",
       },
       {
         name: "Speaking confidence",
@@ -318,7 +318,7 @@ const PROG_MONTHS: ProgressMonth[] = [
       {
         tier: "gold",
         title: "Critical thinking",
-        evidence: "Held counter-arguments across 4 Dots.",
+        evidence: "Held counter-arguments across 4 Episodes.",
       },
       {
         tier: "silver",
@@ -338,7 +338,7 @@ const PROG_MONTHS: ProgressMonth[] = [
       {
         tier: "silver",
         title: "Storytelling",
-        evidence: "Retold Dot 2 with full cause and effect.",
+        evidence: "Retold Episode 2 with full cause and effect.",
       },
       {
         tier: "bronze",
@@ -380,7 +380,7 @@ const PROG_MONTHS: ProgressMonth[] = [
         words: ["Trust", "Enormous", "Loyalty", "Courage", "Defend"],
         quotes: [
           {
-            session: "Dot 3",
+            session: "Episode 3",
             text: "I think Tomo should just be honest even if it hurts.",
             skill: "Diplomacy",
           },
@@ -1603,7 +1603,7 @@ const MonthlyView: React.FC<{
       <Drawer
         label="Adventures this month"
         color="var(--gold)"
-        right={`${month.adventures.length} circles`}
+        right={`${month.adventures.length} adventures`}
       >
         <div
           style={{
@@ -1751,7 +1751,7 @@ const MonthlyView: React.FC<{
       <Drawer
         label={`Next up for ${studentName}`}
         color="#5b86a8"
-        right="Circle ahead"
+        right="Adventure ahead"
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {month.next.map((item, index) => (
@@ -1854,7 +1854,7 @@ const ProgressSectionV2: React.FC<ProgressSectionV2Props> = ({
     range === "Daily"
       ? day && day.s
         ? {
-            eyebrow: `${day.date} · ${day.circle} · Episode ${day.dot?.replace("Dot ", "")}`,
+            eyebrow: `${day.date} · ${day.circle} · ${day.dot}`,
             headline: getDailyHeadline(day),
             stats: [
               ["Session", `${day.dur} min`],

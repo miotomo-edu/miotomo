@@ -59,7 +59,7 @@ const BrowseRow: React.FC<BrowseRowProps> = ({
       </div>
     ) : (
       <div className="rounded-2xl border border-dashed border-white/20 bg-white/10 px-4 py-6 text-sm font-medium text-white/55 md:text-lg">
-        {emptyMessage || "No circles yet."}
+        {emptyMessage || "No adventures yet."}
       </div>
     )}
   </section>

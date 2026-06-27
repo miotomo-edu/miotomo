@@ -1,7 +1,7 @@
-# Circles Browse UI Brief (Netflix-style)
+# Adventures Browse UI Brief (Netflix-style)
 
 ## Goal
-Define a Netflix/AppleTV/Disney-style browse experience for Circles. This document describes the main library view, navigation, and row logic at a high level. It assumes the existing single-circle detail view with all dots already exists and should be kept.
+Define a Netflix/AppleTV/Disney-style browse experience for Adventures. This document describes the main library view, navigation, and row logic at a high level. It assumes the existing single-Adventure detail view with all Episodes already exists and should be kept.
 
 ## Scope
 - Main library view (browse/home)
@@ -10,10 +10,10 @@ Define a Netflix/AppleTV/Disney-style browse experience for Circles. This docume
 
 Out of scope:
 - HTML/CSS/JS implementation details
-- Changes to the existing single-circle view
+- Changes to the existing single-Adventure view
 
 ## Data Sources (Supabase)
-- `books` (circles): core identity
+- `books` (Adventures): core identity
   - `id`, `title`, `cover`, `author`, `section_type`, `type`, `is_synthetic`
 - `circles_catalog`: browse metadata
   - `featured`, `featured_rank`, `featured_start`, `featured_end`
@@ -27,7 +27,7 @@ Out of scope:
   - `student_id`, `book_id`, `episode`, `listening_status`, `talking_status`, `last_active_at`
 
 ## Main Library View
-A vertical stack of horizontal rows (carousels). Each row is a filtered collection of circles. Clicking a card opens the existing single-circle view with dots.
+A vertical stack of horizontal rows (carousels). Each row is a filtered collection of Adventures. Clicking a card opens the existing single-Adventure view with Episodes.
 
 Suggested top-level layout:
 1) Hero / Featured
@@ -71,7 +71,7 @@ Create multiple rows from `mood_tags` buckets (curious, contemplative, playful, 
 Create rows from `domain_tags` buckets (science, philosophy, emotions, animals, space, time, people, nature, technology).
 
 ## Card Content (Browse)
-Each circle card should include:
+Each Adventure card should include:
 - `books.title`
 - `books.cover`
 - Optional: `circles_catalog.mood_tags` (one primary)
@@ -79,8 +79,8 @@ Each circle card should include:
 - Optional: length via `circles_catalog.length_category` or total duration sum from `circles_dots.duration`
 
 ## Navigation
-- Row -> circle detail: click a card to open the existing single-circle view (do not change that view).
-- Continue row: clicking should deep-link to the circle detail, optionally highlighting the last episode (from `dot_progress.episode`).
+- Row -> Adventure detail: click a card to open the existing single-Adventure view (do not change that view).
+- Continue row: clicking should deep-link to the Adventure detail, optionally highlighting the last Episode (from `dot_progress.episode`).
 
 ## UX Notes
 - Hide empty rows (no results).

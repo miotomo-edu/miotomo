@@ -1017,7 +1017,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         {shouldShowTodayMission && nextEpisode ? (
           <NextDotCard
             episode={nextEpisode.episode}
-            title={nextEpisode.title || `Dot ${nextEpisode.episode}`}
+            title={nextEpisode.title || `Episode ${nextEpisode.episode}`}
             typeName={typeNamesByEpisode[nextEpisode.episode] || undefined}
             typeSlug={typeSlugsByEpisode[nextEpisode.episode] || undefined}
             vocabulary={vocabularyByEpisode[nextEpisode.episode]}
@@ -1036,7 +1036,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
         )}
         <div className="mt-0 flex flex-col">
           {episodes.map((episode, index) => {
-            const title = episode.title || `Dot ${episode.episode}`;
+            const title = episode.title || `Episode ${episode.episode}`;
             const typeName = typeNamesByEpisode[episode.episode] || "";
             const typeSlug = typeSlugsByEpisode[episode.episode] || "";
             const durationValue = durationsByEpisode[episode.episode];
