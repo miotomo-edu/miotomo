@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import type { Book } from "../../types";
-import CircleDotsSymbol from "../features/browse/CircleDotsSymbol";
 import tomoCelebrating from "../../assets/img/tomo-celebrating.webp";
 
 type DotCompletionPageProps = {
@@ -108,20 +107,9 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
           <div className="flex flex-col md:col-start-1 md:row-start-1 md:w-full md:max-w-[42rem]">
             <div>
               <div className="flex items-center gap-3 md:gap-4">
-                <CircleDotsSymbol
-                  totalDots={Math.max(totalDots, 1)}
-                  completedDots={completedEpisode}
-                  currentDot={completedEpisode}
-                  label={completedEpisode}
-                  size={52}
-                  ringColor="#0a1024"
-                  inactiveDotFill="#0a1024"
-                  inactiveDotStroke="#0a1024"
-                  completedDotFill="#FAC304"
-                  completedDotStroke="#FAC304"
-                  labelColor="#0a1024"
-                  className="md:h-[64px] md:w-[64px]"
-                />
+                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#b6c356] text-base font-bold text-black md:h-16 md:w-16">
+                  {completedEpisode}
+                </div>
                 <p className="font-display text-2xl font-bold leading-[1.02] tracking-[-0.03em] text-[#020617] md:text-3xl lg:text-3xl">
                   {`Episode ${completedEpisode} completed`}
                 </p>
@@ -201,20 +189,9 @@ const DotCompletionPage: React.FC<DotCompletionPageProps> = ({
 
           <div className="mt-0 shrink-0 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:col-start-1 md:row-start-3 md:mt-0 md:w-full md:max-w-[42rem] md:pb-0">
             <div className="hidden items-center gap-3 md:flex md:gap-4">
-              <CircleDotsSymbol
-                totalDots={Math.max(totalDots, 1)}
-                completedDots={completedEpisode}
-                currentDot={nextEpisode}
-                label={nextEpisode ?? completedEpisode}
-                size={52}
-                ringColor="#0a1024"
-                inactiveDotFill="#0a1024"
-                inactiveDotStroke="#0a1024"
-                completedDotFill="#FAC304"
-                completedDotStroke="#FAC304"
-                labelColor="#0a1024"
-                className="md:h-[64px] md:w-[64px]"
-              />
+              <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#b6c356] text-base font-bold text-black md:h-16 md:w-16">
+                {nextEpisode ?? completedEpisode}
+              </div>
               <p className="text-2xl leading-[1.2] text-[#020617] md:max-w-[18ch] md:text-2xl lg:max-w-[16ch] lg:text-3xl">
                 {nextEpisode ? (
                   <>
