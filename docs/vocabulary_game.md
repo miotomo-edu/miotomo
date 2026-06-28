@@ -39,7 +39,7 @@ Production / remote backend:
 - `wss://miotomo-vocabulary.onrender.com/v1/vocab/grade?sample_rate=16000&target_word=<word>`
 
 Warm-up:
-- The app also pings `https://miotomo-vocabulary.onrender.com/ready` (via `useAnalytics.wakeAnalytics()`) to reduce Render cold-start latency before grading requests.
+- The app also pings `https://miotomo-vocabulary.onrender.com/ready` (via `useAnalytics.wakeAnalytics()`) on app start/resume, Episode start, `BotReady`, and Episode completion to reduce cold-start latency before grading requests. Optional 45-second polling is enabled only when `VITE_ENABLE_WARMUP_INTERVAL=true`.
 
 Messages:
 - `type: "status", stage: "grading"` → stop mic capture, show “Grading…”.

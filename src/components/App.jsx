@@ -556,12 +556,25 @@ const App = ({ transportType, region = "", testingMode = false }) => {
 
   useEffect(() => {
     void wakeAnalytics();
-    const wakeInterval = window.setInterval(() => {
-      void wakeAnalytics();
-    }, 45_000);
+    const wakeInterval =
+      import.meta.env.VITE_ENABLE_WARMUP_INTERVAL === "true"
+        ? window.setInterval(() => {
+            void wakeAnalytics();
+          }, 45_000)
+        : null;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void wakeAnalytics();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.clearInterval(wakeInterval);
+      if (wakeInterval !== null) {
+        window.clearInterval(wakeInterval);
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [wakeAnalytics]);
 
@@ -887,6 +900,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
   const handlePlayEpisode = useCallback(
     async (book, chapterValue, dotTitle, dotTypeSlug) => {
       if (!book) return;
+      void wakeAnalytics();
 
       if (!playbackOnlyMode) {
         try {
@@ -920,12 +934,14 @@ const App = ({ transportType, region = "", testingMode = false }) => {
       currentCharacter,
       activeComponent,
       playbackOnlyMode,
+      wakeAnalytics,
     ],
   );
 
   const handleShowDotCompletion = useCallback(
     (options = {}) => {
       if (!selectedBook) return;
+      void wakeAnalytics();
       setCompletedDotChapter(selectedChapter);
       if (options.openVocabularyGame) {
         setActiveComponent("vocabulary-game");
@@ -939,7 +955,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
             : "dot-complete",
       );
     },
-    [selectedBook, selectedChapter, isDemoSession, testingMode],
+    [selectedBook, selectedChapter, isDemoSession, testingMode, wakeAnalytics],
   );
 
   const handlePreviewNextDotFromCompletion = useCallback(

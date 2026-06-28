@@ -19,7 +19,7 @@ Miotomo is a Vite + React voice companion. Static assets stay in `public/`; buil
 - The browse/home experience is built from `circles_catalog` + `books`, with `dot_progress` powering the Continue row.
 - The full-screen Browse hero no longer expands an inline Episode list. The title area opens the current Adventure page, and the footer includes a down-chevron hint to signal there is more content below.
 - Vocabulary/Spelling games show `PreGameScreen` before gameplay; the CTA transitions into the game flow.
-- Warm-up pings run through `useAnalytics.wakeAnalytics()`: they call analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) on app start, every 45 seconds, and again on `BotReady` to reduce Render/edge cold starts.
+- Warm-up pings run through `useAnalytics.wakeAnalytics()`: they call analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) on app start, when the app becomes visible, at Episode start, on `BotReady`, and at Episode completion. `VITE_ENABLE_WARMUP_INTERVAL=true` additionally enables 45-second polling; it defaults to disabled.
 
 ## Build, Test, and Development Commands
 - `npm run dev` – Start the Vite dev server on `http://localhost:5173`; append `?transport=daily` to toggle the Daily transport, `?skipOnboarding=1` to jump straight to Library for QA, `?preview=...` to jump straight to completion screens while styling/debugging them, `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit, and `?unlockCircleDots=1` to bypass Adventure page row-level Episode locking for QA.

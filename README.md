@@ -25,6 +25,7 @@ React 18 · Vite 6 · TypeScript (UI is mid-migration from JSX) · TailwindCSS �
    VITE_SMALL_WEBRTC_URL=<Pipecat offer endpoint>
    VITE_LOCAL_DAILY_URL=<optional local daily bootstrap endpoint, e.g. http://localhost:8000/api/start-daily-local>
    VITE_PIPECAT_DISCONNECT_BEACON_URL=<optional best-effort session-ended endpoint>
+   VITE_ENABLE_WARMUP_INTERVAL=<optional: true enables 45-second warm-up polling; defaults to false>
    ```
    The GitHub Pages workflow expects the same variables (store them as repository secrets). The generated Supabase client currently ships with placeholder values; override them via env vars before shipping or point the client at `import.meta.env` in your fork.
 4. **Run** – `npm run dev` launches Vite on `http://localhost:5173`. Append `?transport=daily` to test the current cloud Daily bootstrap, or `?transport=local-daily` to use the Daily SDK with `VITE_LOCAL_DAILY_URL`; append `?skipOnboarding=1` (or `&skipOnboarding=1` alongside other params) to bypass Landing/Onboarding and open directly on Library; append `?screenshotMode=1` to keep the screenshot-friendly document-scrolling path explicit for full-page DevTools captures; append `?unlockCircleDots=1` to show Play/Resume buttons for incomplete Episodes on the Adventure page even when they are not the current mission Episode; the default path shows the full onboarding flow and uses Small WebRTC unless a Daily transport is selected.
@@ -86,7 +87,7 @@ src
 4. `useConversation` (features/voice) merges bot and user utterances for display and analytics, while `VoiceBotContext` records latency and behind-the-scenes events.
 5. When Pipecat emits `celebration_sent`, `AnimationManager` swaps the character into its thumbs-up pose so the avatar keeps celebrating through the end of the session.
 6. Prompts can still be prototyped in `src/lib/*.md`, but the production bot prompt lives in Pipecat—document any backend updates in `AGENTS.md`.
-7. Warm-up calls run via `useAnalytics.wakeAnalytics()`: on app start and every 45 seconds (`src/components/App.jsx`), plus on `BotReady` (`src/components/TalkWithBook.tsx`). It pings analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) to reduce cold starts.
+7. Warm-up calls run via `useAnalytics.wakeAnalytics()`: on app start, when the app becomes visible, at Episode start, on `BotReady`, and at Episode completion. Setting `VITE_ENABLE_WARMUP_INTERVAL=true` additionally enables 45-second polling. Each call pings analytics status (`${ANALYTICS_BASE_URL}/analytics-status`) and vocabulary readiness (`https://miotomo-vocabulary.onrender.com/ready`) to reduce cold starts.
 
 ## Data & Persistence
 - Supabase tables: `students`, `books`, `conversations`, `dot_progress`. `dot_progress` tracks per-Episode listening/talking status and elapsed seconds for the Adventure list UI.
