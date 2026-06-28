@@ -1303,7 +1303,8 @@ const App = ({ transportType, region = "", testingMode = false }) => {
     activeComponent !== "landing" &&
     activeComponent !== "onboarding" &&
     activeComponent !== "first-circle-intro" &&
-    activeComponent !== "demo-subscribe";
+    activeComponent !== "demo-subscribe" &&
+    activeComponent !== "interactive";
   const navMode =
     isInteractiveView || activeComponent === "circle" ? "back" : "navigation";
   const shouldRenderFloatingNav = shouldShowBottomNav && !testingMode;
