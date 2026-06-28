@@ -22,9 +22,18 @@ import { useDotProgress } from "../hooks/useDotProgress";
 import useAnalyserVolume from "../hooks/useAnalyserVolume";
 import { getBooleanQueryParam } from "../lib/runtimeParams";
 import DiscussionCompleteSplash from "./features/voice/DiscussionCompleteSplash";
+import EpisodeVideoPlayer from "./features/episode/EpisodeVideoPlayer";
+import type { EpisodeVideoConfig } from "./features/episode/EpisodeVideoPlayer";
+import type { Utterance } from "../hooks/useActiveSpeaker";
+import CrossfadeVideo from "./features/episode/CrossfadeVideo";
 
 const discussionBackgroundAssets = import.meta.glob(
   "../assets/img/discussion/**/*.{webp,png}",
+  { eager: true, import: "default" },
+);
+
+const episodeVideoAssets = import.meta.glob(
+  "../assets/video/episodes/**/*.mp4",
   { eager: true, import: "default" },
 );
 
@@ -369,6 +378,7 @@ export const TalkWithBook = ({
   const [timerRemaining, setTimerRemaining] = useState<number | null>(null);
   const discussionStartedAtRef = useRef<number | null>(null);
   const discussionElapsedRef = useRef<number>(0);
+  const [episodeScript, setEpisodeScript] = useState<Utterance[]>([]);
 
   const disableProgressTracking = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -2116,6 +2126,29 @@ export const TalkWithBook = ({
   }, [handleIntroMetadata, selectedBook?.id, chapter]);
 
   useEffect(() => {
+    if (!selectedBook?.id) return;
+    const episode = getEpisodeNumber();
+    if (!episode) return;
+
+    let cancelled = false;
+
+    supabase
+      .from("circles_scripts")
+      .select("utterances")
+      .eq("circle_id", selectedBook.id)
+      .eq("episode", episode)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setEpisodeScript(Array.isArray(data?.utterances) ? data.utterances : []);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBook?.id, chapter, getEpisodeNumber]);
+
+  useEffect(() => {
     if (!studentId || !selectedBook?.id) return;
     if (disableProgressTracking) return;
     const episode = getEpisodeNumber();
@@ -2922,15 +2955,71 @@ export const TalkWithBook = ({
     sessionEndingReason,
   ]);
 
+  const isChatPhase =
+    sessionPhase === "chat_active" || sessionPhase === "chat_paused";
+
+  const episodeVideoConfig = useMemo<EpisodeVideoConfig | null>(() => {
+    if (!selectedBook?.id || episodeScript.length === 0) return null;
+    const bookVideoClips = selectedBook.video_clips;
+    const speakers = [...new Set(episodeScript.map((u) => u.speaker))];
+    const clips: Record<string, string> = {};
+    for (const speaker of speakers) {
+      const slug = normalizeDiscussionCharacterSlug(speaker);
+      const cloudinaryUrl = bookVideoClips?.[`${slug}_speaking`];
+      const localUrl = episodeVideoAssets[
+        `../assets/video/episodes/${selectedBook.id}/${slug}_speaking.mp4`
+      ] as string | undefined;
+      const url = cloudinaryUrl ?? localUrl;
+      if (url) clips[speaker] = url;
+    }
+    if (Object.keys(clips).length === 0) return null;
+    const idleClip =
+      bookVideoClips?.["idle"] ??
+      (episodeVideoAssets[
+        `../assets/video/episodes/${selectedBook.id}/idle.mp4`
+      ] as string | undefined);
+    return { clips, ...(idleClip ? { idleClip } : {}) };
+  }, [selectedBook?.id, selectedBook?.video_clips, episodeScript]);
+
+  const chatVideoSrc = useMemo<string | undefined>(() => {
+    if (!selectedBook?.id) return undefined;
+    const bookId = selectedBook.id;
+    const bookVideoClips = selectedBook.video_clips;
+
+    if (activityState === "talking" && talkingCharacterName) {
+      const slug = normalizeDiscussionCharacterSlug(talkingCharacterName);
+      const url =
+        bookVideoClips?.[`${slug}_speaking`] ??
+        (episodeVideoAssets[
+          `../assets/video/episodes/${bookId}/${slug}_speaking.mp4`
+        ] as string | undefined);
+      if (url) return url;
+    }
+
+    return (
+      bookVideoClips?.["idle"] ??
+      (episodeVideoAssets[
+        `../assets/video/episodes/${bookId}/idle.mp4`
+      ] as string | undefined)
+    );
+  }, [selectedBook?.id, selectedBook?.video_clips, activityState, talkingCharacterName]);
+
   const talkBackgroundStyle = useMemo(() => {
+    const hasVideoBackground =
+      (isListenMode && episodeVideoConfig != null) ||
+      (isChatPhase && chatVideoSrc != null);
     return {
       backgroundColor: "#000",
-      backgroundImage: `url(${backgroundImage})`,
-      backgroundRepeat: "no-repeat",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
+      ...(hasVideoBackground
+        ? {}
+        : {
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }),
     };
-  }, [backgroundImage]);
+  }, [backgroundImage, isListenMode, episodeVideoConfig, isChatPhase, chatVideoSrc]);
 
   useEffect(() => {
     if (eventMeta.eventType === "celebration_sent") {
@@ -3152,6 +3241,21 @@ export const TalkWithBook = ({
       style={talkBackgroundStyle}
       ref={backgroundRef}
     >
+      {isListenMode && episodeVideoConfig && (
+        <div className="absolute inset-0">
+          <EpisodeVideoPlayer
+            script={episodeScript}
+            audioRef={introAudioRef}
+            config={episodeVideoConfig}
+            paused={sessionPhase !== "intro_playing"}
+          />
+        </div>
+      )}
+      {isChatPhase && chatVideoSrc && (
+        <div className="absolute inset-0">
+          <CrossfadeVideo src={chatVideoSrc} />
+        </div>
+      )}
       {/* Bottom scrim for audio controls */}
       <div
         className="absolute inset-x-0 top-0 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none"

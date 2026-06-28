@@ -8,4 +8,5 @@ export type Book = {
   chapters: number;
   section_type: string;
   lastReadDate?: string | null;
+  video_clips?: Record<string, string> | null;
 };
