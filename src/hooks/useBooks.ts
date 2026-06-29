@@ -12,10 +12,11 @@ export function useBooks(studentId: string) {
       // Library view shows all books, independent of student assignments.
       const { data, error } = await supabase
         .from("books")
-        .select("id, title, author, cover, chapters, section_type")
+        .select("id, title, author, cover, chapters, section_type, video_clips")
         .eq("type", "circle");
 
       if (error) throw error;
+
 
       return (data ?? []).map((book) => ({
         id: book.id,
@@ -27,6 +28,7 @@ export function useBooks(studentId: string) {
         chapters: book.chapters ?? 1,
         section_type: book.section_type,
         lastReadDate: null,
+        video_clips: (book.video_clips as Record<string, string> | null) ?? null,
       }));
     },
     enabled: studentId !== undefined, // Only run if studentId is defined

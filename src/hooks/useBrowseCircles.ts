@@ -63,7 +63,7 @@ export function useBrowseCircles(studentId?: string) {
           supabase
             .from("books")
             .select(
-              "id, title, author, cover, chapters, section_type, demo, demo_order",
+              "id, title, author, cover, chapters, section_type, demo, demo_order, video_clips",
             )
             .eq("type", "circle"),
           supabase.from("circles_catalog").select("*"),
@@ -105,6 +105,7 @@ export function useBrowseCircles(studentId?: string) {
           chapters: book.chapters ?? 1,
           section_type: book.section_type,
           lastReadDate: null,
+          video_clips: (book.video_clips as Record<string, string> | null) ?? null,
         };
         return {
           ...localBook,

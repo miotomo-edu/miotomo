@@ -17,6 +17,7 @@ export type Database = {
           id: string;
           title: string;
           total_pages: number;
+          video_clips: Json | null;
         };
         Insert: {
           author: string;
@@ -25,6 +26,7 @@ export type Database = {
           id?: string;
           title: string;
           total_pages: number;
+          video_clips?: Json | null;
         };
         Update: {
           author?: string;
@@ -33,6 +35,7 @@ export type Database = {
           id?: string;
           title?: string;
           total_pages?: number;
+          video_clips?: Json | null;
         };
         Relationships: [];
       };

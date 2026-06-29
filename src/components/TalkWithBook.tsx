@@ -2988,11 +2988,11 @@ export const TalkWithBook = ({
 
     if (activityState === "talking" && talkingCharacterName) {
       const slug = normalizeDiscussionCharacterSlug(talkingCharacterName);
-      const url =
-        bookVideoClips?.[`${slug}_speaking`] ??
-        (episodeVideoAssets[
-          `../assets/video/episodes/${bookId}/${slug}_speaking.mp4`
-        ] as string | undefined);
+      const cloudinaryUrl = bookVideoClips?.[`${slug}_speaking`];
+      const localUrl = episodeVideoAssets[
+        `../assets/video/episodes/${bookId}/${slug}_speaking.mp4`
+      ] as string | undefined;
+      const url = cloudinaryUrl ?? localUrl;
       if (url) return url;
     }
 
