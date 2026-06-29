@@ -182,17 +182,17 @@ export default function CrossfadeVideo({
     const tick = () => {
       const video = getVideo(frontSlotRef.current);
       const remaining = video ? video.duration - video.currentTime : Infinity;
-      const loopLeadSeconds = crossfadeDuration / 1000 + 0.05;
-
       if (
         currentSrcRef.current &&
         !swapInProgressRef.current &&
         video &&
         !video.paused &&
         Number.isFinite(remaining) &&
-        remaining <= loopLeadSeconds
+        remaining <= 0.1
       ) {
-        swapTo(currentSrcRef.current);
+        // Restart in-place: no opacity transition, no A/B swap.
+        // Crossfading the same clip produces a visible fade-to-black.
+        video.currentTime = 0;
       }
 
       frameId = window.requestAnimationFrame(tick);
