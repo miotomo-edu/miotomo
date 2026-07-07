@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { PipecatClientProvider } from "@pipecat-ai/client-react";
-import { PipecatClient } from "@pipecat-ai/client-js";
+import { LogLevel, PipecatClient, logger } from "@pipecat-ai/client-js";
 import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport";
 import { DailyTransport } from "@pipecat-ai/daily-transport";
 
@@ -38,6 +38,8 @@ import { getBooleanQueryParam, getQueryParam } from "../lib/runtimeParams";
 
 // ⬇️ Reusable connection manager (from your new hook file)
 import { PipecatConnectionManager } from "../hooks/usePipecatConnection";
+
+logger.setLevel(LogLevel.WARN);
 
 class AECMediaManager {
   async getUserMedia() {

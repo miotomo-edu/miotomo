@@ -26,6 +26,7 @@ import EpisodeVideoPlayer from "./features/episode/EpisodeVideoPlayer";
 import type { EpisodeVideoConfig } from "./features/episode/EpisodeVideoPlayer";
 import type { Utterance } from "../hooks/useActiveSpeaker";
 import CrossfadeVideo from "./features/episode/CrossfadeVideo";
+import { logSpeakerLockStatusFromServerMessage } from "./features/voice/SpeakerLockStatusLogger";
 
 const discussionBackgroundAssets = import.meta.glob(
   "../assets/img/discussion/**/*.{webp,png}",
@@ -797,7 +798,7 @@ export const TalkWithBook = ({
         }
         if (enabled) {
           if (isConnected) {
-            if (!isDuplicateControl) {
+            if (hasOverride && !isDuplicateControl) {
               sendClientMessage("control", payload);
               lastMicControlSentRef.current = { action, payloadKey };
             }
@@ -805,7 +806,7 @@ export const TalkWithBook = ({
           }
         } else {
           if (isConnected) {
-            if (!isDuplicateControl) {
+            if (hasOverride && !isDuplicateControl) {
               sendClientMessage("control", payload);
               lastMicControlSentRef.current = { action, payloadKey };
             }
@@ -2140,7 +2141,9 @@ export const TalkWithBook = ({
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return;
-        setEpisodeScript(Array.isArray(data?.utterances) ? data.utterances : []);
+        setEpisodeScript(
+          Array.isArray(data?.utterances) ? data.utterances : [],
+        );
       });
 
     return () => {
@@ -2490,6 +2493,9 @@ export const TalkWithBook = ({
       logRtviEvent("ServerMessage", msg);
       // Keep the server message visible in the UI via serverEvent only.
       const parsed = parseServerPayload(msg);
+      if (logSpeakerLockStatusFromServerMessage(parsed)) {
+        return;
+      }
       const voiceChangeCharacter = extractVoiceChangeCharacter(parsed);
       if (voiceChangeCharacter) {
         setActiveVoiceCharacterName(voiceChangeCharacter);
@@ -2998,11 +3004,16 @@ export const TalkWithBook = ({
 
     return (
       bookVideoClips?.["idle"] ??
-      (episodeVideoAssets[
-        `../assets/video/episodes/${bookId}/idle.mp4`
-      ] as string | undefined)
+      (episodeVideoAssets[`../assets/video/episodes/${bookId}/idle.mp4`] as
+        | string
+        | undefined)
     );
-  }, [selectedBook?.id, selectedBook?.video_clips, activityState, talkingCharacterName]);
+  }, [
+    selectedBook?.id,
+    selectedBook?.video_clips,
+    activityState,
+    talkingCharacterName,
+  ]);
 
   const talkBackgroundStyle = useMemo(() => {
     const hasVideoBackground =
@@ -3019,7 +3030,13 @@ export const TalkWithBook = ({
             backgroundPosition: "center",
           }),
     };
-  }, [backgroundImage, isListenMode, episodeVideoConfig, isChatPhase, chatVideoSrc]);
+  }, [
+    backgroundImage,
+    isListenMode,
+    episodeVideoConfig,
+    isChatPhase,
+    chatVideoSrc,
+  ]);
 
   useEffect(() => {
     if (eventMeta.eventType === "celebration_sent") {
