@@ -22,7 +22,7 @@ import SettingsSection from "./sections/SettingsSection";
 import MapSection from "./sections/MapSection";
 import CirclePage from "./sections/CirclePage";
 import { TalkWithBook } from "./TalkWithBook";
-import ProgressSectionV2 from "./sections/ProgressSectionV2";
+import ProgressSectionV3 from "./sections/ProgressSectionV3";
 import BottomNavBar from "./common/BottomNavBar";
 import OnboardingFlow from "./sections/Onboarding/OnboardingFlow";
 
@@ -1147,7 +1147,7 @@ const App = ({ transportType, region = "", testingMode = false }) => {
         );
       case "progress":
         return (
-          <ProgressSectionV2
+          <ProgressSectionV3
             conversationId={latestConversationId || undefined}
             userName={userName}
           />

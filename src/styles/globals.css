@@ -173,6 +173,32 @@ button {
   background: rgba(182, 195, 86, 0.12) !important;
 }
 
+.progress-v3 .progress-v3-tab__button {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.progress-v3 .progress-v3-tab__button--active {
+  background: transparent !important;
+}
+
+.progress-v3 .progress-v3-subtab__button {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.progress-v3 .progress-v3-subtab__button--active {
+  background: rgba(182, 195, 86, 0.22) !important;
+}
+
+.progress-v3 .progress-v3-mission-secondary {
+  background: transparent !important;
+}
+
+.progress-v3 .progress-v3-adult-toggle {
+  background: rgba(240, 230, 207, 0.03) !important;
+}
+
 .progress-v2 .progress-v2-day__button--idle {
   background: rgba(240, 230, 207, 0.04) !important;
 }
