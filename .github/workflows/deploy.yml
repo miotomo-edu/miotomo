@@ -43,6 +43,10 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_DAILY_PROXY_URL: ${{ secrets.VITE_DAILY_PROXY_URL }}
           VITE_SMALL_WEBRTC_URL: ${{ secrets.VITE_SMALL_WEBRTC_URL }}
+          VITE_USER_DATA_SUPABASE_URL_EU_US: ${{ secrets.VITE_USER_DATA_SUPABASE_URL_EU_US }}
+          VITE_USER_DATA_SUPABASE_ANON_KEY_EU_US: ${{ secrets.VITE_USER_DATA_SUPABASE_ANON_KEY_EU_US }}
+          VITE_USER_DATA_SUPABASE_URL_AP_SOUTH: ${{ secrets.VITE_USER_DATA_SUPABASE_URL_AP_SOUTH }}
+          VITE_USER_DATA_SUPABASE_ANON_KEY_AP_SOUTH: ${{ secrets.VITE_USER_DATA_SUPABASE_ANON_KEY_AP_SOUTH }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v5
