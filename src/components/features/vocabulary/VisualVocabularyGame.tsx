@@ -124,7 +124,7 @@ const VisualVocabularyGame: React.FC<VisualVocabularyGameProps> = ({
   const [feedbackKey, setFeedbackKey] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasListened, setHasListened] = useState(false);
-  const [showIntro, setShowIntro] = useState(() => !previewMode);
+  const [showIntro, setShowIntro] = useState(false);
   const [showSpellingGame, setShowSpellingGame] = useState(false);
   const [armingCountdown, setArmingCountdown] = useState<number | null>(null);
 
