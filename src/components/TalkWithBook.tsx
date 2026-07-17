@@ -3097,6 +3097,7 @@ export const TalkWithBook = ({
           bookId: latestConversation.book_id,
           chapterStart: normalizedChapterStart,
           chapterEnd: normalizedChapterEnd,
+          region,
           saveResults: true,
         });
 

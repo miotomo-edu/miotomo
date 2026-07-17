@@ -17,6 +17,7 @@ interface AnalyzePayload {
   bookId: string;
   chapterStart: number;
   chapterEnd: number;
+  region?: string;
   saveResults?: boolean;
 }
 
@@ -58,6 +59,7 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({
       bookId,
       chapterStart,
       chapterEnd,
+      region = "",
       saveResults = true,
     }: AnalyzePayload) => {
       setIsAnalyzing(true);
@@ -73,6 +75,7 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({
             book_id: bookId,
             chapter_start: chapterStart,
             chapter_end: chapterEnd,
+            region,
             save_results: saveResults,
           }),
         });
