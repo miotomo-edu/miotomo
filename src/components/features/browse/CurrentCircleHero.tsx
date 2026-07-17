@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Book } from "../../../types";
 import { useCircleCover } from "../../../hooks/useCircleCover";
-import {
-  supabase,
-  supabaseUserData,
-} from "../../../hooks/integrations/supabase/client";
+import { supabase } from "../../../hooks/integrations/supabase/client";
+import { useSupabaseUserData } from "../../../hooks/integrations/supabase/userDataRegion";
 import { useBooks } from "../../../hooks/useBooks";
 type CurrentCircleHeroProps = {
   studentId: string;
@@ -58,6 +56,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
   showOpenCircle = false,
   onPlay,
 }) => {
+  const supabaseUserData = useSupabaseUserData();
   const coverUrl = useCircleCover(item.book.thumbnailUrl);
   const [episodes, setEpisodes] = useState<EpisodeMeta[]>([]);
   const { updateBookProgress, isUpdating } = useBooks(studentId);

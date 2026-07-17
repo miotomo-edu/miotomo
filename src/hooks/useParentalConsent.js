@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { supabaseUserData } from "./integrations/supabase/client";
+import { useSupabaseUserData } from "./integrations/supabase/userDataRegion";
 
 const PARENTAL_CONSENTS_TABLE = "parental_consents";
 
@@ -10,6 +10,7 @@ const sanitizePayload = (payload) =>
   );
 
 export const useParentalConsent = () => {
+  const supabaseUserData = useSupabaseUserData();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,7 +48,7 @@ export const useParentalConsent = () => {
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [supabaseUserData]);
 
   return {
     saveConsent,

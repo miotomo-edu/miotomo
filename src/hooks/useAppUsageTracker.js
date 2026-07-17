@@ -1,10 +1,11 @@
 import { useCallback, useRef } from "react";
 
-import { supabaseUserData } from "./integrations/supabase/client";
+import {
+  useSupabaseUserData,
+  useUserDataSupabaseConfig,
+} from "./integrations/supabase/userDataRegion";
 
 const APP_USAGE_TABLE = "app_usage_events";
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const APP_USAGE_TRACKING_DISABLED =
   import.meta.env.VITE_DISABLE_APP_USAGE_TRACKING === "1" ||
   import.meta.env.VITE_DISABLE_APP_USAGE_TRACKING === "true";
@@ -32,6 +33,9 @@ export const useAppUsageTracker = ({
   userName = "",
   transportType = "",
 }) => {
+  const supabaseUserData = useSupabaseUserData();
+  const { url: userDataSupabaseUrl, anonKey: userDataSupabaseAnonKey } =
+    useUserDataSupabaseConfig();
   const sessionIdRef = useRef(createSessionId());
   const openTrackedRef = useRef(false);
   const seenSectionsRef = useRef(new Set());
@@ -91,14 +95,14 @@ export const useAppUsageTracker = ({
         console.warn(`Failed to track ${eventType}:`, error);
       }
     },
-    [buildPayload],
+    [buildPayload, supabaseUserData],
   );
 
   const trackLifecycleEvent = useCallback(
     (eventType, details = {}) => {
       if (APP_USAGE_TRACKING_DISABLED) return;
       try {
-        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+        if (!userDataSupabaseUrl || !userDataSupabaseAnonKey) return;
         const lifecycleKey = JSON.stringify([
           eventType,
           details.section ?? "",
@@ -110,14 +114,14 @@ export const useAppUsageTracker = ({
         if (lifecycleEventKeysRef.current.has(lifecycleKey)) return;
         lifecycleEventKeysRef.current.add(lifecycleKey);
         const payload = buildPayload(eventType, details);
-        void fetch(`${SUPABASE_URL}/rest/v1/${APP_USAGE_TABLE}`, {
+        void fetch(`${userDataSupabaseUrl}/rest/v1/${APP_USAGE_TABLE}`, {
           method: "POST",
           keepalive: true,
           headers: {
             "Content-Type": "application/json",
             "Content-Profile": "user_data",
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            apikey: userDataSupabaseAnonKey,
+            Authorization: `Bearer ${userDataSupabaseAnonKey}`,
             Prefer: "return=minimal",
           },
           body: JSON.stringify(payload),
@@ -126,7 +130,7 @@ export const useAppUsageTracker = ({
         console.warn(`Failed to track lifecycle ${eventType}:`, error);
       }
     },
-    [buildPayload],
+    [buildPayload, userDataSupabaseAnonKey, userDataSupabaseUrl],
   );
 
   const trackAppOpen = useCallback(

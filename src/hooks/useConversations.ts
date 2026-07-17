@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { supabaseUserData } from "./integrations/supabase/client";
+import { useSupabaseUserData } from "./integrations/supabase/userDataRegion";
 
 export interface ConversationData {
   id?: string;
@@ -41,6 +41,7 @@ export interface UseConversationsReturn {
 }
 
 export const useConversations = (): UseConversationsReturn => {
+  const supabaseUserData = useSupabaseUserData();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -138,7 +139,7 @@ export const useConversations = (): UseConversationsReturn => {
         setLoading(false);
       }
     },
-    [],
+    [supabaseUserData],
   );
 
   const getConversationById = useCallback(async (conversationId: string) => {
@@ -177,7 +178,7 @@ export const useConversations = (): UseConversationsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabaseUserData]);
 
   const deleteConversation = useCallback(async (conversationId: string) => {
     if (!conversationId) {
@@ -213,7 +214,7 @@ export const useConversations = (): UseConversationsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabaseUserData]);
 
   return {
     getConversations,

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { supabaseUserData } from "./integrations/supabase/client";
+import { useSupabaseUserData } from "./integrations/supabase/userDataRegion";
 
 export type DotProgressUpdate = {
   studentId: string;
@@ -14,6 +14,7 @@ export type DotProgressUpdate = {
 };
 
 export const useDotProgress = () => {
+  const supabaseUserData = useSupabaseUserData();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +55,7 @@ export const useDotProgress = () => {
         setLoading(false);
       }
     },
-    [],
+    [supabaseUserData],
   );
 
   const upsertDotProgress = useCallback(async (update: DotProgressUpdate) => {
@@ -117,7 +118,7 @@ export const useDotProgress = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabaseUserData]);
 
   return { upsertDotProgress, getDotProgress, loading, error };
 };

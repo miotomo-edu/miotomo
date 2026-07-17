@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "./integrations/supabase/client";
 import {
-  supabase,
-  supabaseUserData,
-} from "./integrations/supabase/client";
+  useSupabaseUserData,
+  useUserDataSupabaseConfig,
+} from "./integrations/supabase/userDataRegion";
 import type { Book as LocalBook } from "../types";
 
 type CatalogRow = {
@@ -58,8 +59,10 @@ const resolveCatalogId = (row: CatalogRow) =>
   row.circle_id ?? row.circleId ?? row.book_id ?? row.bookId ?? null;
 
 export function useBrowseCircles(studentId?: string) {
+  const supabaseUserData = useSupabaseUserData();
+  const { region } = useUserDataSupabaseConfig();
   return useQuery({
-    queryKey: ["browse-circles", studentId],
+    queryKey: ["browse-circles", region, studentId],
     queryFn: async (): Promise<BrowseData> => {
       const [booksResult, catalogResult, progressResult, dotsResult] =
         await Promise.all([

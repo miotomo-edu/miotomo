@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  supabase,
-  supabaseUserData,
-} from "./integrations/supabase/client";
+  useSupabaseUserData,
+  useUserDataSupabaseConfig,
+} from "./integrations/supabase/userDataRegion";
 
 const HARDCODED_STUDENT_ID = "052f53c5-f0a1-4397-87d0-7cf9b8fa284f";
 
@@ -56,8 +56,10 @@ const calculateStreak = (conversationDates: string[]): number => {
 };
 
 export function useStudent(studentId = HARDCODED_STUDENT_ID) {
+  const supabaseUserData = useSupabaseUserData();
+  const { region } = useUserDataSupabaseConfig();
   return useQuery({
-    queryKey: ["student", studentId],
+    queryKey: ["student", region, studentId],
     queryFn: async () => {
       // Fetch student data
       const { data: studentData, error: studentError } = await supabaseUserData

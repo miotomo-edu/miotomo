@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { Book } from "../../types";
-import {
-  supabase,
-  supabaseUserData,
-} from "../../hooks/integrations/supabase/client";
+import { supabase } from "../../hooks/integrations/supabase/client";
+import { useSupabaseUserData } from "../../hooks/integrations/supabase/userDataRegion";
 import { useBooks } from "../../hooks/useBooks";
 import { useCircleCover } from "../../hooks/useCircleCover";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
@@ -380,6 +378,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
   onPlayEpisode,
   onSelectCircle,
 }) => {
+  const supabaseUserData = useSupabaseUserData();
   const showRecommendationSections = false;
   const [titlesByEpisode, setTitlesByEpisode] = useState<
     Record<number, string>

@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  supabase,
-  supabaseUserData,
-} from "./integrations/supabase/client";
+import { supabase } from "./integrations/supabase/client";
+import { useSupabaseUserData } from "./integrations/supabase/userDataRegion";
 import type { Book as LocalBook } from "../types";
 import type { TablesUpdate } from "./integrations/supabase/types";
 
 export function useBooks(studentId: string) {
+  const supabaseUserData = useSupabaseUserData();
   const queryClient = useQueryClient();
 
   const booksQuery = useQuery({
