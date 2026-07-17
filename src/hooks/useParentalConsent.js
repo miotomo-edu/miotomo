@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { supabase } from "./integrations/supabase/client";
+import { supabaseUserData } from "./integrations/supabase/client";
 
 const PARENTAL_CONSENTS_TABLE = "parental_consents";
 
@@ -30,7 +30,7 @@ export const useParentalConsent = () => {
         user_agent: details.userAgent || null,
       });
 
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseUserData
         .from(PARENTAL_CONSENTS_TABLE)
         .insert(payload);
 

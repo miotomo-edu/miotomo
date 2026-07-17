@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "./integrations/supabase/client";
+import {
+  supabase,
+  supabaseUserData,
+} from "./integrations/supabase/client";
 
 const HARDCODED_STUDENT_ID = "052f53c5-f0a1-4397-87d0-7cf9b8fa284f";
 
@@ -67,12 +70,13 @@ export function useStudent(studentId = HARDCODED_STUDENT_ID) {
       if (studentError) throw studentError;
 
       // Fetch conversation dates for streak calculation
-      const { data: conversations, error: conversationsError } = await supabase
-        .from("conversations")
-        .select("created_at")
-        .eq("student_id", studentId)
-        .not("created_at", "is", null)
-        .order("created_at", { ascending: false });
+      const { data: conversations, error: conversationsError } =
+        await supabaseUserData
+          .from("conversations")
+          .select("created_at")
+          .eq("student_id", studentId)
+          .not("created_at", "is", null)
+          .order("created_at", { ascending: false });
 
       if (conversationsError) {
         console.warn(

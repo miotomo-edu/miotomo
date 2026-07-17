@@ -39,119 +39,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      conversations: {
-        Row: {
-          id: string;
-          student_id: string | null;
-          book_id: string | null;
-          chapter: number | null;
-          created_at: string | null;
-          updated_at: string | null;
-          messages: Json;
-          env: string | null;
-          modalities: string | null;
-          last_server_event: Json | null;
-          status: string | null;
-          elapsed_seconds: number;
-          day: string;
-          last_active_at: string;
-          stage_state: Json | null;
-          context_summary: Json | null;
-          session_count: number;
-        };
-        Insert: {
-          id?: string;
-          student_id?: string | null;
-          book_id?: string | null;
-          chapter?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          messages?: Json;
-          env?: string | null;
-          modalities?: string | null;
-          last_server_event?: Json | null;
-          status?: string | null;
-          elapsed_seconds?: number;
-          day?: string;
-          last_active_at?: string;
-          stage_state?: Json | null;
-          context_summary?: Json | null;
-          session_count?: number;
-        };
-        Update: {
-          id?: string;
-          student_id?: string | null;
-          book_id?: string | null;
-          chapter?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          messages?: Json;
-          env?: string | null;
-          modalities?: string | null;
-          last_server_event?: Json | null;
-          status?: string | null;
-          elapsed_seconds?: number;
-          day?: string;
-          last_active_at?: string;
-          stage_state?: Json | null;
-          context_summary?: Json | null;
-          session_count?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "conversations_student_id_fkey";
-            columns: ["student_id"];
-            isOneToOne: false;
-            referencedRelation: "students";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "conversations_book_id_fkey";
-            columns: ["book_id"];
-            isOneToOne: false;
-            referencedRelation: "books";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      sessions: {
-        Row: {
-          created_at: string | null;
-          date: string;
-          id: string;
-          notes: string | null;
-          pages_read: number;
-          student_book_id: string | null;
-          time_spent: number;
-        };
-        Insert: {
-          created_at?: string | null;
-          date: string;
-          id?: string;
-          notes?: string | null;
-          pages_read: number;
-          student_book_id?: string | null;
-          time_spent: number;
-        };
-        Update: {
-          created_at?: string | null;
-          date?: string;
-          id?: string;
-          notes?: string | null;
-          pages_read?: number;
-          student_book_id?: string | null;
-          time_spent?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "sessions_student_book_id_fkey";
-            columns: ["student_book_id"];
-            isOneToOne: false;
-            referencedRelation: "student_books";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       student_books: {
         Row: {
           assigned_date: string | null;
@@ -252,6 +139,259 @@ export type Database = {
           name?: string;
         };
         Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+  user_data: {
+    Tables: {
+      app_usage_events: {
+        Row: {
+          session_id: string;
+          student_id: string | null;
+          event_type: string;
+          section: string | null;
+          book_id: string | null;
+          chapter: string | null;
+          dot_title: string | null;
+          conversation_id: string | null;
+          metadata: Json | null;
+        };
+        Insert: {
+          session_id: string;
+          student_id?: string | null;
+          event_type: string;
+          section?: string | null;
+          book_id?: string | null;
+          chapter?: string | null;
+          dot_title?: string | null;
+          conversation_id?: string | null;
+          metadata?: Json | null;
+        };
+        Update: {
+          session_id?: string;
+          student_id?: string | null;
+          event_type?: string;
+          section?: string | null;
+          book_id?: string | null;
+          chapter?: string | null;
+          dot_title?: string | null;
+          conversation_id?: string | null;
+          metadata?: Json | null;
+        };
+        Relationships: [];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          student_id: string | null;
+          book_id: string | null;
+          chapter: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+          messages: Json;
+          env: string | null;
+          modalities: string | null;
+          last_server_event: Json | null;
+          status: string | null;
+          elapsed_seconds: number;
+          day: string;
+          last_active_at: string;
+          stage_state: Json | null;
+          context_summary: Json | null;
+          session_count: number;
+        };
+        Insert: {
+          id?: string;
+          student_id?: string | null;
+          book_id?: string | null;
+          chapter?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          messages?: Json;
+          env?: string | null;
+          modalities?: string | null;
+          last_server_event?: Json | null;
+          status?: string | null;
+          elapsed_seconds?: number;
+          day?: string;
+          last_active_at?: string;
+          stage_state?: Json | null;
+          context_summary?: Json | null;
+          session_count?: number;
+        };
+        Update: {
+          id?: string;
+          student_id?: string | null;
+          book_id?: string | null;
+          chapter?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          messages?: Json;
+          env?: string | null;
+          modalities?: string | null;
+          last_server_event?: Json | null;
+          status?: string | null;
+          elapsed_seconds?: number;
+          day?: string;
+          last_active_at?: string;
+          stage_state?: Json | null;
+          context_summary?: Json | null;
+          session_count?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversations_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "students";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      dot_progress: {
+        Row: {
+          student_id: string;
+          book_id: string;
+          episode: number;
+          listening_status: string | null;
+          talking_status: string | null;
+          elapsed_listening_seconds: number | null;
+          elapsed_talking_seconds: number | null;
+          last_conversation_id: string | null;
+          last_active_at: string | null;
+        };
+        Insert: {
+          student_id: string;
+          book_id: string;
+          episode: number;
+          listening_status?: string | null;
+          talking_status?: string | null;
+          elapsed_listening_seconds?: number | null;
+          elapsed_talking_seconds?: number | null;
+          last_conversation_id?: string | null;
+          last_active_at?: string | null;
+        };
+        Update: {
+          student_id?: string;
+          book_id?: string;
+          episode?: number;
+          listening_status?: string | null;
+          talking_status?: string | null;
+          elapsed_listening_seconds?: number | null;
+          elapsed_talking_seconds?: number | null;
+          last_conversation_id?: string | null;
+          last_active_at?: string | null;
+        };
+        Relationships: [];
+      };
+      parental_consents: {
+        Row: {
+          student_id: string | null;
+          child_name: string;
+          parent_name: string;
+          consent_date: string;
+          consent_given: boolean;
+          consented_at: string;
+          consent_text_version: string | null;
+          processors_disclosed: Json | null;
+          user_agent: string | null;
+        };
+        Insert: {
+          student_id?: string | null;
+          child_name: string;
+          parent_name: string;
+          consent_date: string;
+          consent_given: boolean;
+          consented_at: string;
+          consent_text_version?: string | null;
+          processors_disclosed?: Json | null;
+          user_agent?: string | null;
+        };
+        Update: {
+          student_id?: string | null;
+          child_name?: string;
+          parent_name?: string;
+          consent_date?: string;
+          consent_given?: boolean;
+          consented_at?: string;
+          consent_text_version?: string | null;
+          processors_disclosed?: Json | null;
+          user_agent?: string | null;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+  auth: {
+    Tables: {
+      sessions: {
+        Row: {
+          created_at: string | null;
+          date: string;
+          id: string;
+          notes: string | null;
+          pages_read: number;
+          student_book_id: string | null;
+          time_spent: number;
+        };
+        Insert: {
+          created_at?: string | null;
+          date: string;
+          id?: string;
+          notes?: string | null;
+          pages_read: number;
+          student_book_id?: string | null;
+          time_spent: number;
+        };
+        Update: {
+          created_at?: string | null;
+          date?: string;
+          id?: string;
+          notes?: string | null;
+          pages_read?: number;
+          student_book_id?: string | null;
+          time_spent?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sessions_student_book_id_fkey";
+            columns: ["student_book_id"];
+            isOneToOne: false;
+            referencedRelation: "student_books";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-import { supabase } from "./integrations/supabase/client";
+import { supabaseUserData } from "./integrations/supabase/client";
 
 const APP_USAGE_TABLE = "app_usage_events";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -81,7 +81,9 @@ export const useAppUsageTracker = ({
       if (APP_USAGE_TRACKING_DISABLED) return;
       try {
         const payload = buildPayload(eventType, details);
-        const { error } = await supabase.from(APP_USAGE_TABLE).insert(payload);
+        const { error } = await supabaseUserData
+          .from(APP_USAGE_TABLE)
+          .insert(payload);
         if (error) {
           console.warn(`Failed to track ${eventType}:`, error);
         }
@@ -113,6 +115,7 @@ export const useAppUsageTracker = ({
           keepalive: true,
           headers: {
             "Content-Type": "application/json",
+            "Content-Profile": "user_data",
             apikey: SUPABASE_ANON_KEY,
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
             Prefer: "return=minimal",

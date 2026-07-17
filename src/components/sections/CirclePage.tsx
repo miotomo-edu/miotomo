@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { Book } from "../../types";
-import { supabase } from "../../hooks/integrations/supabase/client";
+import {
+  supabase,
+  supabaseUserData,
+} from "../../hooks/integrations/supabase/client";
 import { useBooks } from "../../hooks/useBooks";
 import { useCircleCover } from "../../hooks/useCircleCover";
 import { useBrowseCircles } from "../../hooks/useBrowseCircles";
@@ -586,7 +589,7 @@ const CirclePage: React.FC<CirclePageProps> = ({
     const loadDotProgress = async () => {
       if (!studentId || !book?.id) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseUserData
           .from("dot_progress")
           .select(
             "episode, listening_status, talking_status, elapsed_listening_seconds",

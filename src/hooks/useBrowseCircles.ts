@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "./integrations/supabase/client";
+import {
+  supabase,
+  supabaseUserData,
+} from "./integrations/supabase/client";
 import type { Book as LocalBook } from "../types";
 
 type CatalogRow = {
@@ -68,7 +71,7 @@ export function useBrowseCircles(studentId?: string) {
             .eq("type", "circle"),
           supabase.from("circles_catalog").select("*"),
           studentId
-            ? supabase
+            ? supabaseUserData
                 .from("dot_progress")
                 .select(
                   "book_id, episode, listening_status, talking_status, last_active_at",

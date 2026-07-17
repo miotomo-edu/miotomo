@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { supabase } from "./integrations/supabase/client";
+import { supabaseUserData } from "./integrations/supabase/client";
 
 export type DotProgressUpdate = {
   studentId: string;
@@ -27,7 +27,7 @@ export const useDotProgress = () => {
       setError(null);
 
       try {
-        const { data, error: supabaseError } = await supabase
+        const { data, error: supabaseError } = await supabaseUserData
           .from("dot_progress")
           .select(
             "listening_status, talking_status, elapsed_listening_seconds, elapsed_talking_seconds",
@@ -95,7 +95,7 @@ export const useDotProgress = () => {
     }
 
     try {
-      const { data, error: supabaseError } = await supabase
+      const { data, error: supabaseError } = await supabaseUserData
         .from("dot_progress")
         .upsert(payload, {
           onConflict: "student_id,book_id,episode",

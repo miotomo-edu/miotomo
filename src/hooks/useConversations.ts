@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { supabase } from "./integrations/supabase/client";
+import { supabaseUserData } from "./integrations/supabase/client";
 
 export interface ConversationData {
   id?: string;
@@ -66,7 +66,7 @@ export const useConversations = (): UseConversationsReturn => {
             : (options ?? {});
         const tableName = "conversations";
 
-        let query = supabase
+        let query = supabaseUserData
           .from(tableName)
           .select(
             "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id, chapter",
@@ -98,7 +98,7 @@ export const useConversations = (): UseConversationsReturn => {
         }
 
         if (normalizedOptions.includeFallback && (!data || data.length === 0)) {
-          const fallbackQuery = supabase
+          const fallbackQuery = supabaseUserData
             .from(tableName)
             .select(
               "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id, chapter",
@@ -153,7 +153,7 @@ export const useConversations = (): UseConversationsReturn => {
     try {
       const tableName = "conversations";
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseUserData
         .from(tableName)
         .select(
           "id, created_at, updated_at, day, last_active_at, status, elapsed_seconds, book_id, student_id, chapter",
@@ -191,7 +191,7 @@ export const useConversations = (): UseConversationsReturn => {
     try {
       const tableName = "conversations";
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseUserData
         .from(tableName)
         .delete()
         .eq("id", conversationId);

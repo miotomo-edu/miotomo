@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Book } from "../../../types";
 import { useCircleCover } from "../../../hooks/useCircleCover";
-import { supabase } from "../../../hooks/integrations/supabase/client";
+import {
+  supabase,
+  supabaseUserData,
+} from "../../../hooks/integrations/supabase/client";
 import { useBooks } from "../../../hooks/useBooks";
 type CurrentCircleHeroProps = {
   studentId: string;
@@ -73,7 +76,7 @@ const CurrentCircleHero: React.FC<CurrentCircleHeroProps> = ({
             .eq("circle_id", item.book.id)
             .order("created_at", { ascending: false }),
           studentId
-            ? supabase
+            ? supabaseUserData
                 .from("dot_progress")
                 .select(
                   "episode, listening_status, talking_status, elapsed_listening_seconds",
