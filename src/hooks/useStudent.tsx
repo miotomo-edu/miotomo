@@ -60,7 +60,7 @@ export function useStudent(studentId = HARDCODED_STUDENT_ID) {
     queryKey: ["student", studentId],
     queryFn: async () => {
       // Fetch student data
-      const { data: studentData, error: studentError } = await supabase
+      const { data: studentData, error: studentError } = await supabaseUserData
         .from("students")
         .select("*")
         .eq("id", studentId)

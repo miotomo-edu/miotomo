@@ -39,86 +39,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      student_books: {
-        Row: {
-          assigned_date: string | null;
-          book_id: string | null;
-          created_at: string | null;
-          id: string;
-          last_read_date: string | null;
-          progress: number;
-          status: string;
-          student_id: string | null;
-        };
-        Insert: {
-          assigned_date?: string | null;
-          book_id?: string | null;
-          created_at?: string | null;
-          id?: string;
-          last_read_date?: string | null;
-          progress?: number;
-          status: string;
-          student_id?: string | null;
-        };
-        Update: {
-          assigned_date?: string | null;
-          book_id?: string | null;
-          created_at?: string | null;
-          id?: string;
-          last_read_date?: string | null;
-          progress?: number;
-          status?: string;
-          student_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "student_books_book_id_fkey";
-            columns: ["book_id"];
-            isOneToOne: false;
-            referencedRelation: "books";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "student_books_student_id_fkey";
-            columns: ["student_id"];
-            isOneToOne: false;
-            referencedRelation: "students";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      students: {
-        Row: {
-          avatar: string | null;
-          created_at: string | null;
-          id: string;
-          name: string;
-          user_id: string | null;
-        };
-        Insert: {
-          avatar?: string | null;
-          created_at?: string | null;
-          id?: string;
-          name: string;
-          user_id?: string | null;
-        };
-        Update: {
-          avatar?: string | null;
-          created_at?: string | null;
-          id?: string;
-          name?: string;
-          user_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "students_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       users: {
         Row: {
           created_at: string | null;
@@ -338,6 +258,86 @@ export type Database = {
           user_agent?: string | null;
         };
         Relationships: [];
+      };
+      student_books: {
+        Row: {
+          assigned_date: string | null;
+          book_id: string | null;
+          created_at: string | null;
+          id: string;
+          last_read_date: string | null;
+          progress: number;
+          status: string;
+          student_id: string | null;
+        };
+        Insert: {
+          assigned_date?: string | null;
+          book_id?: string | null;
+          created_at?: string | null;
+          id?: string;
+          last_read_date?: string | null;
+          progress?: number;
+          status: string;
+          student_id?: string | null;
+        };
+        Update: {
+          assigned_date?: string | null;
+          book_id?: string | null;
+          created_at?: string | null;
+          id?: string;
+          last_read_date?: string | null;
+          progress?: number;
+          status?: string;
+          student_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "student_books_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "student_books_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "students";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      students: {
+        Row: {
+          avatar: string | null;
+          created_at: string | null;
+          id: string;
+          name: string;
+          user_id: string | null;
+        };
+        Insert: {
+          avatar?: string | null;
+          created_at?: string | null;
+          id?: string;
+          name: string;
+          user_id?: string | null;
+        };
+        Update: {
+          avatar?: string | null;
+          created_at?: string | null;
+          id?: string;
+          name?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "students_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

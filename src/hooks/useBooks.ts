@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "./integrations/supabase/client";
+import {
+  supabase,
+  supabaseUserData,
+} from "./integrations/supabase/client";
 import type { Book as LocalBook } from "../types";
 import type { TablesUpdate } from "./integrations/supabase/types";
 
@@ -47,7 +50,7 @@ export function useBooks(studentId: string) {
       status?: "new" | "started" | "read";
     }) => {
       // First, check if the student_book record exists
-      const { data: existingRecord, error: fetchError } = await supabase
+      const { data: existingRecord, error: fetchError } = await supabaseUserData
         .from("student_books")
         .select("id")
         .eq("student_id", studentId)
@@ -60,7 +63,10 @@ export function useBooks(studentId: string) {
       }
 
       // Prepare update data
-      const updateData: TablesUpdate<"student_books"> = {
+      const updateData: TablesUpdate<
+        { schema: "user_data" },
+        "student_books"
+      > = {
         progress,
         last_read_date: new Date().toISOString(),
       };
@@ -74,7 +80,7 @@ export function useBooks(studentId: string) {
 
       if (existingRecord) {
         // Update existing record
-        const { data, error } = await supabase
+        const { data, error } = await supabaseUserData
           .from("student_books")
           .update(updateData)
           .eq("id", existingRecord.id)
@@ -84,7 +90,7 @@ export function useBooks(studentId: string) {
         return data;
       } else {
         // Create new record if it doesn't exist
-        const { data, error } = await supabase
+        const { data, error } = await supabaseUserData
           .from("student_books")
           .insert({
             student_id: studentId,
